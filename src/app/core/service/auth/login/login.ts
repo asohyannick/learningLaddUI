@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  computed,
   inject,
   input,
   signal,
@@ -18,11 +19,12 @@ import { inputClasses } from '../../../../shared/validators/field-styles';
 import { applyServerErrors, trimmed } from '../../../../shared/validators/form-validators';
 import { safeReturnUrl } from '../auth-session';
 import { AuthService } from '../auth.service';
+import { GoogleAuth } from '../google-auth/google-auth';
 
 /** Sign-in page. On success the user goes back to `returnUrl`, or to their role's dashboard. */
 @Component({
   selector: 'app-login',
-  imports: [AuthLayout, FieldError, FormAlert, ReactiveFormsModule, RouterLink],
+  imports: [AuthLayout, FieldError, FormAlert, GoogleAuth, ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.html',
 })
@@ -34,8 +36,22 @@ export class Login {
 
   /** Query param set by the auth guards: the page the user was trying to open. */
   readonly returnUrl = input<string>();
-  /** Query param set after a successful email verification. */
+  // Query params set by the page that sent the user here.
   readonly verified = input<string>();
+  readonly passwordReset = input<string>();
+  readonly signedOut = input<string>();
+  readonly expired = input<string>();
+  readonly accountDeleted = input<string>();
+
+  /** Green notice at the top of the form. */
+  protected readonly notice = computed(() => {
+    if (this.accountDeleted() === 'true') return 'Your account has been deleted.';
+    if (this.passwordReset() === 'true')
+      return 'Your password has been changed. Sign in with the new one.';
+    if (this.verified() === 'true') return 'Your email is verified. Sign in to get started.';
+    if (this.signedOut() === 'true') return 'You have been signed out.';
+    return null;
+  });
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
     // Pre-filled after sign-up + verification.

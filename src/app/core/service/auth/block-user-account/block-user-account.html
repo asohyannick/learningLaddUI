@@ -1,1 +1,46 @@
-<p>block-user-account works!</p>
+<app-modal
+  heading="Block this account?"
+  [description]="
+    name() +
+    ' will be signed out and cannot sign in until unblocked. They will receive your reason by email.'
+  "
+  tone="danger"
+  [busy]="submitting()"
+  (closed)="cancelled.emit()"
+>
+  @if (serverError(); as message) {
+    <app-form-alert class="mb-4">{{ message }}</app-form-alert>
+  }
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <label for="block-reason" class="mb-1.5 block text-sm font-medium">Reason</label>
+    <textarea
+      id="block-reason"
+      rows="4"
+      formControlName="reason"
+      maxlength="500"
+      placeholder="e.g. Repeated violation of the academic integrity policy"
+      [class]="inputClasses(showError) + ' resize-none'"
+      [attr.aria-invalid]="showError"
+      [attr.aria-describedby]="showError ? 'block-reason-error' : null"
+    ></textarea>
+    <app-field-error [control]="form.controls.reason" label="Reason" errorId="block-reason-error" />
+
+    <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <button
+        type="button"
+        class="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50 disabled:opacity-60"
+        [disabled]="submitting()"
+        (click)="cancelled.emit()"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-60"
+        [disabled]="submitting()"
+      >
+        {{ submitting() ? 'Blocking…' : 'Block account' }}
+      </button>
+    </div>
+  </form>
+</app-modal>

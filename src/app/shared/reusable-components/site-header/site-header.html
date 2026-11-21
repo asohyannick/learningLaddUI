@@ -40,16 +40,29 @@
     </ul>
 
     <div class="hidden items-center gap-3 lg:flex">
-      <a
-        routerLink="/login"
-        class="rounded-lg border border-white/40 px-4 py-2 text-sm font-semibold transition-colors hover:border-white hover:bg-white/10"
-        >Sign in</a
-      >
-      <a
-        routerLink="/register"
-        class="rounded-lg bg-ladder px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-ladder-light"
-        >Get started</a
-      >
+      @if (account(); as user) {
+        <a
+          routerLink="/logout"
+          class="rounded-lg border border-white/40 px-4 py-2 text-sm font-semibold transition-colors hover:border-white hover:bg-white/10"
+          >Sign out</a
+        >
+        <a
+          [routerLink]="user.dashboardPath"
+          class="rounded-lg bg-ladder px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-ladder-light"
+          >Dashboard</a
+        >
+      } @else {
+        <a
+          routerLink="/login"
+          class="rounded-lg border border-white/40 px-4 py-2 text-sm font-semibold transition-colors hover:border-white hover:bg-white/10"
+          >Sign in</a
+        >
+        <a
+          routerLink="/register"
+          class="rounded-lg bg-ladder px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-ladder-light"
+          >Get started</a
+        >
+      }
     </div>
 
     <!-- Mobile menu toggle -->
@@ -104,18 +117,33 @@
         }
       </ul>
       <div class="mt-4 grid grid-cols-2 gap-3">
-        <a
-          routerLink="/login"
-          class="rounded-lg border border-white/40 px-4 py-2.5 text-center text-sm font-semibold hover:bg-white/10"
-          (click)="closeMenu()"
-          >Sign in</a
-        >
-        <a
-          routerLink="/register"
-          class="rounded-lg bg-ladder px-4 py-2.5 text-center text-sm font-semibold text-ink hover:bg-ladder-light"
-          (click)="closeMenu()"
-          >Get started</a
-        >
+        @if (account(); as user) {
+          <a
+            routerLink="/logout"
+            class="rounded-lg border border-white/40 px-4 py-2.5 text-center text-sm font-semibold hover:bg-white/10"
+            (click)="closeMenu()"
+            >Sign out</a
+          >
+          <a
+            [routerLink]="user.dashboardPath"
+            class="rounded-lg bg-ladder px-4 py-2.5 text-center text-sm font-semibold text-ink hover:bg-ladder-light"
+            (click)="closeMenu()"
+            >Dashboard</a
+          >
+        } @else {
+          <a
+            routerLink="/login"
+            class="rounded-lg border border-white/40 px-4 py-2.5 text-center text-sm font-semibold hover:bg-white/10"
+            (click)="closeMenu()"
+            >Sign in</a
+          >
+          <a
+            routerLink="/register"
+            class="rounded-lg bg-ladder px-4 py-2.5 text-center text-sm font-semibold text-ink hover:bg-ladder-light"
+            (click)="closeMenu()"
+            >Get started</a
+          >
+        }
       </div>
     </div>
   }

@@ -8,11 +8,13 @@ import {
   Router,
   RouterStateSnapshot,
   UrlTree,
+  convertToParamMap,
   provideRouter,
 } from '@angular/router';
 import { UserRole } from '../enum/global-enum-configuration';
 import { AuthService } from '../service/auth/auth.service';
-import { authGuard, guestGuard, roleGuard } from './auth.guard';
+import { fakeLoginResponse } from '../testing/fake-login-response';
+import { authGuard, guestGuard, magicLinkTokenGuard, roleGuard } from './auth.guard';
 
 function run(guard: CanActivateFn, url = '/courses'): MaybeAsync<GuardResult> {
   return TestBed.runInInjectionContext(() =>
@@ -21,16 +23,7 @@ function run(guard: CanActivateFn, url = '/courses'): MaybeAsync<GuardResult> {
 }
 
 function signIn(role: UserRole): void {
-  TestBed.inject(AuthService).startSession({
-    accessToken: 'a',
-    refreshToken: 'r',
-    accessTokenExpiresIn: 300,
-    accessTokenExpiresAt: '',
-    refreshTokenExpiresIn: 604800,
-    refreshTokenExpiresAt: '',
-    tokenType: 'Bearer',
-    user: { id: '1', firstName: 'A', lastName: 'B', email: 'a@b.c', role },
-  });
+  TestBed.inject(AuthService).startSession(fakeLoginResponse({ role }));
 }
 
 describe('auth guards', () => {
@@ -58,6 +51,20 @@ describe('auth guards', () => {
     expect(router.serializeUrl(run(guestGuard) as UrlTree)).toBe('/dashboard/student');
     signIn(UserRole.LECTURER);
     expect(router.serializeUrl(run(guestGuard) as UrlTree)).toBe('/dashboard/tutor');
+  });
+
+  it('magicLinkTokenGuard forwards an emailed link with a token to the verify page', () => {
+    const route = (queryParams: Record<string, string>) =>
+      ({ queryParams, queryParamMap: convertToParamMap(queryParams) }) as ActivatedRouteSnapshot;
+    const runWith = (queryParams: Record<string, string>) =>
+      TestBed.runInInjectionContext(() =>
+        magicLinkTokenGuard(route(queryParams), { url: '/magic-link' } as RouterStateSnapshot),
+      );
+
+    expect(runWith({})).toBe(true);
+    expect(router.serializeUrl(runWith({ token: 'a7dt-S1_z' }) as UrlTree)).toBe(
+      '/magic-link/verify?token=a7dt-S1_z',
+    );
   });
 
   it('roleGuard checks the role', () => {

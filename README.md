@@ -46,10 +46,10 @@ Learning Ladder is a full **School Management System**. The backend (Java 25 + S
 
 | 🌍 Resource | 🔗 Link |
 | --- | --- |
-| 🖥️ Backend API (production) | `https://learningladder-4xlm.onrender.com` |
-| 📘 API docs (Swagger UI) | `https://learningladder-4xlm.onrender.com/swagger-ui/index.html` |
-| 📄 OpenAPI spec (JSON) | `https://learningladder-4xlm.onrender.com/v3/api-docs` |
-| 🩺 API health check | `https://learningladder-4xlm.onrender.com/actuator/health` |
+| 🖥️ Backend API (production) | `https://learningladder-fw9x.onrender.com` |
+| 📘 API docs (Swagger UI) | `https://learningladder-fw9x.onrender.com/swagger-ui/index.html` |
+| 📄 OpenAPI spec (JSON) | `https://learningladder-fw9x.onrender.com/v3/api-docs` |
+| 🩺 API health check | `https://learningladder-fw9x.onrender.com/actuator/health` |
 | 💻 Backend API (local) | `http://localhost:8090` |
 
 ---
@@ -366,7 +366,7 @@ Open 👉 **<http://localhost:4200>** (or the port set in your config).
 }
 ```
 
-`environment.development.ts` uses `apiUrl: '/api/v1'`, so requests go through the proxy. To work against the **deployed** API instead, change the proxy `target` to `https://learningladder-4xlm.onrender.com` (don't commit that change).
+`environment.development.ts` uses `apiUrl: '/api/v1'`, so requests go through the proxy. To work against the **deployed** API instead, change the proxy `target` to `https://learningladder-fw9x.onrender.com` (don't commit that change).
 
 > 🔁 Restart `npm start` after changing the proxy, `angular.json` or environment files. Hot reload does not pick these up.
 
@@ -396,12 +396,14 @@ git commit -m "chore: stop tracking environment files"
 
 ### 📝 Template to commit: `src/environments/environment.example.ts`
 
-`npm start`, `npm run build`, `npm run watch` and `npm test` run `scripts/ensure-env.mjs` first. It copies this template to `environment.ts` and `environment.development.ts` **when they are missing** and never overwrites existing files. Then fill in the real values. The shape is typed by `AppEnvironment` (`core/interface/environment.interface.ts`):
+`npm start`, `npm run build`, `npm run watch` and `npm test` run `scripts/ensure-env.mjs` first. It copies this template to `environment.ts` and `environment.development.ts` **when they are missing** and never overwrites existing files. Then fill in the real values.
+
+The Firebase web config comes from `.env`: the script copies `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID` and `FIREBASE_APP_ID` into the `firebase` block of both files on every run (Angular cannot read `.env` in the browser). While those values are still placeholders, the "Continue with Google" button is hidden. The shape is typed by `AppEnvironment` (`core/interface/environment.interface.ts`):
 
 ```ts
 export const environment: AppEnvironment = {
   production: false,
-  apiUrl: '/api/v1', // production: 'https://learningladder-4xlm.onrender.com/api/v1'
+  apiUrl: '/api/v1', // production: 'https://learningladder-fw9x.onrender.com/api/v1'
   firebase: {
     apiKey: '<firebase-web-api-key>',
     authDomain: '<project>.firebaseapp.com',

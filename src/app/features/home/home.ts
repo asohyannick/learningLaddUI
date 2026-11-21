@@ -8,6 +8,7 @@ import { EnumLabelPipe } from '../../shared/custom-pipe/enum-label-pipe';
 import { SiteFooter } from '../../shared/reusable-components/site-footer/site-footer';
 import { SiteHeader } from '../../shared/reusable-components/site-header/site-header';
 import { HomeService } from './home.service';
+import { injectHeaderAccount } from '../../core/service/auth/header-account';
 
 type FeatureIcon = 'courses' | 'timetable' | 'tutor' | 'library' | 'payments' | 'assistant';
 
@@ -50,6 +51,7 @@ interface Step {
   templateUrl: './home.html',
 })
 export class Home {
+  protected readonly account = injectHeaderAccount();
   private readonly homeService = inject(HomeService);
 
   protected readonly isSignedIn = inject(AuthService).isAuthenticated;

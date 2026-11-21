@@ -91,20 +91,10 @@
         </button>
       </div>
       <app-field-error [control]="form.controls.password" label="Password" />
-      <ul id="password-rules" class="mt-2 grid gap-1 text-xs sm:grid-cols-2">
-        @for (check of passwordChecks(); track check.label) {
-          <li
-            class="flex items-center gap-1.5"
-            [class]="
-              check.met ? 'text-emerald-700' : showError('password') ? 'text-red-600' : 'text-muted'
-            "
-          >
-            <span aria-hidden="true">{{ check.met ? '✓' : '•' }}</span>
-            {{ check.label }}
-            <span class="sr-only">{{ check.met ? '(met)' : '(not met)' }}</span>
-          </li>
-        }
-      </ul>
+      <app-password-checklist
+        [value]="form.controls.password.value"
+        [showErrors]="showError('password')"
+      />
     </div>
 
     <div>
@@ -147,6 +137,11 @@
       By creating an account you agree to our Terms and Privacy Policy.
     </p>
   </form>
+
+  <div class="mt-6 flex items-center gap-3 text-xs text-muted">
+    <span class="h-px flex-1 bg-line"></span>or<span class="h-px flex-1 bg-line"></span>
+  </div>
+  <app-google-auth class="mt-6 block" />
 
   <p class="mt-8 text-center text-sm text-muted">
     Already have an account?

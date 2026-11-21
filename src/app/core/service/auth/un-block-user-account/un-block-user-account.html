@@ -1,1 +1,46 @@
-<p>un-block-user-account works!</p>
+<app-modal
+  heading="Unblock this account?"
+  [description]="name() + ' will be able to sign in again and will be notified by email.'"
+  [busy]="submitting()"
+  (closed)="cancelled.emit()"
+>
+  @if (serverError(); as message) {
+    <app-form-alert class="mb-4">{{ message }}</app-form-alert>
+  }
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <label for="unblock-reason" class="mb-1.5 block text-sm font-medium">Reason</label>
+    <textarea
+      id="unblock-reason"
+      rows="4"
+      formControlName="reason"
+      maxlength="500"
+      placeholder="e.g. Appeal reviewed and accepted"
+      [class]="inputClasses(showError) + ' resize-none'"
+      [attr.aria-invalid]="showError"
+      [attr.aria-describedby]="showError ? 'unblock-reason-error' : null"
+    ></textarea>
+    <app-field-error
+      [control]="form.controls.reason"
+      label="Reason"
+      errorId="unblock-reason-error"
+    />
+
+    <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <button
+        type="button"
+        class="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50 disabled:opacity-60"
+        [disabled]="submitting()"
+        (click)="cancelled.emit()"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="rounded-lg bg-royal px-4 py-2.5 text-sm font-semibold text-white hover:bg-royal-dark disabled:opacity-60"
+        [disabled]="submitting()"
+      >
+        {{ submitting() ? 'Unblocking…' : 'Unblock account' }}
+      </button>
+    </div>
+  </form>
+</app-modal>

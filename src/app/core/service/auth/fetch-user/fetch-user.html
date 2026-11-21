@@ -1,1 +1,132 @@
-<p>fetch-user works!</p>
+<div class="fixed inset-0 z-40">
+  <div class="absolute inset-0 bg-navy-950/60 backdrop-blur-[2px]" (click)="closed.emit()"></div>
+  <aside
+    class="absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-white/10 bg-navy-900 text-slate-200 shadow-2xl outline-none"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="user-panel-title"
+    tabindex="-1"
+  >
+    <header class="flex items-center justify-between border-b border-white/10 px-6 py-4">
+      <h2 id="user-panel-title" class="text-base font-semibold text-white">User details</h2>
+      <button
+        type="button"
+        class="rounded-md p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"
+        aria-label="Close user details"
+        (click)="closed.emit()"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path
+            d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"
+          />
+        </svg>
+      </button>
+    </header>
+
+    <div class="flex-1 overflow-y-auto px-6 py-6">
+      @if (loading()) {
+        <div class="animate-pulse space-y-4" role="status" aria-label="Loading user">
+          <div class="flex items-center gap-4">
+            <div class="h-14 w-14 rounded-full bg-white/10"></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-4 w-2/3 rounded bg-white/10"></div>
+              <div class="h-3 w-1/2 rounded bg-white/10"></div>
+            </div>
+          </div>
+          @for (row of [1, 2, 3, 4, 5]; track row) {
+            <div class="h-10 rounded-lg bg-white/5"></div>
+          }
+        </div>
+      } @else if (error(); as message) {
+        <div
+          class="rounded-xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-200"
+          role="alert"
+        >
+          <p>{{ message }}</p>
+          <button type="button" class="mt-2 font-semibold underline" (click)="load()">
+            Try again
+          </button>
+        </div>
+      } @else if (user(); as u) {
+        <div class="flex items-center gap-4">
+          <span
+            class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-royal to-indigo-500 text-lg font-semibold text-white"
+            aria-hidden="true"
+            >{{ initials(u) }}</span
+          >
+          <div class="min-w-0">
+            <p class="truncate text-lg font-semibold text-white">
+              {{ displayName(u) }}
+              @if (u.id === currentUserId()) {
+                <span class="ml-1 text-xs font-medium text-slate-400">(you)</span>
+              }
+            </p>
+            <p class="truncate text-sm text-slate-400">{{ u.email }}</p>
+          </div>
+        </div>
+
+        <dl
+          class="mt-6 divide-y divide-white/5 rounded-xl border border-white/10 bg-navy-950/40 text-sm"
+        >
+          <div class="flex items-center justify-between gap-4 px-4 py-3">
+            <dt class="text-slate-400">Status</dt>
+            <dd>
+              <span
+                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset"
+                [class]="badge[status()!]"
+                >{{ status() }}</span
+              >
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 px-4 py-3">
+            <dt class="text-slate-400">Role</dt>
+            <dd class="font-medium text-white">{{ u.role | enumLabel }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 px-4 py-3">
+            <dt class="text-slate-400">Email verified</dt>
+            <dd class="font-medium text-white">{{ u.isAccountVerified ? 'Yes' : 'No' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 px-4 py-3">
+            <dt class="text-slate-400">Joined</dt>
+            <dd class="font-medium text-white">{{ u.createdAt | date: 'medium' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 px-4 py-3">
+            <dt class="text-slate-400">Last updated</dt>
+            <dd class="font-medium text-white">{{ u.updatedAt | date: 'medium' }}</dd>
+          </div>
+          <div class="px-4 py-3">
+            <dt class="text-slate-400">User ID</dt>
+            <dd class="mt-1 break-all font-mono text-xs text-slate-300">{{ u.id }}</dd>
+          </div>
+        </dl>
+      }
+    </div>
+
+    @if (user(); as u) {
+      <footer class="border-t border-white/10 px-6 py-4">
+        @if (canUnblock(u)) {
+          <button
+            type="button"
+            class="w-full rounded-lg bg-royal px-4 py-2.5 text-sm font-semibold text-white hover:bg-royal-dark"
+            (click)="unblock.emit(u)"
+          >
+            Unblock account
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="w-full rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-white/5 disabled:text-slate-500"
+            [disabled]="!canBlock(u, currentUserId())"
+            [attr.title]="blockDisabledReason(u, currentUserId()) || null"
+            (click)="block.emit(u)"
+          >
+            Block account
+          </button>
+          @if (blockDisabledReason(u, currentUserId()); as why) {
+            <p class="mt-2 text-center text-xs text-slate-500">{{ why }}</p>
+          }
+        }
+      </footer>
+    }
+  </aside>
+</div>

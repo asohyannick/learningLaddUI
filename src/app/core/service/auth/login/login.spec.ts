@@ -4,6 +4,8 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 import { errorInterceptor } from '../../../interceptor/error.interceptor';
+import { UserRole } from '../../../enum/global-enum-configuration';
+import { fakeLoginResponse, ok } from '../../../testing/fake-login-response';
 import { AuthService } from '../auth.service';
 import { Login } from './login';
 
@@ -71,34 +73,14 @@ describe('Login', () => {
 
     const req = backend.expectOne(url);
     expect(req.request.body).toEqual({ email: 'amara@example.com', password: 'Secret#123' });
-    req.flush({
-      success: true,
-      status: 200,
-      message: 'Login successful',
-      data: {
-        accessToken: 'access',
-        refreshToken: 'refresh',
-        user: {
-          id: '1',
-          firstName: 'Amara',
-          lastName: 'O',
-          email: 'amara@example.com',
-          role: 'TUTOR',
-        },
-      },
-    });
+    req.flush(ok(fakeLoginResponse({ role: UserRole.LECTURER }), 'Welcome back'));
 
     expect(TestBed.inject(AuthService).isAuthenticated()).toBe(true);
     expect(navigate).toHaveBeenCalledWith('/dashboard/tutor', { replaceUrl: true });
   });
 
   it('goes back to a safe returnUrl, but ignores external ones', async () => {
-    const session = {
-      success: true,
-      status: 200,
-      message: 'OK',
-      data: { accessToken: 'a', refreshToken: 'r', user: { id: '1', role: 'STUDENT' } },
-    };
+    const session = ok(fakeLoginResponse());
 
     let page = await render({ returnUrl: '/library' });
     page.type('#email', 'a@b.co');

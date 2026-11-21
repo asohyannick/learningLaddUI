@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { ADMIN_ROLES, UserRole } from './core/enum/global-enum-configuration';
-import { authGuard, guestGuard, roleGuard } from './core/guard/auth.guard';
+import { authGuard, guestGuard, magicLinkTokenGuard, roleGuard } from './core/guard/auth.guard';
 
 // Every page is lazy-loaded. Paths are first drafts; adjust them as screens are designed.
 export const routes: Routes = [
@@ -20,6 +20,20 @@ export const routes: Routes = [
     path: 'jobs',
     title: 'Careers | Learning Ladder',
     loadComponent: () => import('./features/job-listing/job-listing').then((m) => m.JobListing),
+  },
+
+  // 🔓 Auth pages open to everyone
+  {
+    // Opened from the email link; works even if this browser is still signed in.
+    path: 'reset-password',
+    title: 'Reset password | Learning Ladder',
+    loadComponent: () =>
+      import('./core/service/auth/reset-password/reset-password').then((m) => m.ResetPassword),
+  },
+  {
+    path: 'logout',
+    title: 'Signing out | Learning Ladder',
+    loadComponent: () => import('./core/service/auth/logout/logout').then((m) => m.Logout),
   },
 
   // 🔓 Signed-out only
@@ -53,14 +67,10 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'reset-password',
-        title: 'Reset password | Learning Ladder',
-        loadComponent: () =>
-          import('./core/service/auth/reset-password/reset-password').then((m) => m.ResetPassword),
-      },
-      {
         path: 'magic-link',
         title: 'Sign in with a link | Learning Ladder',
+        // The emailed link lands here with `?token=`: forward it to the verify page.
+        canActivate: [magicLinkTokenGuard],
         loadComponent: () =>
           import('./core/service/auth/login-via-magic-link/login-via-magic-link').then(
             (m) => m.LoginViaMagicLink,
@@ -161,7 +171,7 @@ export const routes: Routes = [
   {
     path: 'dashboard/tutor',
     title: 'Tutor dashboard | Learning Ladder',
-    canActivate: [roleGuard([UserRole.TUTOR, UserRole.LECTURER])],
+    canActivate: [roleGuard([UserRole.PROFESSOR, UserRole.LECTURER])],
     loadComponent: () =>
       import('./features/dashboard/tutor-dashboard/tutor-dashboard').then((m) => m.TutorDashboard),
   },

@@ -1,1 +1,68 @@
-<p>login-via-magic-link works!</p>
+<app-auth-layout
+  title="Sign in with a link"
+  subtitle="No password needed. We'll email you a link that signs you in with one click."
+>
+  @if (sentMessage(); as message) {
+    <app-form-alert tone="success" class="mb-6">
+      {{ message }}
+      <span class="mt-1 block">
+        Sent to <strong class="font-semibold">{{ sentTo() }}</strong
+        >. Open it on this device; the link works once and expires soon.
+      </span>
+    </app-form-alert>
+
+    <div class="space-y-3">
+      <app-resend-magic-link [email]="sentTo()" (resent)="sentMessage.set($event)" />
+      <button
+        type="button"
+        class="w-full text-center text-sm font-semibold text-royal hover:underline"
+        (click)="changeEmail()"
+      >
+        Use a different email
+      </button>
+    </div>
+  } @else {
+    @if (serverError(); as message) {
+      <app-form-alert class="mb-6">{{ message }}</app-form-alert>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-5">
+      <div>
+        <label for="email" class="mb-1.5 block text-sm font-medium text-ink">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          inputmode="email"
+          placeholder="name@example.com"
+          [class]="inputClasses(showError())"
+          [attr.aria-invalid]="showError()"
+          [attr.aria-describedby]="showError() ? 'email-error' : null"
+        />
+        <app-field-error [control]="form.controls.email" label="Email" errorId="email-error" />
+      </div>
+
+      <button
+        type="submit"
+        class="flex w-full items-center justify-center gap-2 rounded-lg bg-ladder px-5 py-3 text-sm font-semibold text-ink transition-colors hover:bg-ladder-light disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="submitting()"
+      >
+        @if (submitting()) {
+          <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity=".25" />
+            <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" />
+          </svg>
+          Sending link…
+        } @else {
+          Email me a sign-in link
+        }
+      </button>
+    </form>
+  }
+
+  <p class="mt-8 text-center text-sm text-muted">
+    Prefer your password?
+    <a routerLink="/login" class="font-semibold text-royal hover:underline">Back to sign in</a>
+  </p>
+</app-auth-layout>

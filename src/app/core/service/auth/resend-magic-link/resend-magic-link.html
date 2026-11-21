@@ -1,1 +1,17 @@
-<p>resend-magic-link works!</p>
+@if (error(); as message) {
+  <app-form-alert class="mb-3">{{ message }}</app-form-alert>
+}
+<button
+  type="button"
+  class="w-full rounded-lg border border-line bg-white px-5 py-3 text-sm font-semibold text-ink transition-colors hover:border-royal/40 disabled:cursor-not-allowed disabled:opacity-60"
+  [disabled]="sending() || cooldown.remaining() > 0"
+  (click)="resend()"
+>
+  @if (sending()) {
+    Sending…
+  } @else if (cooldown.remaining() > 0) {
+    Send another link in {{ cooldown.remaining() }}s
+  } @else {
+    Send another link
+  }
+</button>

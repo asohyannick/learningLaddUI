@@ -10,7 +10,13 @@ describe('JobListing', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [JobListing],
-      providers: [provideRouter([]), { provide: AuthService, useValue: { isAuthenticated } }],
+      providers: [
+        provideRouter([]),
+        {
+          provide: AuthService,
+          useValue: { isAuthenticated, dashboardPath: signal('/dashboard/student') },
+        },
+      ],
     }).compileComponents();
   });
 

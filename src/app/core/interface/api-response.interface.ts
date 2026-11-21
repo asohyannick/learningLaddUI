@@ -29,11 +29,15 @@ export interface ApiErrorResponse {
   timestamp: string;
 }
 
+/**
+ * The backend's error handler currently leaves out `success`, so only `success: true` rules a
+ * body out. Spring's own fallback body (`{ status, error, path }`, no `message`) does not match.
+ */
 export function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
   return (
     typeof value === 'object' &&
     value !== null &&
-    (value as Partial<ApiErrorResponse>).success === false &&
+    (value as { success?: unknown }).success !== true &&
     typeof (value as Partial<ApiErrorResponse>).status === 'number' &&
     typeof (value as Partial<ApiErrorResponse>).message === 'string'
   );

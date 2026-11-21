@@ -13,6 +13,7 @@ import { finalize } from 'rxjs';
 import { AuthLayout } from '../../../../shared/reusable-components/auth-layout/auth-layout';
 import { FieldError } from '../../../../shared/reusable-components/field-error/field-error';
 import { FormAlert } from '../../../../shared/reusable-components/form-alert/form-alert';
+import { createCountdown } from '../../../../shared/utils/countdown';
 import { inputClasses } from '../../../../shared/validators/field-styles';
 import {
   OTP_PATTERN,
@@ -56,14 +57,9 @@ export class VerifyOtp {
   protected readonly resending = signal(false);
   protected readonly resendMessage = signal<string | null>(null);
   protected readonly resendError = signal<string | null>(null);
-  protected readonly cooldown = signal(0);
-  private cooldownTimer: ReturnType<typeof setInterval> | null = null;
+  protected readonly cooldown = createCountdown(this.destroyRef);
 
   protected readonly inputClasses = inputClasses;
-
-  constructor() {
-    this.destroyRef.onDestroy(() => this.stopCooldown());
-  }
 
   protected showError(control: 'otpCode' | 'email'): boolean {
     const c = control === 'otpCode' ? this.form.controls.otpCode : this.resendForm.controls.email;
@@ -129,28 +125,10 @@ export class VerifyOtp {
         next: (message) => {
           this.auth.setPendingEmail(email);
           this.resendMessage.set(message || 'A new code is on its way.');
-          this.startCooldown();
+          this.cooldown.start(RESEND_COOLDOWN_SECONDS);
         },
         error: (error: unknown) => this.resendError.set(applyServerErrors(this.resendForm, error)),
       });
-  }
-
-  private startCooldown(): void {
-    this.stopCooldown();
-    this.cooldown.set(RESEND_COOLDOWN_SECONDS);
-    this.cooldownTimer = setInterval(() => {
-      this.cooldown.update((s) => s - 1);
-      if (this.cooldown() <= 0) {
-        this.stopCooldown();
-      }
-    }, 1000);
-  }
-
-  private stopCooldown(): void {
-    if (this.cooldownTimer) {
-      clearInterval(this.cooldownTimer);
-      this.cooldownTimer = null;
-    }
   }
 
   private focus(selector: string): void {

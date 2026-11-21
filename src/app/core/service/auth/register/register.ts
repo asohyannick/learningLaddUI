@@ -3,22 +3,22 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  computed,
   inject,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthLayout } from '../../../../shared/reusable-components/auth-layout/auth-layout';
 import { FieldError } from '../../../../shared/reusable-components/field-error/field-error';
 import { FormAlert } from '../../../../shared/reusable-components/form-alert/form-alert';
+import { PasswordChecklist } from '../../../../shared/reusable-components/password-checklist/password-checklist';
+import { GoogleAuth } from '../google-auth/google-auth';
 import { inputClasses } from '../../../../shared/validators/field-styles';
 import {
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
-  PASSWORD_RULES,
   PERSON_NAME_PATTERN,
   applyServerErrors,
   matchesControl,
@@ -37,7 +37,15 @@ const NAME_VALIDATORS = trimmed([
 /** Sign-up page: creates a student account, then sends the user to enter the emailed code. */
 @Component({
   selector: 'app-register',
-  imports: [AuthLayout, FieldError, FormAlert, ReactiveFormsModule, RouterLink],
+  imports: [
+    AuthLayout,
+    FieldError,
+    FormAlert,
+    GoogleAuth,
+    PasswordChecklist,
+    ReactiveFormsModule,
+    RouterLink,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './register.html',
 })
@@ -67,16 +75,6 @@ export class Register {
   protected readonly serverError = signal<string | null>(null);
   protected readonly showPassword = signal(false);
   protected readonly inputClasses = inputClasses;
-
-  private readonly password = toSignal(this.form.controls.password.valueChanges, {
-    initialValue: '',
-  });
-
-  /** Live checklist under the password field. */
-  protected readonly passwordChecks = computed(() => {
-    const value = this.password();
-    return PASSWORD_RULES.map((rule) => ({ label: rule.label, met: rule.test(value) }));
-  });
 
   constructor() {
     // Re-check "confirm password" whenever the password changes.

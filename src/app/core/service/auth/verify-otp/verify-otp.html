@@ -99,12 +99,12 @@
       <button
         type="submit"
         class="mt-3 rounded-lg border border-royal px-4 py-2 text-sm font-semibold text-royal transition-colors hover:bg-royal-soft disabled:cursor-not-allowed disabled:opacity-50"
-        [disabled]="resending() || cooldown() > 0"
+        [disabled]="resending() || cooldown.remaining() > 0"
       >
         @if (resending()) {
           Sending…
-        } @else if (cooldown() > 0) {
-          Resend code in {{ cooldown() }}s
+        } @else if (cooldown.remaining() > 0) {
+          Resend code in {{ cooldown.remaining() }}s
         } @else {
           Resend code
         }

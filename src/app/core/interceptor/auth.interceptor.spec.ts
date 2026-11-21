@@ -3,24 +3,16 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { environment } from '../../../environments/environment';
-import { ApiErrorResponse, LoginResponse } from '../interface';
+import { ApiErrorResponse } from '../interface';
+import { fakeLoginResponse } from '../testing/fake-login-response';
 import { AuthService } from '../service/auth/auth.service';
 import { authInterceptor } from './auth.interceptor';
 import { errorInterceptor } from './error.interceptor';
 
 const api = environment.apiUrl;
 
-function session(accessToken: string, refreshToken: string): LoginResponse {
-  return {
-    accessToken,
-    refreshToken,
-    accessTokenExpiresIn: 300,
-    accessTokenExpiresAt: '',
-    refreshTokenExpiresIn: 604800,
-    refreshTokenExpiresAt: '',
-    tokenType: 'Bearer',
-    user: { id: '1', firstName: 'Amina', lastName: 'N', email: 'a@b.c' },
-  };
+function session(accessToken: string, refreshToken: string) {
+  return fakeLoginResponse({ accessToken, refreshToken });
 }
 
 describe('authInterceptor + errorInterceptor', () => {
@@ -78,6 +70,21 @@ describe('authInterceptor + errorInterceptor', () => {
     }
     expect(results).toHaveLength(2);
     expect(localStorage.getItem('ll.refreshToken')).toBe('refresh-2');
+  });
+
+  it('holds requests while the token is being renewed, then sends the new one', () => {
+    auth.startSession(session('old', 'refresh-1'));
+    auth.refreshAccessToken().subscribe();
+
+    http.get(`${api}/course`).subscribe();
+    backend.expectNone(`${api}/course`);
+
+    backend
+      .expectOne(`${api}/auth/refresh-token`)
+      .flush({ success: true, data: session('new', 'refresh-2') });
+    expect(backend.expectOne(`${api}/course`).request.headers.get('Authorization')).toBe(
+      'Bearer new',
+    );
   });
 
   it('ends the session when the refresh fails', () => {

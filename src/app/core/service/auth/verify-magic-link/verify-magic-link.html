@@ -1,1 +1,32 @@
-<p>verify-magic-link works!</p>
+@if (problem(); as p) {
+  <app-auth-layout [title]="p.title" [subtitle]="p.subtitle">
+    <app-form-alert class="mb-6">
+      {{ p.message }}
+      <span class="mt-1 block">Links work once and expire after a short time.</span>
+    </app-form-alert>
+    <a
+      routerLink="/magic-link"
+      class="block w-full rounded-lg bg-ladder px-5 py-3 text-center text-sm font-semibold text-ink transition-colors hover:bg-ladder-light"
+      >Email me a new link</a
+    >
+    <p class="mt-8 text-center text-sm text-muted">
+      Prefer your password?
+      <a routerLink="/login" class="font-semibold text-royal hover:underline">Back to sign in</a>
+    </p>
+  </app-auth-layout>
+} @else {
+  <main class="flex min-h-screen items-center justify-center bg-cream px-4">
+    <p class="flex items-center gap-3 text-sm font-medium text-muted" role="status">
+      <svg
+        class="h-5 w-5 animate-spin text-royal"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity=".25" />
+        <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" />
+      </svg>
+      Signing you in…
+    </p>
+  </main>
+}

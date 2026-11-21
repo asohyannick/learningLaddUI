@@ -63,7 +63,10 @@ describe('Home', () => {
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: AuthService, useValue: { isAuthenticated } },
+        {
+          provide: AuthService,
+          useValue: { isAuthenticated, dashboardPath: signal('/dashboard/student') },
+        },
       ],
     }).compileComponents();
     backend = TestBed.inject(HttpTestingController);

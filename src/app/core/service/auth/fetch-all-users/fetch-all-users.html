@@ -1,1 +1,290 @@
-<p>fetch-all-users works!</p>
+<!-- Summary cards -->
+<section aria-label="User summary" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-indigo-500 to-violet-500 p-5 text-white shadow-lg shadow-indigo-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Total users</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">
+      {{ loading() && !total() ? '—' : total() }}
+    </p>
+    <p class="mt-1 text-xs text-white/75">All registered accounts</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-emerald-500 to-teal-500 p-5 text-white shadow-lg shadow-emerald-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Active</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">{{ stats().active }}</p>
+    <p class="mt-1 text-xs text-white/75">of {{ stats().shown }} on this page</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-rose-500 to-orange-500 p-5 text-white shadow-lg shadow-rose-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Blocked</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">{{ stats().blocked }}</p>
+    <p class="mt-1 text-xs text-white/75">of {{ stats().shown }} on this page</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-amber-500 to-ladder p-5 text-white shadow-lg shadow-amber-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Unverified</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">{{ stats().unverified }}</p>
+    <p class="mt-1 text-xs text-white/75">of {{ stats().shown }} on this page</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+</section>
+
+<!-- Users table -->
+<section
+  class="mt-6 rounded-2xl border border-white/10 bg-navy-900"
+  aria-labelledby="users-heading"
+>
+  <header
+    class="flex flex-col gap-3 border-b border-white/10 p-5 lg:flex-row lg:items-center lg:justify-between"
+  >
+    <div>
+      <h2 id="users-heading" class="text-base font-semibold text-white">All users</h2>
+      <p class="text-sm text-slate-400">View accounts and block or unblock access.</p>
+    </div>
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <label class="relative block">
+        <span class="sr-only">Filter this page by name or email</span>
+        <svg
+          class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.45 4.39l3.08 3.08a.75.75 0 1 1-1.06 1.06l-3.08-3.08A7 7 0 0 1 2 9Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <input
+          type="search"
+          placeholder="Filter this page…"
+          class="w-full rounded-lg border border-white/10 bg-navy-950 py-2 pl-9 pr-3 text-sm text-white placeholder:text-slate-500 focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40 sm:w-56"
+          [value]="filter()"
+          (input)="filter.set($any($event.target).value)"
+        />
+      </label>
+      <label class="flex items-center gap-2 text-sm text-slate-400">
+        <span class="sr-only sm:not-sr-only">Sort</span>
+        <select
+          class="w-full rounded-lg border border-white/10 bg-navy-950 px-3 py-2 text-sm text-white focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40"
+          [value]="sortIndex()"
+          (change)="setSort($any($event.target).value)"
+        >
+          @for (option of sortOptions; track option.label; let i = $index) {
+            <option [value]="i">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+      <button
+        type="button"
+        class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-white/5 disabled:opacity-50"
+        [disabled]="loading()"
+        (click)="reload()"
+      >
+        <svg
+          class="h-4 w-4"
+          [class.animate-spin]="loading()"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M15.31 4.69a.75.75 0 0 1 .75.75V9a.75.75 0 0 1-.75.75h-3.56a.75.75 0 0 1 0-1.5h1.76A5.5 5.5 0 0 0 4.5 10a.75.75 0 0 1-1.5 0 7 7 0 0 1 11.56-5.32V5.44a.75.75 0 0 1 .75-.75ZM16.25 9.25A.75.75 0 0 1 17 10a7 7 0 0 1-11.56 5.32v1.24a.75.75 0 0 1-1.5 0V13a.75.75 0 0 1 .75-.75h3.56a.75.75 0 0 1 0 1.5H6.49A5.5 5.5 0 0 0 15.5 10a.75.75 0 0 1 .75-.75Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  @if (error(); as message) {
+    <div
+      class="m-5 rounded-xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-200"
+      role="alert"
+    >
+      {{ message }}
+      <button type="button" class="ml-1 font-semibold underline" (click)="reload()">
+        Try again
+      </button>
+    </div>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm" [attr.aria-busy]="loading()">
+        <thead class="text-xs uppercase tracking-wide text-slate-500">
+          <tr class="border-b border-white/5">
+            <th scope="col" class="px-5 py-3 font-medium">User</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium md:table-cell">Role</th>
+            <th scope="col" class="px-5 py-3 font-medium">Status</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium lg:table-cell">Joined</th>
+            <th scope="col" class="px-5 py-3 text-right font-medium">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          @if (loading() && !visibleRows().length) {
+            @for (row of [1, 2, 3, 4, 5]; track row) {
+              <tr class="animate-pulse">
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-full bg-white/10"></div>
+                    <div class="space-y-2">
+                      <div class="h-3 w-32 rounded bg-white/10"></div>
+                      <div class="h-3 w-44 rounded bg-white/5"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="hidden px-5 py-4 md:table-cell">
+                  <div class="h-3 w-20 rounded bg-white/10"></div>
+                </td>
+                <td class="px-5 py-4"><div class="h-5 w-16 rounded-full bg-white/10"></div></td>
+                <td class="hidden px-5 py-4 lg:table-cell">
+                  <div class="h-3 w-24 rounded bg-white/10"></div>
+                </td>
+                <td class="px-5 py-4"></td>
+              </tr>
+            }
+          } @else {
+            @for (user of visibleRows(); track user.id) {
+              <tr class="transition hover:bg-white/3" [class.opacity-60]="loading()">
+                <td class="px-5 py-3.5">
+                  <div class="flex items-center gap-3">
+                    <span
+                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-royal/20 text-xs font-semibold text-indigo-200"
+                      aria-hidden="true"
+                      >{{ initials(user) }}</span
+                    >
+                    <div class="min-w-0">
+                      <p class="truncate font-medium text-white">
+                        {{ displayName(user) }}
+                        @if (user.id === currentUserId()) {
+                          <span class="ml-1 text-xs font-normal text-slate-500">(you)</span>
+                        }
+                      </p>
+                      <p class="truncate text-xs text-slate-400">{{ user.email }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="hidden px-5 py-3.5 text-slate-300 md:table-cell">
+                  {{ user.role | enumLabel }}
+                </td>
+                <td class="px-5 py-3.5">
+                  <span
+                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset"
+                    [class]="badge[accountStatus(user)]"
+                    >{{ accountStatus(user) }}</span
+                  >
+                </td>
+                <td class="hidden px-5 py-3.5 text-slate-400 lg:table-cell">
+                  {{ user.createdAt | date: 'mediumDate' }}
+                </td>
+                <td class="px-5 py-3.5">
+                  <div class="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      class="rounded-lg px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:bg-white/5"
+                      [attr.aria-label]="'View ' + displayName(user)"
+                      (click)="view.emit(user)"
+                    >
+                      View
+                    </button>
+                    @if (canUnblock(user)) {
+                      <button
+                        type="button"
+                        class="rounded-lg border border-royal/50 px-3 py-1.5 text-xs font-semibold text-indigo-200 hover:bg-royal/20"
+                        [attr.aria-label]="'Unblock ' + displayName(user)"
+                        (click)="unblock.emit(user)"
+                      >
+                        Unblock
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="rounded-lg border border-rose-400/40 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-400/10 disabled:cursor-not-allowed disabled:border-white/5 disabled:text-slate-600 disabled:hover:bg-transparent"
+                        [disabled]="!canBlock(user, currentUserId())"
+                        [attr.title]="blockDisabledReason(user, currentUserId()) || null"
+                        [attr.aria-label]="'Block ' + displayName(user)"
+                        (click)="block.emit(user)"
+                      >
+                        Block
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="px-5 py-12 text-center text-sm text-slate-400">
+                  {{
+                    filter() ? 'No users on this page match "' + filter() + '".' : 'No users yet.'
+                  }}
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <footer
+      class="flex flex-col gap-3 border-t border-white/10 px-5 py-4 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div class="flex items-center gap-3">
+        <span aria-live="polite">{{ rangeLabel() }}</span>
+        <label class="flex items-center gap-2">
+          <span>Rows</span>
+          <select
+            class="rounded-md border border-white/10 bg-navy-950 px-2 py-1 text-sm text-white focus:border-royal focus:outline-none"
+            [value]="size()"
+            (change)="setSize($any($event.target).value)"
+          >
+            @for (option of pageSizes; track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <nav class="flex items-center gap-2" aria-label="Pagination">
+        <button
+          type="button"
+          class="rounded-lg border border-white/10 px-3 py-1.5 font-medium text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!hasPrevious() || loading()"
+          (click)="goTo(page() - 1)"
+        >
+          Previous
+        </button>
+        <span class="px-1">Page {{ page() + 1 }} of {{ totalPages() }}</span>
+        <button
+          type="button"
+          class="rounded-lg border border-white/10 px-3 py-1.5 font-medium text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!hasNext() || loading()"
+          (click)="goTo(page() + 1)"
+        >
+          Next
+        </button>
+      </nav>
+    </footer>
+  }
+</section>

@@ -1,1 +1,253 @@
-<p>admin-dashboard works!</p>
+<div class="min-h-screen bg-navy-950 text-slate-200">
+  <!-- Mobile backdrop -->
+  @if (sidebarOpen()) {
+    <div class="fixed inset-0 z-30 bg-navy-950/70 lg:hidden" (click)="sidebarOpen.set(false)"></div>
+  }
+
+  <!-- Sidebar -->
+  <aside
+    id="admin-sidebar"
+    class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-white/10 bg-navy-900 transition-transform duration-200 lg:translate-x-0"
+    [class.-translate-x-full]="!sidebarOpen()"
+    aria-label="Admin navigation"
+  >
+    <div class="flex h-16 items-center gap-3 border-b border-white/10 px-5">
+      <span
+        class="flex h-9 w-9 items-center justify-center rounded-lg bg-ladder text-navy-950"
+        aria-hidden="true"
+      >
+        <svg
+          class="h-5 w-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+        >
+          <path d="M7 3v18M17 3v18M7 8h10M7 13h10M7 18h10" />
+        </svg>
+      </span>
+      <div class="leading-tight">
+        <p class="font-serif text-base font-semibold text-white">Learning Ladder</p>
+        <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+          Admin console
+        </p>
+      </div>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto px-3 py-5 text-sm">
+      <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+        Dashboard
+      </p>
+      <ul class="mt-2 space-y-1">
+        <li>
+          <a
+            routerLink="/dashboard/admin"
+            aria-current="page"
+            class="flex items-center gap-3 rounded-lg bg-royal/25 px-3 py-2 font-medium text-indigo-200"
+            (click)="sidebarOpen.set(false)"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path
+                d="M7 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM14.5 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM1.62 16.42a6 6 0 0 1 10.76 0 1 1 0 0 1-.48 1.36A9.94 9.94 0 0 1 7 19a9.94 9.94 0 0 1-4.9-1.22 1 1 0 0 1-.48-1.36ZM14.5 18c-.6 0-1.17-.07-1.72-.2.42-.75.5-1.66.13-2.47a7.48 7.48 0 0 0-1.86-2.5A5 5 0 0 1 19 15.9a.98.98 0 0 1-.5.93A7.97 7.97 0 0 1 14.5 18Z"
+              />
+            </svg>
+            Users
+          </a>
+        </li>
+      </ul>
+
+      <p class="mt-8 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+        Account
+      </p>
+      <ul class="mt-2 space-y-1">
+        <li>
+          <button
+            type="button"
+            class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-slate-300 hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:text-slate-600 disabled:hover:bg-transparent"
+            [disabled]="!canDeleteSelf()"
+            [attr.title]="canDeleteSelf() ? null : 'Super admin accounts cannot be deleted'"
+            (click)="openDialog({ kind: 'delete' })"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path
+                fill-rule="evenodd"
+                d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.44c-.8.08-1.58.17-2.37.29a.75.75 0 1 0 .22 1.48l.15-.02.84 10.5A2.75 2.75 0 0 0 7.58 19h4.84a2.75 2.75 0 0 0 2.74-2.56l.84-10.5.15.02a.75.75 0 0 0 .22-1.48c-.79-.12-1.58-.21-2.37-.29v-.44A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.67.03 2.5.08v-.33c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.33C8.33 4.03 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Delete my account
+          </button>
+        </li>
+        <li>
+          <a
+            routerLink="/logout"
+            class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-300 hover:bg-white/5 hover:text-white"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path
+                fill-rule="evenodd"
+                d="M3 4.25A2.25 2.25 0 0 1 5.25 2h5.5A2.25 2.25 0 0 1 13 4.25v2a.75.75 0 0 1-1.5 0v-2a.75.75 0 0 0-.75-.75h-5.5a.75.75 0 0 0-.75.75v11.5c0 .41.34.75.75.75h5.5a.75.75 0 0 0 .75-.75v-2a.75.75 0 0 1 1.5 0v2A2.25 2.25 0 0 1 10.75 18h-5.5A2.25 2.25 0 0 1 3 15.75V4.25Z"
+                clip-rule="evenodd"
+              />
+              <path
+                fill-rule="evenodd"
+                d="M19 10a.75.75 0 0 0-.75-.75H8.7l1.03-.97a.75.75 0 1 0-1.04-1.08l-2.5 2.34a.75.75 0 0 0 0 1.08l2.5 2.34a.75.75 0 1 0 1.04-1.08l-1.03-.97h9.55A.75.75 0 0 0 19 10Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Sign out
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="border-t border-white/10 p-4 text-xs text-slate-500">© 2026 Learning Ladder</div>
+  </aside>
+
+  <!-- Main column -->
+  <div class="lg:pl-64">
+    <header
+      class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-white/10 bg-navy-950/90 px-4 backdrop-blur sm:px-6"
+    >
+      <button
+        type="button"
+        class="rounded-lg border border-white/10 p-2 text-slate-300 hover:bg-white/5 lg:hidden"
+        aria-controls="admin-sidebar"
+        [attr.aria-expanded]="sidebarOpen()"
+        aria-label="Open navigation"
+        (click)="sidebarOpen.set(true)"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path
+            fill-rule="evenodd"
+            d="M2 4.75A.75.75 0 0 1 2.75 4h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 4.75ZM2 10a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 10Zm0 5.25a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1-.75-.75Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </button>
+
+      <div class="ml-auto flex items-center gap-3">
+        <div class="flex items-center gap-3 rounded-xl border border-white/10 py-1.5 pl-1.5 pr-3">
+          <span
+            class="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-royal to-indigo-500 text-xs font-semibold text-white"
+            aria-hidden="true"
+            >{{ myInitials() }}</span
+          >
+          <div class="leading-tight">
+            <p class="max-w-40 truncate text-sm font-semibold text-white">{{ myName() }}</p>
+            <p class="flex items-center gap-1 text-xs text-emerald-300">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>
+              {{ me()?.role | enumLabel }}
+            </p>
+          </div>
+        </div>
+        <a
+          routerLink="/logout"
+          class="rounded-lg border border-white/10 p-2 text-slate-300 hover:bg-white/5 hover:text-white"
+          aria-label="Sign out"
+          title="Sign out"
+        >
+          <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M3 4.25A2.25 2.25 0 0 1 5.25 2h5.5A2.25 2.25 0 0 1 13 4.25v2a.75.75 0 0 1-1.5 0v-2a.75.75 0 0 0-.75-.75h-5.5a.75.75 0 0 0-.75.75v11.5c0 .41.34.75.75.75h5.5a.75.75 0 0 0 .75-.75v-2a.75.75 0 0 1 1.5 0v2A2.25 2.25 0 0 1 10.75 18h-5.5A2.25 2.25 0 0 1 3 15.75V4.25Z"
+              clip-rule="evenodd"
+            />
+            <path
+              fill-rule="evenodd"
+              d="M19 10a.75.75 0 0 0-.75-.75H8.7l1.03-.97a.75.75 0 1 0-1.04-1.08l-2.5 2.34a.75.75 0 0 0 0 1.08l2.5 2.34a.75.75 0 1 0 1.04-1.08l-1.03-.97h9.55A.75.75 0 0 0 19 10Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </a>
+      </div>
+    </header>
+
+    <main class="px-4 py-6 sm:px-6 lg:px-8">
+      <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-sm text-slate-500">
+        <span>Dashboard</span>
+        <span aria-hidden="true">›</span>
+        <span class="font-medium text-slate-200" aria-current="page">Users</span>
+      </nav>
+      <h1 class="mt-2 text-2xl font-bold text-white">Users</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Welcome back, {{ me()?.firstName || myName() }}. Here is everyone with an account.
+      </p>
+
+      <div class="mt-6">
+        <app-fetch-all-users
+          [currentUserId]="me()?.id"
+          (view)="openUser($event)"
+          (block)="openDialog({ kind: 'block', user: $event })"
+          (unblock)="openDialog({ kind: 'unblock', user: $event })"
+        />
+      </div>
+    </main>
+  </div>
+
+  <!-- User details panel -->
+  @if (selectedUserId(); as userId) {
+    <app-fetch-user
+      [userId]="userId"
+      [currentUserId]="me()?.id"
+      (closed)="selectedUserId.set(null)"
+      (block)="openDialog({ kind: 'block', user: $event })"
+      (unblock)="openDialog({ kind: 'unblock', user: $event })"
+    />
+  }
+
+  <!-- Dialogs -->
+  @if (dialog(); as d) {
+    @if (d.kind === 'block') {
+      <app-block-user-account
+        [user]="d.user"
+        (done)="onDialogDone($event)"
+        (cancelled)="dialog.set(null)"
+      />
+    } @else if (d.kind === 'unblock') {
+      <app-un-block-user-account
+        [user]="d.user"
+        (done)="onDialogDone($event)"
+        (cancelled)="dialog.set(null)"
+      />
+    } @else {
+      <app-delete-user-account (cancelled)="dialog.set(null)" />
+    }
+  }
+
+  <!-- Toast -->
+  <div
+    class="pointer-events-none fixed inset-x-4 bottom-4 z-60 flex justify-center sm:inset-x-auto sm:right-6"
+    role="status"
+    aria-live="polite"
+  >
+    @if (toast(); as message) {
+      <div
+        class="pointer-events-auto flex items-center gap-3 rounded-xl border border-emerald-400/30 bg-navy-900 px-4 py-3 text-sm text-emerald-200 shadow-2xl"
+      >
+        <svg
+          class="h-5 w-5 shrink-0 text-emerald-400"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.86-9.86a.75.75 0 0 0-1.22-.88l-3.24 4.5-1.6-1.6a.75.75 0 1 0-1.06 1.06l2.22 2.22a.75.75 0 0 0 1.14-.09l3.76-5.21Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        {{ message }}
+        <button
+          type="button"
+          class="ml-2 text-slate-400 hover:text-white"
+          aria-label="Dismiss"
+          (click)="toast.set(null)"
+        >
+          ×
+        </button>
+      </div>
+    }
+  </div>
+</div>

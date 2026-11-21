@@ -4,6 +4,7 @@ import { AuthService } from '../../core/service/auth/auth.service';
 import { PageHero } from '../../shared/reusable-components/page-hero/page-hero';
 import { SiteFooter } from '../../shared/reusable-components/site-footer/site-footer';
 import { SiteHeader } from '../../shared/reusable-components/site-header/site-header';
+import { injectHeaderAccount } from '../../core/service/auth/header-account';
 
 /** Public Careers page. */
 @Component({
@@ -13,5 +14,6 @@ import { SiteHeader } from '../../shared/reusable-components/site-header/site-he
   templateUrl: './job-listing.html',
 })
 export class JobListing {
+  protected readonly account = injectHeaderAccount();
   protected readonly isSignedIn = inject(AuthService).isAuthenticated;
 }
