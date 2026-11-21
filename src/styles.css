@@ -1,60 +1,48 @@
-*,
-*::before,
-*::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: none;
+@import 'tailwindcss';
+
+/*
+ * Design tokens from the Learning Ladder landing page design.
+ * Each colour becomes a utility automatically, e.g. `bg-navy-900`, `text-ladder`, `border-line`.
+ */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Fraunces', ui-serif, Georgia, serif;
+
+  --color-navy-900: #10213f;
+  --color-navy-950: #0b1527;
+
+  --color-ladder: #e3a03a;
+  --color-ladder-dark: #c9862a;
+  --color-ladder-light: #f2c16f;
+
+  --color-royal: #1e4d8b;
+  --color-royal-dark: #173d6f;
+  --color-royal-soft: #e2e9f4;
+
+  --color-cream: #f5f3ee;
+  --color-sand: #faeed9;
+  --color-ink: #151c2c;
+  --color-muted: #5b6474;
+  --color-line: #e4e0d6;
 }
 
-html,
-body {
-  height: 100%;
-}
+/* Tailwind's preflight already resets margins, lists, links, buttons and images. */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
 
-body {
-  background-color: #1b1b32;
-  color: #fff;
-  font-family: system-ui, sans-serif;
-  line-height: 1.5;
-}
+  body {
+    min-height: 100%;
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
 
-ul,
-ol {
-  list-style: none;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-size: inherit;
-  font-weight: inherit;
-}
-
-img,
-svg,
-video {
-  display: block;
-  max-width: 100%;
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
-  color: inherit;
-  background: none;
-  border: none;
-}
-
-button {
-  cursor: pointer;
+  :focus-visible {
+    outline: 2px solid var(--color-ladder);
+    outline-offset: 2px;
+  }
 }

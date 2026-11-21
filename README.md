@@ -198,6 +198,7 @@ learningLadderUI/
 │   │   │   ├── 📁 booking/
 │   │   │   ├── 📁 coupon/
 │   │   │   ├── 📁 course/
+│   │   │   ├── 📁 home/               #    Landing page (public)
 │   │   │   ├── 📁 dashboard/
 │   │   │   │   ├── 📁 admin-dashboard/
 │   │   │   │   ├── 📁 librarian-dashboard/
@@ -230,6 +231,8 @@ learningLadderUI/
 │   ├── 📄 main.ts                 # Bootstraps the app
 │   └── 📄 styles.css              # Global styles
 │
+├── 📁 scripts/                    # ensure-env.mjs: creates missing environment files
+├── 🔀 proxy.conf.json             # Dev proxy: /api → backend
 ├── ⚙️ .env                        # 🔐 Local values. NOT committed
 ├── 📐 .editorconfig
 ├── 💅 .prettierrc
@@ -335,23 +338,23 @@ All endpoints are prefixed with **`/api/v1`**. 🔓 = public · 🔑 = logged in
 
 ```bash
 # 1️⃣ Clone the repository
-git clone <repository-url>
-cd learningLadderUI
+git clone git remote add origin https://github.com/asohyannick/learningLaddUI.git
+
+cd learningLaddUI
 
 # 2️⃣ Install dependencies (npm only — the project pins npm@12)
 npm install
 
-# 3️⃣ Create your environment files (see the next section)
-
-# 4️⃣ Start the dev server
+# 3️⃣ Start the dev server
+#    (creates src/environments/environment*.ts from the template on first run; see the next section)
 npm start
 ```
 
 Open 👉 **<http://localhost:4200>** (or the port set in your config).
 
-### 🔀 Dev proxy (recommended)
+### 🔀 Dev proxy
 
-Create `proxy.conf.json` in the project root to forward API calls to the backend:
+`proxy.conf.json` (already registered in `angular.json` → `serve → options → proxyConfig`) forwards every `/api/**` call from `ng serve` to the backend, so there are no CORS issues:
 
 ```json
 {
@@ -363,13 +366,7 @@ Create `proxy.conf.json` in the project root to forward API calls to the backend
 }
 ```
 
-Register it in `angular.json` → `projects → learning-ladder-ui → architect → serve → options`:
-
-```json
-"options": { "proxyConfig": "proxy.conf.json" }
-```
-
-Then set `apiUrl: '/api/v1'` in `environment.development.ts`. To work against the **deployed** API instead, change the proxy `target` to `https://learningladder-4xlm.onrender.com`.
+`environment.development.ts` uses `apiUrl: '/api/v1'`, so requests go through the proxy. To work against the **deployed** API instead, change the proxy `target` to `https://learningladder-4xlm.onrender.com` (don't commit that change).
 
 > 🔁 Restart `npm start` after changing the proxy, `angular.json` or environment files. Hot reload does not pick these up.
 
@@ -399,12 +396,13 @@ git commit -m "chore: stop tracking environment files"
 
 ### 📝 Template to commit: `src/environments/environment.example.ts`
 
-New developers copy this file to create their own environment files:
+`npm start`, `npm run build`, `npm run watch` and `npm test` run `scripts/ensure-env.mjs` first. It copies this template to `environment.ts` and `environment.development.ts` **when they are missing** and never overwrites existing files. Then fill in the real values. The shape is typed by `AppEnvironment` (`core/interface/environment.interface.ts`):
 
 ```ts
-export const environment = {
+export const environment: AppEnvironment = {
   production: false,
-  apiUrl: '/api/v1',              
+  apiUrl: '/api/v1', // production: 'https://learningladder-4xlm.onrender.com/api/v1'
+  firebase: {
     apiKey: '<firebase-web-api-key>',
     authDomain: '<project>.firebaseapp.com',
     projectId: '<project-id>',
@@ -414,6 +412,8 @@ export const environment = {
   },
 };
 ```
+
+To create them by hand instead:
 
 ```bash
 # Windows PowerShell

@@ -1,0 +1,61 @@
+<div class="min-h-screen lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+  <!-- Brand panel (desktop) -->
+  <aside
+    class="relative hidden overflow-hidden bg-navy-900 p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14"
+  >
+    <a routerLink="/" class="flex items-center gap-2.5 font-serif text-xl font-semibold">
+      <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <rect x="4" y="2" width="14" height="4.5" rx="2.25" fill="#e3a03a" />
+        <rect x="2" y="8" width="14" height="4.5" rx="2.25" fill="#e3a03a" />
+        <rect x="2" y="14" width="9" height="4.5" rx="2.25" fill="#e3a03a" opacity=".55" />
+      </svg>
+      Learning Ladder
+    </a>
+
+    <div class="relative max-w-sm">
+      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-ladder">
+        School management, made simple
+      </p>
+      <p class="mt-4 font-serif text-4xl font-semibold leading-tight">
+        Climb higher, one rung at a time.
+      </p>
+      <p class="mt-4 text-slate-300">
+        Courses, timetables, tutor bookings, library loans and school fees in one place.
+      </p>
+    </div>
+
+    <div class="absolute -right-6 bottom-28 flex flex-col items-end gap-3" aria-hidden="true">
+      <span class="h-2.5 w-36 rounded-full bg-white/15"></span>
+      <span class="h-2.5 w-24 rounded-full bg-ladder/50"></span>
+      <span class="h-2.5 w-32 rounded-full bg-ladder/75"></span>
+      <span class="mr-10 h-2.5 w-20 rounded-full bg-ladder"></span>
+    </div>
+
+    <p class="relative text-xs text-slate-400">&copy; {{ year }} Learning Ladder</p>
+  </aside>
+
+  <!-- Form -->
+  <main class="flex min-h-screen flex-col bg-cream px-4 py-6 sm:px-6 lg:px-12">
+    <a
+      routerLink="/"
+      class="flex items-center gap-2.5 self-start font-serif text-lg font-semibold text-navy-900 lg:hidden"
+    >
+      <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <rect x="4" y="2" width="14" height="4.5" rx="2.25" fill="#e3a03a" />
+        <rect x="2" y="8" width="14" height="4.5" rx="2.25" fill="#e3a03a" />
+        <rect x="2" y="14" width="9" height="4.5" rx="2.25" fill="#e3a03a" opacity=".55" />
+      </svg>
+      Learning Ladder
+    </a>
+
+    <div class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-10">
+      <h1 class="font-serif text-3xl font-semibold text-ink">{{ title() }}</h1>
+      @if (subtitle()) {
+        <p class="mt-2 text-muted">{{ subtitle() }}</p>
+      }
+      <div class="mt-8">
+        <ng-content />
+      </div>
+    </div>
+  </main>
+</div>

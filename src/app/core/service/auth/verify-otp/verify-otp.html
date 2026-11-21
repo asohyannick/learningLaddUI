@@ -1,1 +1,122 @@
-<p>verify-otp works!</p>
+<app-auth-layout title="Verify your email">
+  <p class="-mt-6 mb-6 text-muted">
+    @if (email(); as address) {
+      We sent a 6-digit code to <strong class="font-semibold text-ink">{{ address }}</strong
+      >. Enter it below to activate your account.
+    } @else {
+      Enter the 6-digit code we emailed you to activate your account.
+    }
+  </p>
+
+  @if (serverError(); as message) {
+    <app-form-alert class="mb-6">{{ message }}</app-form-alert>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-5">
+    <div>
+      <label for="otpCode" class="mb-1.5 block text-sm font-medium text-ink"
+        >Verification code</label
+      >
+      <input
+        id="otpCode"
+        type="text"
+        formControlName="otpCode"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        maxlength="6"
+        placeholder="••••••"
+        [class]="
+          inputClasses(showError('otpCode')) + ' text-center font-mono text-2xl! tracking-[0.5em]'
+        "
+        [attr.aria-invalid]="showError('otpCode')"
+        [attr.aria-describedby]="showError('otpCode') ? 'otpCode-error' : null"
+        (input)="onCodeInput($event)"
+      />
+      <app-field-error
+        [control]="form.controls.otpCode"
+        label="Verification code"
+        errorId="otpCode-error"
+        patternMessage="Enter the 6 digits from the email."
+      />
+    </div>
+
+    <button
+      type="submit"
+      class="flex w-full items-center justify-center gap-2 rounded-lg bg-ladder px-5 py-3 text-sm font-semibold text-ink transition-colors hover:bg-ladder-light disabled:cursor-not-allowed disabled:opacity-60"
+      [disabled]="submitting()"
+    >
+      @if (submitting()) {
+        <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity=".25" />
+          <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" />
+        </svg>
+        Verifying…
+      } @else {
+        Verify email
+      }
+    </button>
+  </form>
+
+  <!-- Resend -->
+  <section
+    class="mt-8 rounded-2xl border border-line bg-white p-5"
+    aria-labelledby="resend-heading"
+  >
+    <h2 id="resend-heading" class="text-sm font-semibold text-ink">Didn't get the code?</h2>
+    <p class="mt-1 text-sm text-muted">
+      Check your spam folder. Codes expire after a few minutes; you can ask for a new one.
+    </p>
+
+    @if (resendMessage(); as message) {
+      <app-form-alert tone="success" class="mt-4">{{ message }}</app-form-alert>
+    }
+    @if (resendError(); as message) {
+      <app-form-alert class="mt-4">{{ message }}</app-form-alert>
+    }
+
+    <form [formGroup]="resendForm" (ngSubmit)="resend()" novalidate class="mt-4">
+      @if (!email()) {
+        <label for="resendEmail" class="mb-1.5 block text-sm font-medium text-ink"
+          >Your email</label
+        >
+        <input
+          id="resendEmail"
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          inputmode="email"
+          placeholder="name@example.com"
+          [class]="inputClasses(showError('email'))"
+          [attr.aria-invalid]="showError('email')"
+          [attr.aria-describedby]="showError('email') ? 'resendEmail-error' : null"
+        />
+        <app-field-error
+          [control]="resendForm.controls.email"
+          label="Email"
+          errorId="resendEmail-error"
+        />
+      }
+      <button
+        type="submit"
+        class="mt-3 rounded-lg border border-royal px-4 py-2 text-sm font-semibold text-royal transition-colors hover:bg-royal-soft disabled:cursor-not-allowed disabled:opacity-50"
+        [disabled]="resending() || cooldown() > 0"
+      >
+        @if (resending()) {
+          Sending…
+        } @else if (cooldown() > 0) {
+          Resend code in {{ cooldown() }}s
+        } @else {
+          Resend code
+        }
+      </button>
+    </form>
+  </section>
+
+  <p class="mt-8 text-center text-sm text-muted">
+    Wrong email?
+    <a routerLink="/register" class="font-semibold text-royal hover:underline"
+      >Create the account again</a
+    >
+    · <a routerLink="/login" class="font-semibold text-royal hover:underline">Sign in</a>
+  </p>
+</app-auth-layout>

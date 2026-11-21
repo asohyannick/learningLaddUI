@@ -1,0 +1,122 @@
+<header class="bg-navy-900 text-white">
+  <nav
+    class="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8"
+    aria-label="Main"
+  >
+    <a
+      routerLink="/"
+      class="flex shrink-0 items-center gap-2.5 font-serif text-xl font-semibold"
+      (click)="closeMenu()"
+    >
+      <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <rect x="4" y="2" width="14" height="4.5" rx="2.25" fill="#e3a03a" />
+        <rect x="2" y="8" width="14" height="4.5" rx="2.25" fill="#e3a03a" />
+        <rect x="2" y="14" width="9" height="4.5" rx="2.25" fill="#e3a03a" opacity=".55" />
+      </svg>
+      Learning Ladder
+    </a>
+
+    <!-- Desktop navigation -->
+    <ul class="hidden items-center gap-8 text-sm font-medium lg:flex">
+      @for (link of links; track link.label) {
+        <li>
+          @if (link.fragment) {
+            <a
+              [routerLink]="link.path"
+              [fragment]="link.fragment"
+              class="text-slate-200 transition-colors hover:text-ladder"
+              >{{ link.label }}</a
+            >
+          } @else {
+            <a
+              [routerLink]="link.path"
+              routerLinkActive="text-ladder!"
+              class="text-slate-200 transition-colors hover:text-ladder"
+              >{{ link.label }}</a
+            >
+          }
+        </li>
+      }
+    </ul>
+
+    <div class="hidden items-center gap-3 lg:flex">
+      <a
+        routerLink="/login"
+        class="rounded-lg border border-white/40 px-4 py-2 text-sm font-semibold transition-colors hover:border-white hover:bg-white/10"
+        >Sign in</a
+      >
+      <a
+        routerLink="/register"
+        class="rounded-lg bg-ladder px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-ladder-light"
+        >Get started</a
+      >
+    </div>
+
+    <!-- Mobile menu toggle -->
+    <button
+      type="button"
+      class="-mr-2 rounded-lg p-2 text-slate-200 hover:bg-white/10 lg:hidden"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="mobile-menu"
+      (click)="toggleMenu()"
+    >
+      <span class="sr-only">{{ menuOpen() ? 'Close menu' : 'Open menu' }}</span>
+      @if (menuOpen()) {
+        <svg
+          class="h-6 w-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path stroke-linecap="round" d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      } @else {
+        <svg
+          class="h-6 w-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      }
+    </button>
+  </nav>
+
+  <!-- Mobile navigation -->
+  @if (menuOpen()) {
+    <div id="mobile-menu" class="border-t border-white/10 px-4 pb-6 pt-2 sm:px-6 lg:hidden">
+      <ul class="flex flex-col text-base font-medium">
+        @for (link of links; track link.label) {
+          <li>
+            <a
+              [routerLink]="link.path"
+              [fragment]="link.fragment"
+              class="block rounded-lg px-2 py-3 text-slate-200 hover:bg-white/5 hover:text-ladder"
+              (click)="closeMenu()"
+              >{{ link.label }}</a
+            >
+          </li>
+        }
+      </ul>
+      <div class="mt-4 grid grid-cols-2 gap-3">
+        <a
+          routerLink="/login"
+          class="rounded-lg border border-white/40 px-4 py-2.5 text-center text-sm font-semibold hover:bg-white/10"
+          (click)="closeMenu()"
+          >Sign in</a
+        >
+        <a
+          routerLink="/register"
+          class="rounded-lg bg-ladder px-4 py-2.5 text-center text-sm font-semibold text-ink hover:bg-ladder-light"
+          (click)="closeMenu()"
+          >Get started</a
+        >
+      </div>
+    </div>
+  }
+</header>

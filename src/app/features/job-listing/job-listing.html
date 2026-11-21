@@ -1,1 +1,59 @@
-<p>job-listing works!</p>
+<app-site-header />
+
+<main>
+  <app-page-hero
+    eyebrow="Careers"
+    title="Help students climb higher"
+    description="We're looking for tutors, lecturers, librarians and staff who care about great learning."
+  />
+
+  <section class="py-14 sm:py-16" aria-labelledby="roles-heading">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <h2 id="roles-heading" class="font-serif text-2xl font-semibold sm:text-3xl">Open roles</h2>
+
+      @if (isSignedIn()) {
+        <!-- TODO: list roles from GET /api/v1/job-listing through a job-listing service. -->
+        <div
+          class="mt-6 rounded-2xl border border-dashed border-slate-400 bg-white p-10 text-center"
+        >
+          <p class="font-serif text-xl font-semibold">Open roles are on their way</p>
+          <p class="mt-1 text-sm text-muted">
+            Job listings will appear here soon. Your applications live in your account.
+          </p>
+          <a
+            routerLink="/job-applications"
+            class="mt-5 inline-block rounded-lg bg-royal px-4 py-2 text-sm font-semibold text-white hover:bg-royal-dark"
+            >View my applications</a
+          >
+        </div>
+      } @else {
+        <!-- The job listing API needs a signed-in user. -->
+        <div
+          class="mt-6 flex flex-col items-start gap-5 rounded-2xl border border-line bg-white p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8"
+        >
+          <div>
+            <h3 class="font-serif text-xl font-semibold">Sign in to see open roles</h3>
+            <p class="mt-1 text-sm text-muted">
+              Create a free account to browse vacancies and apply in a few clicks.
+            </p>
+          </div>
+          <div class="flex shrink-0 gap-3">
+            <a
+              routerLink="/login"
+              [queryParams]="{ returnUrl: '/jobs' }"
+              class="rounded-lg border border-royal px-4 py-2 text-sm font-semibold text-royal transition-colors hover:bg-royal-soft"
+              >Sign in</a
+            >
+            <a
+              routerLink="/register"
+              class="rounded-lg bg-royal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-royal-dark"
+              >Create account</a
+            >
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+</main>
+
+<app-site-footer />
