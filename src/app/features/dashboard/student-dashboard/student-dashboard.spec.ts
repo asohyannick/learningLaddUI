@@ -55,6 +55,19 @@ describe('StudentDashboard', () => {
     expect(el.querySelector('a[href="/logout"]')).not.toBeNull();
   });
 
+  it('shows the student their own profile in the My profile section', async () => {
+    const fixture = TestBed.createComponent(StudentDashboard);
+    fixture.componentRef.setInput('section', 'profile');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('h1')?.textContent).toContain('My profile');
+    expect(el.querySelector('a[aria-current="page"]')?.textContent).toContain('My profile');
+    expect(el.textContent).toContain('Create my profile');
+    // Students cannot list other students.
+    expect(el.querySelector('app-student-profile-manager')).toBeNull();
+  });
+
   it('is read-only: view and PDF, but no create, edit or delete', async () => {
     const { fixture, el } = await render();
     const text = (b: Element) => b.textContent?.trim();

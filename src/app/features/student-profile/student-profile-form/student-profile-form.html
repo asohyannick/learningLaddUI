@@ -1,0 +1,200 @@
+<app-modal
+  [heading]="isEdit() ? 'Edit student profile' : 'Create your student profile'"
+  [description]="
+    blindEdit()
+      ? 'Fill in only what you want to change. Blank fields keep their saved value.'
+      : isEdit()
+        ? 'Change what you need, then save.'
+        : 'Only your first and last name are required. You can add the rest later.'
+  "
+  size="lg"
+  [busy]="submitting()"
+  (closed)="cancelled.emit()"
+>
+  @if (loading()) {
+    <div class="animate-pulse space-y-3" role="status" aria-label="Loading profile">
+      @for (row of [1, 2, 3, 4, 5]; track row) {
+        <div class="h-10 rounded-lg bg-slate-100"></div>
+      }
+    </div>
+  } @else if (loadError(); as message) {
+    <app-form-alert>{{ message }}</app-form-alert>
+    <div class="mt-4 flex justify-end gap-2">
+      <button
+        type="button"
+        class="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50"
+        (click)="cancelled.emit()"
+      >
+        Close
+      </button>
+      <button
+        type="button"
+        class="rounded-lg bg-royal px-4 py-2.5 text-sm font-semibold text-white hover:bg-royal-dark"
+        (click)="load()"
+      >
+        Try again
+      </button>
+    </div>
+  } @else {
+    @if (serverError(); as message) {
+      <app-form-alert class="mb-4">{{ message }}</app-form-alert>
+    }
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-6">
+      <!-- Picture -->
+      <fieldset>
+        <legend class="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
+          Profile picture
+        </legend>
+        <div class="flex items-center gap-4">
+          @if (picturePreview() || original()?.profilePictureUrl; as src) {
+            <img [src]="src" alt="" class="h-16 w-16 rounded-full object-cover ring-2 ring-line" />
+          } @else {
+            <span
+              class="flex h-16 w-16 items-center justify-center rounded-full bg-royal-soft text-royal"
+              aria-hidden="true"
+            >
+              <svg class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.47 15.15a1.5 1.5 0 0 0 .68 1.9A11.94 11.94 0 0 0 10 18.5c2.1 0 4.08-.54 5.85-1.45a1.5 1.5 0 0 0 .68-1.9A7 7 0 0 0 3.47 15.15Z"
+                />
+              </svg>
+            </span>
+          }
+          <div class="text-sm">
+            <label
+              class="inline-flex cursor-pointer items-center rounded-lg border border-line px-3 py-2 font-semibold text-ink hover:bg-slate-50"
+            >
+              {{ picture() ? 'Change picture' : 'Choose a picture' }}
+              <input
+                #pictureInput
+                type="file"
+                class="sr-only"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                (change)="pickPicture($event)"
+              />
+            </label>
+            @if (picture(); as file) {
+              <button
+                type="button"
+                class="ml-2 font-medium text-muted hover:text-ink"
+                (click)="clearPicture(pictureInput)"
+              >
+                Remove
+              </button>
+              <p class="mt-1 max-w-56 truncate text-xs text-muted">{{ file.name }}</p>
+            } @else {
+              <p class="mt-1 text-xs text-muted">JPEG, PNG, WebP or GIF, up to 10 MB.</p>
+            }
+            @if (pictureError(); as message) {
+              <p class="mt-1 text-sm text-red-600" role="alert">{{ message }}</p>
+            }
+          </div>
+        </div>
+      </fieldset>
+
+      @for (section of sections; track section.title) {
+        <fieldset>
+          <legend class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
+            {{ section.title }}
+          </legend>
+          <div class="grid gap-4 sm:grid-cols-2">
+            @for (field of section.fields; track field.name) {
+              @let id = 'sp-' + field.name;
+              <div [class.sm:col-span-2]="field.wide">
+                <label [for]="id" class="mb-1.5 block text-sm font-medium">
+                  {{ field.label }}
+                  @if (!isRequired(field.name)) {
+                    <span class="font-normal text-muted">(optional)</span>
+                  }
+                </label>
+                @switch (field.kind) {
+                  @case ('textarea') {
+                    <textarea
+                      [id]="id"
+                      rows="3"
+                      [formControlName]="field.name"
+                      [attr.maxlength]="field.max ?? null"
+                      [placeholder]="field.placeholder ?? ''"
+                      [class]="inputClasses(invalid(field.name))"
+                      [attr.aria-invalid]="invalid(field.name)"
+                      [attr.aria-describedby]="id + '-error'"
+                    ></textarea>
+                  }
+                  @case ('gender') {
+                    <select [id]="id" [formControlName]="field.name" [class]="inputClasses(false)">
+                      <option value="">
+                        {{ blindEdit() ? 'Keep current' : 'Prefer to choose later' }}
+                      </option>
+                      @for (option of genders; track option) {
+                        <option [value]="option">{{ option | enumLabel }}</option>
+                      }
+                    </select>
+                  }
+                  @case ('level') {
+                    <select [id]="id" [formControlName]="field.name" [class]="inputClasses(false)">
+                      <option value="">{{ isEdit() ? 'Keep current' : 'Not set' }}</option>
+                      @for (option of levels; track option) {
+                        <option [value]="option">Year {{ option }}</option>
+                      }
+                    </select>
+                  }
+                  @case ('date') {
+                    <input
+                      [id]="id"
+                      type="date"
+                      [max]="today"
+                      [formControlName]="field.name"
+                      [class]="inputClasses(invalid(field.name))"
+                      [attr.aria-invalid]="invalid(field.name)"
+                      [attr.aria-describedby]="id + '-error'"
+                    />
+                  }
+                  @default {
+                    <input
+                      [id]="id"
+                      [type]="field.kind"
+                      [formControlName]="field.name"
+                      [attr.maxlength]="field.max ?? null"
+                      [placeholder]="field.placeholder ?? ''"
+                      [attr.autocomplete]="field.kind === 'tel' ? 'tel' : null"
+                      [class]="inputClasses(invalid(field.name))"
+                      [attr.aria-invalid]="invalid(field.name)"
+                      [attr.aria-describedby]="id + '-error ' + id + '-hint'"
+                    />
+                  }
+                }
+                @if (field.hint) {
+                  <p [id]="id + '-hint'" class="mt-1 text-xs text-muted">{{ field.hint }}</p>
+                }
+                <app-field-error
+                  [control]="form.controls[field.name]"
+                  [label]="field.label"
+                  [errorId]="id + '-error'"
+                  [patternMessage]="field.patternMessage"
+                />
+              </div>
+            }
+          </div>
+        </fieldset>
+      }
+
+      <div class="flex flex-col-reverse gap-2 border-t border-line pt-5 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          class="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50 disabled:opacity-60"
+          [disabled]="submitting()"
+          (click)="cancelled.emit()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="rounded-lg bg-royal px-4 py-2.5 text-sm font-semibold text-white hover:bg-royal-dark disabled:opacity-60"
+          [disabled]="submitting()"
+        >
+          {{ submitting() ? 'Saving…' : isEdit() ? 'Save changes' : 'Create profile' }}
+        </button>
+      </div>
+    </form>
+  }
+</app-modal>

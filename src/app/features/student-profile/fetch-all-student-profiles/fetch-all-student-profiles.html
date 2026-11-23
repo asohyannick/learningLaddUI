@@ -1,0 +1,429 @@
+<!-- Summary cards -->
+<section aria-label="Student summary" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-indigo-500 to-violet-500 p-5 text-white shadow-lg shadow-indigo-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Total students</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight" data-testid="profile-count">
+      {{ totalCount() ?? '—' }}
+    </p>
+    <p class="mt-1 text-xs text-white/75">Student profiles on record</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-sky-500 to-cyan-500 p-5 text-white shadow-lg shadow-sky-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">{{ isFiltered() ? 'Matching' : 'Listed' }}</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">
+      {{ loading() && !total() ? '—' : total() }}
+    </p>
+    <p class="mt-1 text-xs text-white/75">
+      {{ isFiltered() ? 'Profiles matching your search' : 'Profiles in the register' }}
+    </p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-emerald-500 to-teal-500 p-5 text-white shadow-lg shadow-emerald-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Active</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">{{ stats().active }}</p>
+    <p class="mt-1 text-xs text-white/75">of {{ stats().shown }} on this page</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-amber-500 to-ladder p-5 text-white shadow-lg shadow-amber-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Applicants</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">{{ stats().applicants }}</p>
+    <p class="mt-1 text-xs text-white/75">of {{ stats().shown }} on this page</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+</section>
+
+<!-- Profiles table -->
+<section
+  class="mt-6 rounded-2xl border border-white/10 bg-navy-900"
+  aria-labelledby="students-heading"
+>
+  <header class="space-y-4 border-b border-white/10 p-5">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h2 id="students-heading" class="text-base font-semibold text-white">Student profiles</h2>
+        <p class="text-sm text-slate-400">Search, open or export any student's profile.</p>
+      </div>
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <label class="relative block">
+          <span class="sr-only">Search by name, email or student number</span>
+          <svg
+            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.45 4.39l3.08 3.08a.75.75 0 1 1-1.06 1.06l-3.08-3.08A7 7 0 0 1 2 9Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <input
+            type="search"
+            maxlength="100"
+            placeholder="Name, email or student no."
+            class="w-full rounded-lg border border-white/10 bg-navy-950 py-2 pl-9 pr-3 text-sm text-white placeholder:text-slate-500 focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40 sm:w-64"
+            [value]="searchText()"
+            (input)="setSearch($any($event.target).value)"
+          />
+        </label>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-white/5 disabled:opacity-50"
+          [disabled]="loading()"
+          (click)="reload()"
+        >
+          <svg
+            class="h-4 w-4"
+            [class.animate-spin]="loading()"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M15.31 4.69a.75.75 0 0 1 .75.75V9a.75.75 0 0 1-.75.75h-3.56a.75.75 0 0 1 0-1.5h1.76A5.5 5.5 0 0 0 4.5 10a.75.75 0 0 1-1.5 0 7 7 0 0 1 11.56-5.32V5.44a.75.75 0 0 1 .75-.75ZM16.25 9.25A.75.75 0 0 1 17 10a7 7 0 0 1-11.56 5.32v1.24a.75.75 0 0 1-1.5 0V13a.75.75 0 0 1 .75-.75h3.56a.75.75 0 0 1 0 1.5H6.49A5.5 5.5 0 0 0 15.5 10a.75.75 0 0 1 .75-.75Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Refresh
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-royal px-3 py-2 text-sm font-semibold text-white hover:bg-royal-dark disabled:opacity-50"
+          [disabled]="downloading() !== null || !total()"
+          (click)="downloadAll()"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.61L6.3 8.24a.75.75 0 1 0-1.1 1.02l4.25 4.5a.75.75 0 0 0 1.1 0l4.25-4.5a.75.75 0 0 0-1.1-1.02l-2.95 3.12V2.75Z"
+            />
+            <path
+              d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z"
+            />
+          </svg>
+          {{
+            downloading() === 'all'
+              ? 'Preparing PDF…'
+              : isFiltered()
+                ? 'Download matches (PDF)'
+                : 'Download all (PDF)'
+          }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap items-center gap-2 text-sm">
+      <label>
+        <span class="sr-only">Enrollment status</span>
+        <select
+          class="rounded-lg border border-white/10 bg-navy-950 px-3 py-2 text-white focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40"
+          [value]="status()"
+          (change)="setStatus($any($event.target).value)"
+        >
+          <option value="">Any status</option>
+          @for (option of statuses; track option) {
+            <option [value]="option">{{ option | enumLabel }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Year of study</span>
+        <select
+          class="rounded-lg border border-white/10 bg-navy-950 px-3 py-2 text-white focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40"
+          [value]="level()"
+          (change)="setLevel($any($event.target).value)"
+        >
+          <option value="">Any year</option>
+          @for (option of levels; track option) {
+            <option [value]="option">Year {{ option }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Faculty (exact name)</span>
+        <input
+          type="text"
+          maxlength="150"
+          placeholder="Faculty"
+          class="w-40 rounded-lg border border-white/10 bg-navy-950 px-3 py-2 text-white placeholder:text-slate-500 focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40"
+          [value]="facultyText()"
+          (input)="setFaculty($any($event.target).value)"
+        />
+      </label>
+      <label class="flex items-center gap-2 text-slate-400">
+        <span>Sort</span>
+        <select
+          class="rounded-lg border border-white/10 bg-navy-950 px-3 py-2 text-white focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40"
+          [value]="sortIndex()"
+          (change)="setSort($any($event.target).value)"
+        >
+          @for (option of sortOptions; track option.label; let i = $index) {
+            <option [value]="i">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+      @if (isFiltered() || searchText() || facultyText()) {
+        <button
+          type="button"
+          class="rounded-lg px-3 py-2 font-medium text-indigo-300 hover:bg-white/5"
+          (click)="clearFilters()"
+        >
+          Clear filters
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (downloadError(); as message) {
+    <div
+      class="mx-5 mt-5 flex items-start justify-between gap-3 rounded-xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-200"
+      role="alert"
+    >
+      {{ message }}
+      <button
+        type="button"
+        class="text-rose-200/70 hover:text-white"
+        aria-label="Dismiss"
+        (click)="downloadError.set(null)"
+      >
+        ×
+      </button>
+    </div>
+  }
+
+  @if (error(); as message) {
+    <div
+      class="m-5 rounded-xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-200"
+      role="alert"
+    >
+      {{ message }}
+      <button type="button" class="ml-1 font-semibold underline" (click)="reload()">
+        Try again
+      </button>
+    </div>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm" [attr.aria-busy]="loading()">
+        <thead class="text-xs uppercase tracking-wide text-slate-500">
+          <tr class="border-b border-white/5">
+            <th scope="col" class="px-5 py-3 font-medium">Student</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium md:table-cell">Student no.</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium lg:table-cell">Programme</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium sm:table-cell">Status</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium xl:table-cell">Joined</th>
+            <th scope="col" class="px-5 py-3 text-right font-medium">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          @if (loading() && !rows().length) {
+            @for (row of [1, 2, 3, 4, 5]; track row) {
+              <tr class="animate-pulse">
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-full bg-white/10"></div>
+                    <div class="space-y-2">
+                      <div class="h-3 w-36 rounded bg-white/10"></div>
+                      <div class="h-3 w-44 rounded bg-white/5"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="hidden px-5 py-4 md:table-cell">
+                  <div class="h-3 w-20 rounded bg-white/10"></div>
+                </td>
+                <td class="hidden px-5 py-4 lg:table-cell">
+                  <div class="h-3 w-28 rounded bg-white/10"></div>
+                </td>
+                <td class="hidden px-5 py-4 sm:table-cell">
+                  <div class="h-5 w-16 rounded-full bg-white/10"></div>
+                </td>
+                <td class="hidden px-5 py-4 xl:table-cell">
+                  <div class="h-3 w-24 rounded bg-white/10"></div>
+                </td>
+                <td class="px-5 py-4"></td>
+              </tr>
+            }
+          } @else {
+            @for (row of rows(); track row.id) {
+              <tr class="transition hover:bg-white/3" [class.opacity-60]="loading()">
+                <td class="px-5 py-3.5">
+                  <div class="flex items-center gap-3">
+                    @if (row.profilePictureUrl) {
+                      <img
+                        [src]="row.profilePictureUrl"
+                        alt=""
+                        class="h-10 w-10 shrink-0 rounded-full object-cover"
+                        loading="lazy"
+                      />
+                    } @else {
+                      <span
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-royal/25 text-xs font-semibold text-indigo-200"
+                        aria-hidden="true"
+                        >{{ row.initials }}</span
+                      >
+                    }
+                    <div class="min-w-0">
+                      <p class="max-w-xs truncate font-medium text-white">{{ row.name }}</p>
+                      <p class="max-w-xs truncate text-xs text-slate-400">{{ row.email || '—' }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="hidden px-5 py-3.5 font-mono text-xs text-slate-300 md:table-cell">
+                  {{ row.studentNumber || '—' }}
+                </td>
+                <td class="hidden px-5 py-3.5 text-slate-300 lg:table-cell">
+                  <p class="max-w-56 truncate">{{ row.programOfStudy || row.department || '—' }}</p>
+                  <p class="text-xs text-slate-500">
+                    {{ row.faculty || '' }}{{ row.faculty && row.currentLevel ? ' · ' : ''
+                    }}{{ row.currentLevel ? 'Year ' + row.currentLevel : '' }}
+                  </p>
+                </td>
+                <td class="hidden px-5 py-3.5 sm:table-cell">
+                  @if (row.enrollmentStatus) {
+                    <span
+                      class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset"
+                      [class]="
+                        row.enrollmentStatus === 'ACTIVE'
+                          ? 'bg-emerald-400/10 text-emerald-300 ring-emerald-400/30'
+                          : row.enrollmentStatus === 'SUSPENDED' ||
+                              row.enrollmentStatus === 'WITHDRAWN'
+                            ? 'bg-rose-400/10 text-rose-300 ring-rose-400/30'
+                            : 'bg-slate-400/10 text-slate-300 ring-slate-400/30'
+                      "
+                      >{{ row.enrollmentStatus | enumLabel }}</span
+                    >
+                  } @else {
+                    <span class="text-slate-500">—</span>
+                  }
+                </td>
+                <td class="hidden px-5 py-3.5 text-slate-400 xl:table-cell">
+                  {{ (row.createdAt | date: 'mediumDate') || '—' }}
+                </td>
+                <td class="px-5 py-3.5">
+                  <div class="flex justify-end gap-1">
+                    <button
+                      type="button"
+                      class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-indigo-300 hover:bg-white/5"
+                      [attr.aria-label]="'View ' + row.name"
+                      (click)="view.emit(row)"
+                    >
+                      View
+                    </button>
+                    @if (canManage()) {
+                      <button
+                        type="button"
+                        class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/5"
+                        [attr.aria-label]="'Edit ' + row.name"
+                        (click)="edit.emit(row)"
+                      >
+                        Edit
+                      </button>
+                    }
+                    <button
+                      type="button"
+                      class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
+                      [disabled]="downloading() !== null"
+                      [attr.aria-label]="'Download ' + row.name + ' as PDF'"
+                      (click)="downloadOne(row)"
+                    >
+                      {{ downloading() === row.id ? 'PDF…' : 'PDF' }}
+                    </button>
+                    @if (canManage()) {
+                      <button
+                        type="button"
+                        class="rounded-lg border border-rose-400/40 px-2.5 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-400/10"
+                        [attr.aria-label]="'Delete ' + row.name"
+                        (click)="remove.emit(row)"
+                      >
+                        Delete
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="px-5 py-12 text-center text-sm text-slate-400">
+                  @if (isFiltered()) {
+                    No student profiles match your search.
+                    <button
+                      type="button"
+                      class="ml-1 font-semibold text-indigo-300 underline"
+                      (click)="clearFilters()"
+                    >
+                      Clear filters
+                    </button>
+                  } @else {
+                    No student profiles yet. Students create their own from the student dashboard.
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <footer
+      class="flex flex-col gap-3 border-t border-white/10 px-5 py-4 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div class="flex items-center gap-3">
+        <span aria-live="polite">{{ rangeLabel() }}</span>
+        <label class="flex items-center gap-2">
+          <span>Rows</span>
+          <select
+            class="rounded-md border border-white/10 bg-navy-950 px-2 py-1 text-sm text-white focus:border-royal focus:outline-none"
+            [value]="size()"
+            (change)="setSize($any($event.target).value)"
+          >
+            @for (option of pageSizes; track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <nav class="flex items-center gap-2" aria-label="Pagination">
+        <button
+          type="button"
+          class="rounded-lg border border-white/10 px-3 py-1.5 font-medium text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!hasPrevious() || loading()"
+          (click)="goTo(page() - 1)"
+        >
+          Previous
+        </button>
+        <span class="px-1">Page {{ page() + 1 }} of {{ totalPages() }}</span>
+        <button
+          type="button"
+          class="rounded-lg border border-white/10 px-3 py-1.5 font-medium text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!hasNext() || loading()"
+          (click)="goTo(page() + 1)"
+        >
+          Next
+        </button>
+      </nav>
+    </footer>
+  }
+</section>

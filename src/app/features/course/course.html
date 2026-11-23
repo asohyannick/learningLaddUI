@@ -1,1 +1,218 @@
-<p>course works!</p>
+<app-site-header [account]="account()" />
+
+<main>
+  <!-- Hero -->
+  <section class="bg-navy-900 text-white">
+    <div class="mx-auto max-w-6xl px-4 pb-14 pt-12 sm:px-6 lg:px-8 lg:pb-16">
+      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-ladder">Course catalogue</p>
+      <h1 class="mt-3 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">
+        Find your next course
+      </h1>
+      <p class="mt-4 max-w-2xl text-base text-slate-300">
+        Every published course in Learning Ladder. Open one for the full outline, promo video and a
+        printable PDF.
+      </p>
+
+      <label class="relative mt-8 block max-w-2xl">
+        <span class="sr-only">Search courses by name, description or category</span>
+        <svg
+          class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.45 4.39l3.08 3.08a.75.75 0 1 1-1.06 1.06l-3.08-3.08A7 7 0 0 1 2 9Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <input
+          type="search"
+          maxlength="100"
+          placeholder="Search courses, e.g. Java, Rust, Algebra"
+          class="w-full rounded-xl border border-white/10 bg-white py-3.5 pl-12 pr-4 text-sm text-ink shadow-lg placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-royal/40"
+          [value]="searchText()"
+          (input)="setSearch($any($event.target).value)"
+        />
+      </label>
+    </div>
+  </section>
+
+  <section id="catalogue" class="scroll-mt-20 py-10 sm:py-14" aria-labelledby="catalogue-heading">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <h2 id="catalogue-heading" class="sr-only">Courses</h2>
+
+      <!-- Filters -->
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Price">
+          @for (
+            option of [
+              { value: '', label: 'All' },
+              { value: 'FREE', label: 'Free' },
+              { value: 'PAID', label: 'Paid' },
+            ];
+            track option.value
+          ) {
+            <button
+              type="button"
+              class="rounded-full border px-4 py-1.5 text-sm font-medium transition-colors"
+              [class]="
+                price() === option.value
+                  ? 'border-royal bg-royal text-white'
+                  : 'border-line bg-white text-ink hover:border-royal hover:text-royal'
+              "
+              [attr.aria-pressed]="price() === option.value"
+              (click)="setPrice($any(option.value))"
+            >
+              {{ option.label }}
+            </button>
+          }
+        </div>
+        <div class="flex flex-wrap items-center gap-2 text-sm">
+          <label>
+            <span class="sr-only">Level</span>
+            <select
+              class="rounded-lg border border-line bg-white px-3 py-2 focus:border-royal focus:outline-none focus:ring-4 focus:ring-royal-soft"
+              [value]="level()"
+              (change)="setLevel($any($event.target).value)"
+            >
+              <option value="">All levels</option>
+              @for (option of levels; track option) {
+                <option [value]="option">{{ option | enumLabel }}</option>
+              }
+            </select>
+          </label>
+          <label class="flex items-center gap-2 text-muted">
+            <span>Sort by</span>
+            <select
+              class="rounded-lg border border-line bg-white px-3 py-2 text-ink focus:border-royal focus:outline-none focus:ring-4 focus:ring-royal-soft"
+              [value]="sortIndex()"
+              (change)="setSort($any($event.target).value)"
+            >
+              @for (option of sortOptions; track option.label; let i = $index) {
+                <option [value]="i">{{ option.label }}</option>
+              }
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="mt-6 flex min-h-6 items-center justify-between gap-3 text-sm text-muted">
+        <p aria-live="polite" data-testid="catalogue-summary">{{ summary() }}</p>
+        @if (isFiltered() || searchText()) {
+          <button
+            type="button"
+            class="font-semibold text-royal hover:underline"
+            (click)="clearFilters()"
+          >
+            Clear filters
+          </button>
+        }
+      </div>
+
+      <!-- Results -->
+      <div class="mt-4" [attr.aria-busy]="results.isLoading()">
+        @if (results.isLoading() && !list().length) {
+          <ul class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            @for (slot of skeletonSlots; track slot) {
+              <li class="overflow-hidden rounded-2xl border border-line bg-white">
+                <div class="h-36 animate-pulse bg-line"></div>
+                <div class="space-y-3 p-4">
+                  <div class="h-3 w-1/3 animate-pulse rounded bg-line"></div>
+                  <div class="h-5 w-2/3 animate-pulse rounded bg-line"></div>
+                  <div class="h-3 w-full animate-pulse rounded bg-line"></div>
+                </div>
+              </li>
+            }
+          </ul>
+          <span class="sr-only">Loading courses…</span>
+        } @else if (results.error()) {
+          <div class="rounded-2xl border border-line bg-white p-8 text-center" role="alert">
+            <p class="font-semibold">We couldn't load courses right now.</p>
+            <p class="mt-1 text-sm text-muted">{{ errorMessage() }}</p>
+            <button
+              type="button"
+              class="mt-4 rounded-lg bg-royal px-4 py-2 text-sm font-semibold text-white hover:bg-royal-dark"
+              (click)="results.reload()"
+            >
+              Try again
+            </button>
+          </div>
+        } @else if (!list().length) {
+          <div class="rounded-2xl border border-line bg-white p-8 text-center">
+            @if (isFiltered()) {
+              <p class="font-semibold">No courses match your search.</p>
+              <p class="mt-1 text-sm text-muted">Try another keyword or fewer filters.</p>
+              <button
+                type="button"
+                class="mt-4 rounded-lg border border-royal px-4 py-2 text-sm font-semibold text-royal hover:bg-royal-soft"
+                (click)="clearFilters()"
+              >
+                Clear filters
+              </button>
+            } @else {
+              <p class="font-semibold">No courses published yet.</p>
+              <p class="mt-1 text-sm text-muted">Check back soon: new courses are on the way.</p>
+            }
+          </div>
+        } @else {
+          <ul
+            class="grid gap-5 transition-opacity sm:grid-cols-2 lg:grid-cols-3"
+            [class.opacity-60]="results.isLoading()"
+          >
+            @for (item of list(); track item.id; let i = $index) {
+              <li><app-course-card [course]="item" [index]="i" /></li>
+            }
+          </ul>
+
+          @if (totalPages() > 1) {
+            <nav
+              class="mt-10 flex flex-wrap items-center justify-center gap-1.5 text-sm"
+              aria-label="Pages"
+            >
+              <button
+                type="button"
+                class="rounded-lg border border-line bg-white px-3 py-2 font-medium hover:border-royal hover:text-royal disabled:cursor-not-allowed disabled:opacity-40"
+                [disabled]="page() === 0 || results.isLoading()"
+                (click)="goTo(page() - 1)"
+              >
+                Previous
+              </button>
+              @for (n of pageNumbers(); track n) {
+                <button
+                  type="button"
+                  class="h-9 min-w-9 rounded-lg border px-2 font-medium"
+                  [class]="
+                    n === page()
+                      ? 'border-royal bg-royal text-white'
+                      : 'border-line bg-white hover:border-royal hover:text-royal'
+                  "
+                  [attr.aria-current]="n === page() ? 'page' : null"
+                  [disabled]="results.isLoading()"
+                  (click)="goTo(n)"
+                >
+                  {{ n + 1 }}
+                </button>
+              }
+              <button
+                type="button"
+                class="rounded-lg border border-line bg-white px-3 py-2 font-medium hover:border-royal hover:text-royal disabled:cursor-not-allowed disabled:opacity-40"
+                [disabled]="page() + 1 >= totalPages() || results.isLoading()"
+                (click)="goTo(page() + 1)"
+              >
+                Next
+              </button>
+            </nav>
+          }
+        }
+      </div>
+    </div>
+  </section>
+</main>
+
+<app-site-footer />
+
+@if (course(); as id) {
+  <app-fetch-course [courseId]="id" (closed)="closeCourse()" />
+}

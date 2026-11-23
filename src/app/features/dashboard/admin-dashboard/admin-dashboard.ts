@@ -13,18 +13,26 @@ import {
   DashboardShell,
 } from '../../../shared/reusable-components/dashboard-shell/dashboard-shell';
 import { CourseManager } from '../../course/course-manager/course-manager';
+import { StudentProfileManager } from '../../student-profile/student-profile-manager/student-profile-manager';
 
 type Dialog =
   | { kind: 'block'; user: IUserResponse }
   | { kind: 'unblock'; user: IUserResponse }
   | { kind: 'delete' };
 
-type Section = 'users' | 'courses';
+type Section = 'users' | 'students' | 'courses';
 
 const SECTIONS: readonly DashboardSection[] = [
   { id: 'users', label: 'Users', icon: 'users' },
+  { id: 'students', label: 'Students', icon: 'students' },
   { id: 'courses', label: 'Courses', icon: 'courses' },
 ];
+
+const HEADINGS: Record<Section, string> = {
+  users: 'Users',
+  students: 'Student profiles',
+  courses: 'Courses',
+};
 
 /**
  * Admin console. Users: list, view, block / unblock. Courses: the same tools as the tutor
@@ -39,6 +47,7 @@ const SECTIONS: readonly DashboardSection[] = [
     DeleteUserAccount,
     FetchAllUsers,
     FetchUser,
+    StudentProfileManager,
     UnBlockUserAccount,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,21 +60,27 @@ export class AdminDashboard {
   readonly section = input<string>();
 
   protected readonly sections = SECTIONS;
-  protected readonly active = computed<Section>(() =>
-    this.section() === 'courses' ? 'courses' : 'users',
-  );
+  protected readonly active = computed<Section>(() => {
+    const section = this.section();
+    return section === 'courses' || section === 'students' ? section : 'users';
+  });
 
   protected readonly me = this.auth.user;
   private readonly firstName = computed(() => {
     const user = this.me();
     return user?.firstName || (user ? displayName(user) : 'Admin');
   });
-  protected readonly heading = computed(() => (this.active() === 'courses' ? 'Courses' : 'Users'));
-  protected readonly description = computed(() =>
-    this.active() === 'courses'
-      ? 'Create, search, edit and remove courses, and download them as PDF.'
-      : `Welcome back, ${this.firstName()}. Here is everyone with an account.`,
-  );
+  protected readonly heading = computed(() => HEADINGS[this.active()]);
+  protected readonly description = computed(() => {
+    switch (this.active()) {
+      case 'courses':
+        return 'Create, search, edit and remove courses, and download them as PDF.';
+      case 'students':
+        return 'Search, open, edit and remove student profiles, and export them as PDF.';
+      default:
+        return `Welcome back, ${this.firstName()}. Here is everyone with an account.`;
+    }
+  });
   /** The API refuses to delete super admin accounts. */
   protected readonly canDeleteSelf = computed(() => this.me()?.role !== UserRole.SUPER_ADMIN);
 

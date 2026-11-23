@@ -109,3 +109,50 @@ export const COURSE_DELETE_ROLES: readonly UserRole[] = [
   UserRole.ADMIN,
   UserRole.ACADEMIC_DIRECTOR,
 ];
+
+/** Mirrors the backend enum com.learningLadder...enums.gender.Gender */
+export const Gender = {
+  MALE: 'MALE',
+  FEMALE: 'FEMALE',
+  OTHER: 'OTHER',
+  PREFER_NOT_TO_SAY: 'PREFER_NOT_TO_SAY',
+} as const;
+
+export type Gender = (typeof Gender)[keyof typeof Gender];
+
+export const GENDERS = Object.values(Gender);
+
+/** Mirrors the backend enum EnrollmentStatus. */
+export const EnrollmentStatus = {
+  APPLICANT: 'APPLICANT',
+  ACTIVE: 'ACTIVE',
+  ON_LEAVE: 'ON_LEAVE',
+  SUSPENDED: 'SUSPENDED',
+  GRADUATED: 'GRADUATED',
+  WITHDRAWN: 'WITHDRAWN',
+} as const;
+
+export type EnrollmentStatus = (typeof EnrollmentStatus)[keyof typeof EnrollmentStatus];
+
+export const ENROLLMENT_STATUSES = Object.values(EnrollmentStatus);
+
+/**
+ * Who may list, open, search, count and export student profiles
+ * (`StudentProfileController.STAFF`). Students cannot read profiles, not even their own.
+ */
+export const STUDENT_PROFILE_STAFF_ROLES: readonly UserRole[] = [
+  UserRole.SUPER_ADMIN,
+  UserRole.ADMIN,
+  UserRole.IT_ADMIN,
+  UserRole.REGISTRAR,
+  UserRole.DEPUTY_REGISTRAR,
+  UserRole.ADMISSIONS_OFFICER,
+  UserRole.STUDENT_REGISTRAR,
+];
+
+/** Who may update or delete any student's profile; a student may change only their own. */
+export const STUDENT_PROFILE_ADMIN_ROLES: readonly UserRole[] = [
+  UserRole.SUPER_ADMIN,
+  UserRole.ADMIN,
+  UserRole.IT_ADMIN,
+];

@@ -1,13 +1,12 @@
-import { CurrencyPipe, NgOptimizedImage } from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ApiErrorResponse, CourseSummary, isApiErrorResponse } from '../../core/interface';
 import { AuthService } from '../../core/service/auth/auth.service';
-import { EnumLabelPipe } from '../../shared/custom-pipe/enum-label-pipe';
 import { SiteFooter } from '../../shared/reusable-components/site-footer/site-footer';
 import { SiteHeader } from '../../shared/reusable-components/site-header/site-header';
-import { finalPrice } from '../course/course.service';
+import { CourseCard } from '../course/course-card/course-card';
 import { HomeService } from './home.service';
 import { injectHeaderAccount } from '../../core/service/auth/header-account';
 
@@ -26,15 +25,6 @@ interface RoleCard {
   items: readonly string[];
 }
 
-/** A course plus the values the card needs, computed once instead of in the template. */
-interface CourseCard extends CourseSummary {
-  finalPrice: number;
-  /** Background shown behind (or instead of) the thumbnail. */
-  fallbackClass: string;
-}
-
-const THUMBNAIL_FALLBACKS = ['bg-royal', 'bg-ladder', 'bg-navy-900'];
-
 /** Two rows of three on large screens. */
 const FEATURED_COURSES = 6;
 
@@ -50,7 +40,7 @@ interface Step {
 /** Public landing page. */
 @Component({
   selector: 'app-home',
-  imports: [CurrencyPipe, EnumLabelPipe, NgOptimizedImage, RouterLink, SiteHeader, SiteFooter],
+  imports: [CourseCard, NgOptimizedImage, RouterLink, SiteHeader, SiteFooter],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.html',
 })
@@ -66,12 +56,8 @@ export class Home {
     stream: () => this.homeService.getFeaturedCourses(FEATURED_COURSES),
   });
 
-  protected readonly courseCards = computed<CourseCard[]>(() =>
-    (this.courses.hasValue() ? this.courses.value().content : []).map((course, i) => ({
-      ...course,
-      finalPrice: finalPrice(course),
-      fallbackClass: THUMBNAIL_FALLBACKS[i % THUMBNAIL_FALLBACKS.length],
-    })),
+  protected readonly courseCards = computed<CourseSummary[]>(() =>
+    this.courses.hasValue() ? this.courses.value().content : [],
   );
 
   /** Number of published courses, for the "View all" link. */

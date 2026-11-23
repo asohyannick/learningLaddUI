@@ -7,6 +7,7 @@ import { UserRole } from '../../../core/enum/global-enum-configuration';
 import { errorInterceptor } from '../../../core/interceptor/error.interceptor';
 import { AuthService } from '../../../core/service/auth/auth.service';
 import { coursePage, fakeCourseSummary } from '../../../core/testing/fake-course';
+import { fakeStudentSummary } from '../../../core/testing/fake-student-profile';
 import { fakeUser } from '../../../core/testing/fake-user';
 import { fakeLoginResponse, ok } from '../../../core/testing/fake-login-response';
 import { AdminDashboard } from './admin-dashboard';
@@ -97,6 +98,23 @@ describe('AdminDashboard', () => {
     expect(el.querySelector('tbody')?.textContent).toContain('Data Science 101');
     // Admins may delete courses.
     expect(el.querySelector('button[aria-label="Delete Data Science 101"]')).not.toBeNull();
+  });
+
+  it('shows the student profiles in the Students section', async () => {
+    const fixture = TestBed.createComponent(AdminDashboard);
+    fixture.componentRef.setInput('section', 'students');
+    fixture.detectChanges();
+    const profiles = `${environment.apiUrl}/student-profile`;
+    backend.expectOne(`${profiles}/count`).flush(ok(8));
+    backend
+      .expectOne(`${profiles}?page=0&size=20`)
+      .flush(ok(coursePage([fakeStudentSummary()], 8)));
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('h1')?.textContent).toContain('Student profiles');
+    expect(el.querySelector('[data-testid="profile-count"]')?.textContent?.trim()).toBe('8');
+    expect(el.querySelector('button[aria-label="Delete Amara Okafor"]')).not.toBeNull();
   });
 
   it('opens the delete-account dialog from the sidebar', async () => {
