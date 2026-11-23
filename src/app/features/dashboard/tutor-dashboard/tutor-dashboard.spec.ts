@@ -1,23 +1,54 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { environment } from '../../../../environments/environment';
+import { UserRole } from '../../../core/enum/global-enum-configuration';
+import { errorInterceptor } from '../../../core/interceptor/error.interceptor';
+import { AuthService } from '../../../core/service/auth/auth.service';
+import { coursePage, fakeCourseSummary } from '../../../core/testing/fake-course';
+import { fakeLoginResponse, ok } from '../../../core/testing/fake-login-response';
 import { TutorDashboard } from './tutor-dashboard';
 
+const api = `${environment.apiUrl}/course`;
+
 describe('TutorDashboard', () => {
-  let component: TutorDashboard;
-  let fixture: ComponentFixture<TutorDashboard>;
+  let backend: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TutorDashboard],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(withInterceptors([errorInterceptor])),
+        provideHttpClientTesting(),
+      ],
     }).compileComponents();
-
-    fixture = TestBed.createComponent(TutorDashboard);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+    backend = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).startSession(
+      fakeLoginResponse({ firstName: 'Chidi', role: UserRole.PROFESSOR }),
+    );
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  afterEach(() => {
+    backend.verify();
+    TestBed.inject(AuthService).endSession();
+  });
+
+  it('greets the tutor, shows their courses and links to sign out', async () => {
+    const fixture = TestBed.createComponent(TutorDashboard);
+    fixture.detectChanges();
+    backend.expectOne(`${api}/count`).flush(ok(1));
+    backend.expectOne(`${api}?page=0&size=20`).flush(ok(coursePage([fakeCourseSummary()])));
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('h1')?.textContent).toContain('My courses');
+    expect(el.textContent).toContain('Welcome back, Chidi');
+    expect(el.textContent).toContain('Tutor console');
+    expect(el.querySelector('tbody')?.textContent).toContain('Data Science 101');
+    expect(el.querySelector('a[href="/logout"]')).not.toBeNull();
+    // Tutors don't get "Delete my account" in this console.
+    expect(el.textContent).not.toContain('Delete my account');
   });
 });

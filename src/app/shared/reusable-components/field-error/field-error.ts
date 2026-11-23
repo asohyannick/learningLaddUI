@@ -63,6 +63,9 @@ export class FieldError {
     if (errors['maxlength']) {
       return `${label} must be at most ${errors['maxlength'].requiredLength} characters.`;
     }
+    if (errors['min']) return `${label} must be at least ${errors['min'].min}.`;
+    if (errors['max']) return `${label} must be at most ${errors['max'].max}.`;
+    if (errors['discountAbovePrice']) return 'Discount cannot be more than the price.';
     if (errors['pattern']) return this.patternMessage() ?? `${label} is not valid.`;
     if (errors['passwordRules']) return 'Password does not meet all the requirements below.';
     if (errors['mismatch']) return 'Passwords do not match.';

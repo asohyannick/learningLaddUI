@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 import { UserRole } from '../../../core/enum/global-enum-configuration';
 import { errorInterceptor } from '../../../core/interceptor/error.interceptor';
 import { AuthService } from '../../../core/service/auth/auth.service';
+import { coursePage, fakeCourseSummary } from '../../../core/testing/fake-course';
 import { fakeUser } from '../../../core/testing/fake-user';
 import { fakeLoginResponse, ok } from '../../../core/testing/fake-login-response';
 import { AdminDashboard } from './admin-dashboard';
@@ -79,6 +80,23 @@ describe('AdminDashboard', () => {
     expect(el.querySelector('app-block-user-account')).toBeNull();
     expect(el.querySelector('[role="status"]')?.textContent).toContain('User account blocked');
     expect(el.querySelector('tbody')?.textContent).toContain('Blocked');
+  });
+
+  it('shows the course tools in the Courses section', async () => {
+    const fixture = TestBed.createComponent(AdminDashboard);
+    fixture.componentRef.setInput('section', 'courses');
+    fixture.detectChanges();
+    const courses = `${environment.apiUrl}/course`;
+    backend.expectOne(`${courses}/count`).flush(ok(3));
+    backend.expectOne(`${courses}?page=0&size=20`).flush(ok(coursePage([fakeCourseSummary()])));
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('h1')?.textContent).toContain('Courses');
+    expect(el.querySelector('a[aria-current="page"]')?.textContent).toContain('Courses');
+    expect(el.querySelector('tbody')?.textContent).toContain('Data Science 101');
+    // Admins may delete courses.
+    expect(el.querySelector('button[aria-label="Delete Data Science 101"]')).not.toBeNull();
   });
 
   it('opens the delete-account dialog from the sidebar', async () => {

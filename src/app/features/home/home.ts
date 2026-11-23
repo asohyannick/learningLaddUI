@@ -7,6 +7,7 @@ import { AuthService } from '../../core/service/auth/auth.service';
 import { EnumLabelPipe } from '../../shared/custom-pipe/enum-label-pipe';
 import { SiteFooter } from '../../shared/reusable-components/site-footer/site-footer';
 import { SiteHeader } from '../../shared/reusable-components/site-header/site-header';
+import { finalPrice } from '../course/course.service';
 import { HomeService } from './home.service';
 import { injectHeaderAccount } from '../../core/service/auth/header-account';
 
@@ -34,6 +35,9 @@ interface CourseCard extends CourseSummary {
 
 const THUMBNAIL_FALLBACKS = ['bg-royal', 'bg-ladder', 'bg-navy-900'];
 
+/** Two rows of three on large screens. */
+const FEATURED_COURSES = 6;
+
 interface Step {
   number: string;
   title: string;
@@ -59,15 +63,20 @@ export class Home {
   /** Loaded only for signed-in users: the course API returns 401 to guests. */
   protected readonly courses = rxResource({
     params: () => (this.isSignedIn() ? true : undefined),
-    stream: () => this.homeService.getFeaturedCourses(3),
+    stream: () => this.homeService.getFeaturedCourses(FEATURED_COURSES),
   });
 
   protected readonly courseCards = computed<CourseCard[]>(() =>
-    (this.courses.hasValue() ? this.courses.value() : []).map((course, i) => ({
+    (this.courses.hasValue() ? this.courses.value().content : []).map((course, i) => ({
       ...course,
-      finalPrice: Math.max((course.price ?? 0) - (course.discount ?? 0), 0),
+      finalPrice: finalPrice(course),
       fallbackClass: THUMBNAIL_FALLBACKS[i % THUMBNAIL_FALLBACKS.length],
     })),
+  );
+
+  /** Number of published courses, for the "View all" link. */
+  protected readonly publishedTotal = computed(() =>
+    this.courses.hasValue() ? this.courses.value().totalElements : 0,
   );
 
   protected readonly coursesErrorMessage = computed(() => {
@@ -84,7 +93,7 @@ export class Home {
     this.partners.hasValue() ? this.partners.value() : [],
   );
 
-  protected readonly skeletonSlots = [0, 1, 2];
+  protected readonly skeletonSlots = Array.from({ length: FEATURED_COURSES }, (_, i) => i);
 
   /** Course progress shown in the hero preview: 6 of 8 lessons done. */
   protected readonly lessons = Array.from({ length: 8 }, (_, i) => i < 6);

@@ -62,3 +62,50 @@ export const ADMIN_ROLES: readonly UserRole[] = [
   UserRole.ADMIN,
   UserRole.IT_ADMIN,
 ];
+
+export const CourseLevel = {
+  BEGINNER: 'BEGINNER',
+  INTERMEDIATE: 'INTERMEDIATE',
+  ADVANCED: 'ADVANCED',
+  ALL_LEVELS: 'ALL_LEVELS',
+} as const;
+
+export type CourseLevel = (typeof CourseLevel)[keyof typeof CourseLevel];
+
+export const COURSE_LEVELS = Object.values(CourseLevel);
+
+export const CourseStatus = {
+  PAID: 'PAID',
+  FREE: 'FREE',
+  COMPLETED: 'COMPLETED',
+  UNCOMPLETED: 'UNCOMPLETED',
+} as const;
+
+export type CourseStatus = (typeof CourseStatus)[keyof typeof CourseStatus];
+
+export const COURSE_STATUSES = Object.values(CourseStatus);
+
+/** Roles that can open the tutor dashboard. */
+export const TUTOR_DASHBOARD_ROLES: readonly UserRole[] = [
+  UserRole.PROFESSOR,
+  UserRole.LECTURER,
+  UserRole.SUPER_ADMIN,
+];
+
+/** May create and update courses (mirrors `@PreAuthorize(WRITE_ROLES)` on the course API). */
+export const COURSE_WRITE_ROLES: readonly UserRole[] = [
+  UserRole.SUPER_ADMIN,
+  UserRole.ADMIN,
+  UserRole.ACADEMIC_DIRECTOR,
+  UserRole.DEAN,
+  UserRole.HEAD_OF_DEPARTMENT,
+  UserRole.PROFESSOR,
+  UserRole.LECTURER,
+];
+
+/** May delete courses (mirrors `DELETE /course/{id}` on the backend). */
+export const COURSE_DELETE_ROLES: readonly UserRole[] = [
+  UserRole.SUPER_ADMIN,
+  UserRole.ADMIN,
+  UserRole.ACADEMIC_DIRECTOR,
+];

@@ -24,7 +24,9 @@ const FOCUSABLE =
     <div class="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
       <div class="absolute inset-0 bg-navy-950/70 backdrop-blur-sm" (click)="close()"></div>
       <section
-        class="relative w-full max-w-md rounded-2xl bg-white p-6 text-ink shadow-2xl"
+        class="relative max-h-[92vh] w-full overflow-y-auto rounded-2xl bg-white p-6 text-ink shadow-2xl"
+        [class.max-w-md]="size() === 'md'"
+        [class.max-w-3xl]="size() === 'lg'"
         role="dialog"
         aria-modal="true"
         [attr.aria-labelledby]="titleId"
@@ -76,6 +78,8 @@ export class Modal {
   readonly heading = input.required<string>();
   readonly description = input<string>();
   readonly tone = input<'default' | 'danger'>('default');
+  /** `lg` for long forms; the dialog scrolls when taller than the screen. */
+  readonly size = input<'md' | 'lg'>('md');
   /** Set while a request runs so the dialog cannot be dismissed half-way. */
   readonly busy = input(false);
   readonly closed = output<void>();

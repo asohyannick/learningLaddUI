@@ -225,7 +225,9 @@
           </h2>
         </div>
         <a routerLink="/courses" class="text-sm font-semibold text-royal hover:underline"
-          >View all courses <span aria-hidden="true">→</span></a
+          >View all
+          {{ publishedTotal() > courseCards().length ? publishedTotal() + ' ' : '' }}courses
+          <span aria-hidden="true">→</span></a
         >
       </div>
 

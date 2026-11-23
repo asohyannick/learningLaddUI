@@ -1,5 +1,9 @@
 import { Routes } from '@angular/router';
-import { ADMIN_ROLES, UserRole } from './core/enum/global-enum-configuration';
+import {
+  ADMIN_ROLES,
+  TUTOR_DASHBOARD_ROLES,
+  UserRole,
+} from './core/enum/global-enum-configuration';
 import { authGuard, guestGuard, magicLinkTokenGuard, roleGuard } from './core/guard/auth.guard';
 
 // Every page is lazy-loaded. Paths are first drafts; adjust them as screens are designed.
@@ -171,7 +175,7 @@ export const routes: Routes = [
   {
     path: 'dashboard/tutor',
     title: 'Tutor dashboard | Learning Ladder',
-    canActivate: [roleGuard([UserRole.PROFESSOR, UserRole.LECTURER])],
+    canActivate: [roleGuard(TUTOR_DASHBOARD_ROLES)],
     loadComponent: () =>
       import('./features/dashboard/tutor-dashboard/tutor-dashboard').then((m) => m.TutorDashboard),
   },

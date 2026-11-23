@@ -1,0 +1,278 @@
+<div class="fixed inset-0 z-40">
+  <div class="absolute inset-0 bg-navy-950/60 backdrop-blur-[2px]" (click)="closed.emit()"></div>
+  <aside
+    class="absolute inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-white/10 bg-navy-900 text-slate-200 shadow-2xl outline-none"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="course-panel-title"
+    tabindex="-1"
+  >
+    <header class="flex items-center justify-between border-b border-white/10 px-6 py-4">
+      <h2 id="course-panel-title" class="text-base font-semibold text-white">Course details</h2>
+      <button
+        type="button"
+        class="rounded-md p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"
+        aria-label="Close course details"
+        (click)="closed.emit()"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path
+            d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"
+          />
+        </svg>
+      </button>
+    </header>
+
+    <div class="flex-1 overflow-y-auto px-6 py-6">
+      @if (loading() && !course()) {
+        <div class="animate-pulse space-y-4" role="status" aria-label="Loading course">
+          <div class="h-40 rounded-xl bg-white/10"></div>
+          <div class="h-5 w-2/3 rounded bg-white/10"></div>
+          <div class="h-3 w-1/2 rounded bg-white/10"></div>
+          @for (row of [1, 2, 3, 4]; track row) {
+            <div class="h-10 rounded-lg bg-white/5"></div>
+          }
+        </div>
+      } @else if (error(); as message) {
+        <div
+          class="rounded-xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-200"
+          role="alert"
+        >
+          <p>{{ message }}</p>
+          <button type="button" class="mt-2 font-semibold underline" (click)="load()">
+            Try again
+          </button>
+        </div>
+      } @else if (course(); as c) {
+        @if (c.promoVideoUrl && !videoFailed()) {
+          <div class="relative overflow-hidden rounded-xl bg-black">
+            <video
+              class="aspect-video w-full"
+              data-testid="promo-video"
+              controls
+              playsinline
+              preload="metadata"
+              [src]="c.promoVideoUrl"
+              [attr.poster]="c.thumbnailUrl || null"
+              [attr.aria-label]="'Promo video for ' + c.name"
+              (error)="videoFailed.set(true)"
+            ></video>
+          </div>
+        } @else {
+          <div
+            class="relative h-40 overflow-hidden rounded-xl bg-linear-to-br from-royal to-indigo-500"
+          >
+            @if (c.thumbnailUrl) {
+              <img [src]="c.thumbnailUrl" alt="" class="h-full w-full object-cover" />
+            }
+            <span
+              class="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset"
+              [class]="
+                c.published
+                  ? 'bg-emerald-500/90 text-white ring-emerald-300/40'
+                  : 'bg-navy-950/80 text-slate-200 ring-white/20'
+              "
+              >{{ c.published ? 'Published' : 'Draft' }}</span
+            >
+          </div>
+        }
+        @if (videoFailed()) {
+          <p class="mt-2 text-xs text-amber-200" role="alert">
+            The promo video could not be played. Its link may have expired; reopen the course to get
+            a fresh one.
+          </p>
+        }
+
+        <h3 class="mt-5 text-xl font-semibold text-white">{{ c.name }}</h3>
+        @if (c.shortDescription) {
+          <p class="mt-1 text-sm text-slate-400">{{ c.shortDescription }}</p>
+        }
+
+        <p class="mt-4 text-2xl font-bold text-white">
+          @if (price() === 0) {
+            Free
+          } @else {
+            {{ price() | currency: c.currency || 'USD' }}
+            @if ((c.discount ?? 0) > 0) {
+              <s class="ml-1 text-sm font-normal text-slate-500">{{
+                c.price | currency: c.currency || 'USD'
+              }}</s>
+            }
+          }
+        </p>
+
+        <dl
+          class="mt-6 divide-y divide-white/5 rounded-xl border border-white/10 bg-navy-950/40 text-sm"
+        >
+          <div class="flex justify-between gap-4 px-4 py-3">
+            <dt class="text-slate-400">Category</dt>
+            <dd class="text-right">{{ c.category || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4 px-4 py-3">
+            <dt class="text-slate-400">Level</dt>
+            <dd class="text-right">{{ (c.level | enumLabel) || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4 px-4 py-3">
+            <dt class="text-slate-400">Status</dt>
+            <dd class="text-right">{{ (c.status | enumLabel) || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4 px-4 py-3">
+            <dt class="text-slate-400">Language</dt>
+            <dd class="text-right">{{ c.language || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4 px-4 py-3">
+            <dt class="text-slate-400">Duration</dt>
+            <dd class="text-right">
+              {{ c.durationMinutes ? (c.durationMinutes | number) + ' min' : '—' }}
+            </dd>
+          </div>
+          <div class="flex justify-between gap-4 px-4 py-3">
+            <dt class="text-slate-400">Created</dt>
+            <dd class="text-right">{{ (c.createdAt | date: 'medium') || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4 px-4 py-3">
+            <dt class="text-slate-400">Last updated</dt>
+            <dd class="text-right">{{ (c.updatedAt | date: 'medium') || '—' }}</dd>
+          </div>
+          @if (c.publishedAt) {
+            <div class="flex justify-between gap-4 px-4 py-3">
+              <dt class="text-slate-400">Published</dt>
+              <dd class="text-right">{{ c.publishedAt | date: 'medium' }}</dd>
+            </div>
+          }
+        </dl>
+
+        @if (c.description) {
+          <h4 class="mt-6 text-sm font-semibold text-white">Description</h4>
+          <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-300">
+            {{ c.description }}
+          </p>
+        }
+        @if (c.learningOutcomes) {
+          <h4 class="mt-6 text-sm font-semibold text-white">What students will learn</h4>
+          <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-300">
+            {{ c.learningOutcomes }}
+          </p>
+        }
+        @if (c.requirements) {
+          <h4 class="mt-6 text-sm font-semibold text-white">Requirements</h4>
+          <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-300">
+            {{ c.requirements }}
+          </p>
+        }
+
+        @if (c.promoVideoUrl || c.syllabusUrl) {
+          <h4 class="mt-6 text-sm font-semibold text-white">Files</h4>
+          <ul class="mt-2 space-y-2 text-sm">
+            @if (c.promoVideoUrl) {
+              <li>
+                <a
+                  [href]="c.promoVideoUrl"
+                  target="_blank"
+                  rel="noopener"
+                  class="font-medium text-indigo-300 hover:underline"
+                  >Open the promo video in a new tab ↗</a
+                >
+              </li>
+            }
+            @if (c.syllabusUrl) {
+              <li>
+                <a
+                  [href]="c.syllabusUrl"
+                  target="_blank"
+                  rel="noopener"
+                  class="font-medium text-indigo-300 hover:underline"
+                  >Open the syllabus ↗</a
+                >
+              </li>
+            }
+          </ul>
+        }
+
+        @if (c.materials?.length) {
+          <h4 class="mt-6 text-sm font-semibold text-white">
+            Materials <span class="font-normal text-slate-500">({{ c.materials!.length }})</span>
+          </h4>
+          <ul class="mt-2 divide-y divide-white/5 rounded-xl border border-white/10 text-sm">
+            @for (material of c.materials; track material.id) {
+              <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                @if (isVideo(material.contentType)) {
+                  <video
+                    class="aspect-video w-full rounded-lg bg-black"
+                    controls
+                    playsinline
+                    preload="metadata"
+                    [src]="material.url"
+                    [attr.aria-label]="material.fileName"
+                  ></video>
+                }
+                <div class="min-w-0">
+                  <a
+                    [href]="material.url"
+                    target="_blank"
+                    rel="noopener"
+                    class="block truncate font-medium text-indigo-300 hover:underline"
+                    >{{ material.fileName }}</a
+                  >
+                  <p class="truncate text-xs text-slate-500">
+                    {{ material.description || material.contentType }} ·
+                    {{ material.sizeBytes / 1024 | number: '1.0-0' }} KB
+                  </p>
+                </div>
+                @if (material.freePreview) {
+                  <span
+                    class="shrink-0 rounded-full bg-ladder/15 px-2 py-0.5 text-xs font-medium text-amber-200"
+                    >Free preview</span
+                  >
+                }
+              </li>
+            }
+          </ul>
+        }
+
+        @if (downloadError(); as message) {
+          <p class="mt-6 text-sm text-rose-300" role="alert">{{ message }}</p>
+        }
+      }
+    </div>
+
+    @if (course(); as c) {
+      <footer class="flex flex-wrap gap-2 border-t border-white/10 px-6 py-4">
+        <button
+          type="button"
+          class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/10 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
+          [disabled]="downloading()"
+          (click)="download(c)"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.61L6.3 8.24a.75.75 0 1 0-1.1 1.02l4.25 4.5a.75.75 0 0 0 1.1 0l4.25-4.5a.75.75 0 0 0-1.1-1.02l-2.95 3.12V2.75Z"
+            />
+            <path
+              d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z"
+            />
+          </svg>
+          {{ downloading() ? 'Preparing PDF…' : 'Download PDF' }}
+        </button>
+        @if (canWrite()) {
+          <button
+            type="button"
+            class="flex-1 rounded-lg bg-royal px-4 py-2.5 text-sm font-semibold text-white hover:bg-royal-dark"
+            (click)="edit.emit(c)"
+          >
+            Edit course
+          </button>
+        }
+        @if (canDelete()) {
+          <button
+            type="button"
+            class="rounded-lg border border-rose-400/40 px-4 py-2.5 text-sm font-semibold text-rose-300 hover:bg-rose-400/10"
+            (click)="remove.emit(c)"
+          >
+            Delete
+          </button>
+        }
+      </footer>
+    }
+  </aside>
+</div>

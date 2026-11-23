@@ -10,7 +10,7 @@ import { Home } from './home';
 
 const api = environment.apiUrl;
 const partnersUrl = `${api}/partners/public?page=0&size=5`;
-const coursesUrl = `${api}/course?page=0&size=3`;
+const coursesUrl = `${api}/course/search?published=true&page=0&size=6&sortBy=createdAt&sortDirection=desc`;
 
 function page<T>(content: T[]) {
   return {

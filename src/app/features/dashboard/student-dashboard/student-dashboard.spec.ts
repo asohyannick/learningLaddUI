@@ -1,23 +1,76 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { environment } from '../../../../environments/environment';
+import { UserRole } from '../../../core/enum/global-enum-configuration';
+import { errorInterceptor } from '../../../core/interceptor/error.interceptor';
+import { AuthService } from '../../../core/service/auth/auth.service';
+import { coursePage, fakeCourse, fakeCourseSummary } from '../../../core/testing/fake-course';
+import { fakeLoginResponse, ok } from '../../../core/testing/fake-login-response';
 import { StudentDashboard } from './student-dashboard';
 
+const api = `${environment.apiUrl}/course`;
+
 describe('StudentDashboard', () => {
-  let component: StudentDashboard;
-  let fixture: ComponentFixture<StudentDashboard>;
+  let backend: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [StudentDashboard],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(withInterceptors([errorInterceptor])),
+        provideHttpClientTesting(),
+      ],
     }).compileComponents();
-
-    fixture = TestBed.createComponent(StudentDashboard);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+    backend = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).startSession(
+      fakeLoginResponse({ firstName: 'Amara', role: UserRole.STUDENT }),
+    );
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  afterEach(() => {
+    backend.verify();
+    TestBed.inject(AuthService).endSession();
+  });
+
+  async function render() {
+    const fixture = TestBed.createComponent(StudentDashboard);
+    fixture.detectChanges();
+    backend.expectOne(`${api}/count`).flush(ok(4));
+    backend
+      .expectOne(`${api}?page=0&size=20`)
+      .flush(ok(coursePage([fakeCourseSummary({ id: 'c-1', name: 'Data Science 101' })], 4)));
+    await fixture.whenStable();
+    return { fixture, el: fixture.nativeElement as HTMLElement };
+  }
+
+  it('greets the student and lists every course with the total count', async () => {
+    const { el } = await render();
+    expect(el.textContent).toContain('Student portal');
+    expect(el.textContent).toContain('Welcome back, Amara');
+    expect(el.querySelector('[data-testid="course-count"]')?.textContent?.trim()).toBe('4');
+    expect(el.querySelector('tbody')?.textContent).toContain('Data Science 101');
+    expect(el.querySelector('a[href="/logout"]')).not.toBeNull();
+  });
+
+  it('is read-only: view and PDF, but no create, edit or delete', async () => {
+    const { fixture, el } = await render();
+    const text = (b: Element) => b.textContent?.trim();
+    expect([...el.querySelectorAll('button')].map(text)).not.toContain('New course');
+    expect(el.querySelector('button[aria-label="Edit Data Science 101"]')).toBeNull();
+    expect(el.querySelector('button[aria-label="Delete Data Science 101"]')).toBeNull();
+    expect(
+      el.querySelector('button[aria-label="Download Data Science 101 as PDF"]'),
+    ).not.toBeNull();
+
+    el.querySelector<HTMLButtonElement>('button[aria-label="View Data Science 101"]')!.click();
+    fixture.detectChanges();
+    backend.expectOne(`${api}/c-1`).flush(ok(fakeCourse({ description: 'All about data.' })));
+    await fixture.whenStable();
+    const panel = el.querySelector('app-fetch-course')!;
+    expect(panel.textContent).toContain('All about data.');
+    expect(panel.textContent).not.toContain('Edit course');
   });
 });

@@ -1,0 +1,425 @@
+<!-- Summary cards -->
+<section aria-label="Course summary" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-indigo-500 to-violet-500 p-5 text-white shadow-lg shadow-indigo-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Total courses</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight" data-testid="course-count">
+      {{ totalCount() ?? '—' }}
+    </p>
+    <p class="mt-1 text-xs text-white/75">Published and drafts</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-sky-500 to-cyan-500 p-5 text-white shadow-lg shadow-sky-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">{{ isFiltered() ? 'Matching' : 'Listed' }}</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">
+      {{ loading() && !total() ? '—' : total() }}
+    </p>
+    <p class="mt-1 text-xs text-white/75">
+      {{ isFiltered() ? 'Courses matching your search' : 'Courses in the catalogue' }}
+    </p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-emerald-500 to-teal-500 p-5 text-white shadow-lg shadow-emerald-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Published</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">{{ stats().published }}</p>
+    <p class="mt-1 text-xs text-white/75">of {{ stats().shown }} on this page</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-amber-500 to-ladder p-5 text-white shadow-lg shadow-amber-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Free</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">{{ stats().free }}</p>
+    <p class="mt-1 text-xs text-white/75">of {{ stats().shown }} on this page</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+</section>
+
+<!-- Courses table -->
+<section
+  class="mt-6 rounded-2xl border border-white/10 bg-navy-900"
+  aria-labelledby="courses-heading"
+>
+  <header class="space-y-4 border-b border-white/10 p-5">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h2 id="courses-heading" class="text-base font-semibold text-white">All courses</h2>
+        <p class="text-sm text-slate-400">Search, open, edit or download any course.</p>
+      </div>
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <label class="relative block">
+          <span class="sr-only">Search courses by name, description or category</span>
+          <svg
+            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.45 4.39l3.08 3.08a.75.75 0 1 1-1.06 1.06l-3.08-3.08A7 7 0 0 1 2 9Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <input
+            type="search"
+            maxlength="100"
+            placeholder="Search courses…"
+            class="w-full rounded-lg border border-white/10 bg-navy-950 py-2 pl-9 pr-3 text-sm text-white placeholder:text-slate-500 focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40 sm:w-64"
+            [value]="searchText()"
+            (input)="setSearch($any($event.target).value)"
+          />
+        </label>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-white/5 disabled:opacity-50"
+          [disabled]="loading()"
+          (click)="reload()"
+        >
+          <svg
+            class="h-4 w-4"
+            [class.animate-spin]="loading()"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M15.31 4.69a.75.75 0 0 1 .75.75V9a.75.75 0 0 1-.75.75h-3.56a.75.75 0 0 1 0-1.5h1.76A5.5 5.5 0 0 0 4.5 10a.75.75 0 0 1-1.5 0 7 7 0 0 1 11.56-5.32V5.44a.75.75 0 0 1 .75-.75ZM16.25 9.25A.75.75 0 0 1 17 10a7 7 0 0 1-11.56 5.32v1.24a.75.75 0 0 1-1.5 0V13a.75.75 0 0 1 .75-.75h3.56a.75.75 0 0 1 0 1.5H6.49A5.5 5.5 0 0 0 15.5 10a.75.75 0 0 1 .75-.75Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap items-center gap-2 text-sm">
+      <label>
+        <span class="sr-only">Level</span>
+        <select
+          class="rounded-lg border border-white/10 bg-navy-950 px-3 py-2 text-white focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40"
+          [value]="level()"
+          (change)="setLevel($any($event.target).value)"
+        >
+          <option value="">All levels</option>
+          @for (option of levels; track option) {
+            <option [value]="option">{{ option | enumLabel }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Pricing</span>
+        <select
+          class="rounded-lg border border-white/10 bg-navy-950 px-3 py-2 text-white focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40"
+          [value]="status()"
+          (change)="setStatus($any($event.target).value)"
+        >
+          <option value="">Any status</option>
+          @for (option of statuses; track option) {
+            <option [value]="option">{{ option | enumLabel }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Visibility</span>
+        <select
+          class="rounded-lg border border-white/10 bg-navy-950 px-3 py-2 text-white focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40"
+          [value]="published()"
+          (change)="setPublished($any($event.target).value)"
+        >
+          <option value="">Published and drafts</option>
+          <option value="true">Published only</option>
+          <option value="false">Drafts only</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-2 text-slate-400">
+        <span>Sort</span>
+        <select
+          class="rounded-lg border border-white/10 bg-navy-950 px-3 py-2 text-white focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40"
+          [value]="sortIndex()"
+          (change)="setSort($any($event.target).value)"
+        >
+          @for (option of sortOptions; track option.label; let i = $index) {
+            <option [value]="i">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+      @if (isFiltered() || searchText()) {
+        <button
+          type="button"
+          class="rounded-lg px-3 py-2 font-medium text-indigo-300 hover:bg-white/5"
+          (click)="clearFilters()"
+        >
+          Clear filters
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (downloadError(); as message) {
+    <div
+      class="mx-5 mt-5 flex items-start justify-between gap-3 rounded-xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-200"
+      role="alert"
+    >
+      {{ message }}
+      <button
+        type="button"
+        class="text-rose-200/70 hover:text-white"
+        aria-label="Dismiss"
+        (click)="downloadError.set(null)"
+      >
+        ×
+      </button>
+    </div>
+  }
+
+  @if (error(); as message) {
+    <div
+      class="m-5 rounded-xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-200"
+      role="alert"
+    >
+      {{ message }}
+      <button type="button" class="ml-1 font-semibold underline" (click)="reload()">
+        Try again
+      </button>
+    </div>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm" [attr.aria-busy]="loading()">
+        <thead class="text-xs uppercase tracking-wide text-slate-500">
+          <tr class="border-b border-white/5">
+            <th scope="col" class="px-5 py-3 font-medium">Course</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium md:table-cell">Level</th>
+            <th scope="col" class="px-5 py-3 font-medium">Price</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium sm:table-cell">Visibility</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium xl:table-cell">Created</th>
+            <th scope="col" class="px-5 py-3 text-right font-medium">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          @if (loading() && !rows().length) {
+            @for (row of [1, 2, 3, 4, 5]; track row) {
+              <tr class="animate-pulse">
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="h-10 w-14 rounded-lg bg-white/10"></div>
+                    <div class="space-y-2">
+                      <div class="h-3 w-40 rounded bg-white/10"></div>
+                      <div class="h-3 w-24 rounded bg-white/5"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="hidden px-5 py-4 md:table-cell">
+                  <div class="h-3 w-20 rounded bg-white/10"></div>
+                </td>
+                <td class="px-5 py-4"><div class="h-3 w-14 rounded bg-white/10"></div></td>
+                <td class="hidden px-5 py-4 sm:table-cell">
+                  <div class="h-5 w-16 rounded-full bg-white/10"></div>
+                </td>
+                <td class="hidden px-5 py-4 xl:table-cell">
+                  <div class="h-3 w-24 rounded bg-white/10"></div>
+                </td>
+                <td class="px-5 py-4"></td>
+              </tr>
+            }
+          } @else {
+            @for (course of rows(); track course.id) {
+              <tr class="transition hover:bg-white/3" [class.opacity-60]="loading()">
+                <td class="px-5 py-3.5">
+                  <div class="flex items-center gap-3">
+                    @if (course.thumbnailUrl) {
+                      <img
+                        [src]="course.thumbnailUrl"
+                        alt=""
+                        class="h-10 w-14 shrink-0 rounded-lg object-cover"
+                        loading="lazy"
+                      />
+                    } @else {
+                      <span
+                        class="flex h-10 w-14 shrink-0 items-center justify-center rounded-lg bg-royal/20 text-indigo-200"
+                        aria-hidden="true"
+                      >
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path
+                            d="M10.75 16.82A7.46 7.46 0 0 1 15 15.5c.71 0 1.4.1 2.05.28A.75.75 0 0 0 18 15.06v-11a.75.75 0 0 0-.54-.72A8.97 8.97 0 0 0 15 3a8.96 8.96 0 0 0-4.25 1.06v12.76ZM9.25 4.06A8.96 8.96 0 0 0 5 3c-.85 0-1.67.12-2.46.34a.75.75 0 0 0-.54.72v11a.75.75 0 0 0 .95.72A7.5 7.5 0 0 1 5 15.5c1.54 0 2.98.46 4.25 1.24V4.06Z"
+                          />
+                        </svg>
+                      </span>
+                    }
+                    <div class="min-w-0">
+                      <p class="max-w-xs truncate font-medium text-white">{{ course.name }}</p>
+                      <p class="truncate text-xs text-slate-400">
+                        {{ course.category || 'Uncategorised' }}
+                        @if (course.language) {
+                          · {{ course.language }}
+                        }
+                        @if (course.promoVideoUrl) {
+                          ·
+                          <span class="font-medium text-indigo-300" data-testid="has-video"
+                            >▶ Video</span
+                          >
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </td>
+                <td class="hidden px-5 py-3.5 text-slate-300 md:table-cell">
+                  {{ (course.level | enumLabel) || '—' }}
+                </td>
+                <td class="px-5 py-3.5 text-slate-200">
+                  @if (course.finalPrice === 0) {
+                    Free
+                  } @else {
+                    {{ course.finalPrice | currency: course.currency }}
+                    @if (course.discount > 0) {
+                      <s class="ml-1 text-xs text-slate-500">{{
+                        course.price | currency: course.currency
+                      }}</s>
+                    }
+                  }
+                </td>
+                <td class="hidden px-5 py-3.5 sm:table-cell">
+                  @if (course.published) {
+                    <span
+                      class="inline-flex items-center rounded-full bg-emerald-400/10 px-2.5 py-0.5 text-xs font-medium text-emerald-300 ring-1 ring-inset ring-emerald-400/30"
+                      >Published</span
+                    >
+                  } @else {
+                    <span
+                      class="inline-flex items-center rounded-full bg-slate-400/10 px-2.5 py-0.5 text-xs font-medium text-slate-300 ring-1 ring-inset ring-slate-400/30"
+                      >Draft</span
+                    >
+                  }
+                </td>
+                <td class="hidden px-5 py-3.5 text-slate-400 xl:table-cell">
+                  {{ course.createdAt | date: 'mediumDate' }}
+                </td>
+                <td class="px-5 py-3.5">
+                  <div class="flex justify-end gap-1">
+                    <button
+                      type="button"
+                      class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-indigo-300 hover:bg-white/5"
+                      [attr.aria-label]="'View ' + course.name"
+                      (click)="view.emit(course)"
+                    >
+                      View
+                    </button>
+                    @if (canWrite()) {
+                      <button
+                        type="button"
+                        class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/5"
+                        [attr.aria-label]="'Edit ' + course.name"
+                        (click)="edit.emit(course)"
+                      >
+                        Edit
+                      </button>
+                    }
+                    <button
+                      type="button"
+                      class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
+                      [disabled]="downloadingId() !== null"
+                      [attr.aria-label]="'Download ' + course.name + ' as PDF'"
+                      (click)="download(course)"
+                    >
+                      {{ downloadingId() === course.id ? 'PDF…' : 'PDF' }}
+                    </button>
+                    @if (canDelete()) {
+                      <button
+                        type="button"
+                        class="rounded-lg border border-rose-400/40 px-2.5 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-400/10"
+                        [attr.aria-label]="'Delete ' + course.name"
+                        (click)="remove.emit(course)"
+                      >
+                        Delete
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="px-5 py-12 text-center text-sm text-slate-400">
+                  @if (isFiltered()) {
+                    No courses match your search.
+                    <button
+                      type="button"
+                      class="ml-1 font-semibold text-indigo-300 underline"
+                      (click)="clearFilters()"
+                    >
+                      Clear filters
+                    </button>
+                  } @else {
+                    No courses yet.
+                    @if (canWrite()) {
+                      Create the first one with <span class="font-semibold">New course</span>.
+                    }
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <footer
+      class="flex flex-col gap-3 border-t border-white/10 px-5 py-4 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div class="flex items-center gap-3">
+        <span aria-live="polite">{{ rangeLabel() }}</span>
+        <label class="flex items-center gap-2">
+          <span>Rows</span>
+          <select
+            class="rounded-md border border-white/10 bg-navy-950 px-2 py-1 text-sm text-white focus:border-royal focus:outline-none"
+            [value]="size()"
+            (change)="setSize($any($event.target).value)"
+          >
+            @for (option of pageSizes; track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <nav class="flex items-center gap-2" aria-label="Pagination">
+        <button
+          type="button"
+          class="rounded-lg border border-white/10 px-3 py-1.5 font-medium text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!hasPrevious() || loading()"
+          (click)="goTo(page() - 1)"
+        >
+          Previous
+        </button>
+        <span class="px-1">Page {{ page() + 1 }} of {{ totalPages() }}</span>
+        <button
+          type="button"
+          class="rounded-lg border border-white/10 px-3 py-1.5 font-medium text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!hasNext() || loading()"
+          (click)="goTo(page() + 1)"
+        >
+          Next
+        </button>
+      </nav>
+    </footer>
+  }
+</section>
