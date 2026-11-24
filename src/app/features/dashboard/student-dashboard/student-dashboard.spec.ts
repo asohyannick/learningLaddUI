@@ -8,6 +8,7 @@ import { errorInterceptor } from '../../../core/interceptor/error.interceptor';
 import { AuthService } from '../../../core/service/auth/auth.service';
 import { coursePage, fakeCourse, fakeCourseSummary } from '../../../core/testing/fake-course';
 import { fakeLoginResponse, ok } from '../../../core/testing/fake-login-response';
+import { fakeTutorSummary } from '../../../core/testing/fake-tutor-profile';
 import { StudentDashboard } from './student-dashboard';
 
 const api = `${environment.apiUrl}/course`;
@@ -85,5 +86,22 @@ describe('StudentDashboard', () => {
     const panel = el.querySelector('app-fetch-course')!;
     expect(panel.textContent).toContain('All about data.');
     expect(panel.textContent).not.toContain('Edit course');
+  });
+
+  it('lets the student browse tutors, read-only, in the Find a tutor section', async () => {
+    const fixture = TestBed.createComponent(StudentDashboard);
+    fixture.componentRef.setInput('section', 'tutors');
+    fixture.detectChanges();
+    const profiles = `${environment.apiUrl}/tutor-profile`;
+    backend.expectOne(`${profiles}/count`).flush(ok(5));
+    backend.expectOne(`${profiles}?page=0&size=20`).flush(ok(coursePage([fakeTutorSummary()], 5)));
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('h1')?.textContent).toContain('Find a tutor');
+    expect(el.querySelector('tbody')?.textContent).toContain('Dr. Chidi Eze');
+    expect(el.querySelector('button[aria-label="View Dr. Chidi Eze"]')).not.toBeNull();
+    expect(el.querySelector('button[aria-label="Edit Dr. Chidi Eze"]')).toBeNull();
+    expect(el.querySelector('button[aria-label="Delete Dr. Chidi Eze"]')).toBeNull();
   });
 });

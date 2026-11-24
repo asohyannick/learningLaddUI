@@ -1,28 +1,33 @@
 import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { ApiErrorResponse, SponsorshipTier, isApiErrorResponse } from '../../core/interface';
+import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { resourceErrorMessage } from '../../shared/utils/resource-error';
+import { injectHeaderAccount } from '../../core/service/auth/header-account';
 import { EnumLabelPipe } from '../../shared/custom-pipe/enum-label-pipe';
 import { PageHero } from '../../shared/reusable-components/page-hero/page-hero';
 import { SiteFooter } from '../../shared/reusable-components/site-footer/site-footer';
 import { SiteHeader } from '../../shared/reusable-components/site-header/site-header';
-import { PartnershipService } from './partnership.service';
-import { injectHeaderAccount } from '../../core/service/auth/header-account';
+import { tierClassesLight } from './partner-badges';
+import {
+  PARTNER_TYPES,
+  PagedQueryRequestDto,
+  PartnerType,
+  SPONSORSHIP_TIERS,
+  SponsorshipTier,
+} from './partnership.model';
+import { PartnershipService, partnerLocation } from './partnership.service';
 
 const PAGE_SIZE = 12;
 
-const TIER_BADGE: Record<SponsorshipTier, string> = {
-  PLATINUM: 'bg-navy-900 text-white',
-  GOLD: 'bg-ladder text-ink',
-  SILVER: 'bg-slate-200 text-slate-700',
-  BRONZE: 'bg-orange-100 text-orange-800',
-  SUPPORTER: 'bg-royal-soft text-royal',
-};
-
-/** Public "Partners & sponsors" page. */
+/**
+ * Public "Partners & sponsors" page. Without filters it lists `GET /partners/public`
+ * (featured first); with a keyword or filter it uses `/partners/public/search`.
+ */
 @Component({
   selector: 'app-partnership',
-  imports: [EnumLabelPipe, NgOptimizedImage, PageHero, SiteFooter, SiteHeader],
+  imports: [EnumLabelPipe, NgOptimizedImage, PageHero, RouterLink, SiteFooter, SiteHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './partnership.html',
 })
@@ -30,12 +35,43 @@ export class Partnership {
   protected readonly account = injectHeaderAccount();
   private readonly partnershipService = inject(PartnershipService);
 
+  protected readonly types = PARTNER_TYPES;
+  protected readonly tiers = SPONSORSHIP_TIERS;
+
+  protected readonly keywordText = signal('');
+  private readonly keyword = toSignal(
+    toObservable(this.keywordText).pipe(debounceTime(300), distinctUntilChanged()),
+    { initialValue: '' },
+  );
+  protected readonly partnerType = signal<PartnerType | ''>('');
+  protected readonly tier = signal<SponsorshipTier | ''>('');
+  protected readonly sponsorsOnly = signal(false);
+
   /** Zero-based page index. */
   protected readonly page = signal(0);
 
+  private readonly query = computed<PagedQueryRequestDto>(() => ({
+    keyword: this.keyword().trim() || undefined,
+    partnerType: this.partnerType() || undefined,
+    sponsorshipTier: this.tier() || undefined,
+    sponsorsOnly: this.sponsorsOnly() || undefined,
+    page: this.page(),
+    size: PAGE_SIZE,
+  }));
+
+  protected readonly isFiltered = computed(() => {
+    const q = this.query();
+    return !!(q.keyword || q.partnerType || q.sponsorshipTier || q.sponsorsOnly);
+  });
+
+  protected readonly hasInput = computed(() => this.isFiltered() || !!this.keywordText());
+
   protected readonly result = rxResource({
-    params: () => this.page(),
-    stream: ({ params: page }) => this.partnershipService.getPublicPartners(page, PAGE_SIZE),
+    params: () => ({ query: this.query(), search: this.isFiltered() }),
+    stream: ({ params }) =>
+      params.search
+        ? this.partnershipService.searchPublicPartners(params.query)
+        : this.partnershipService.getPublicPartners(params.query.page, PAGE_SIZE),
   });
 
   protected readonly partners = computed(() =>
@@ -46,19 +82,23 @@ export class Partnership {
     this.result.hasValue() ? this.result.value().totalPages : 0,
   );
 
-  protected readonly errorMessage = computed(() => {
-    const error = this.result.error() as ApiErrorResponse | Error | undefined;
-    return isApiErrorResponse(error) ? error.message : 'Please try again in a moment.';
-  });
+  protected readonly errorMessage = computed(() => resourceErrorMessage(this.result.error()));
 
   protected readonly skeletonSlots = [0, 1, 2, 3, 4, 5];
+  protected readonly tierClass = tierClassesLight;
+  protected readonly location = partnerLocation;
 
-  protected tierClass(tier: SponsorshipTier | null): string {
-    return tier ? TIER_BADGE[tier] : '';
+  protected setFilter<T>(target: { set(value: T): void }, value: T): void {
+    target.set(value);
+    this.page.set(0);
   }
 
-  protected location(city: string | null, country: string | null): string {
-    return [city, country].filter(Boolean).join(', ');
+  protected clearFilters(): void {
+    this.keywordText.set('');
+    this.partnerType.set('');
+    this.tier.set('');
+    this.sponsorsOnly.set(false);
+    this.page.set(0);
   }
 
   protected goToPage(page: number): void {

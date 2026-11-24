@@ -13,6 +13,10 @@
     <app-course-manager (notify)="toast.set($event)" />
   } @else if (active() === 'students') {
     <app-student-profile-manager (notify)="toast.set($event)" />
+  } @else if (active() === 'tutors') {
+    <app-tutor-profile-manager (notify)="toast.set($event)" />
+  } @else if (active() === 'partners') {
+    <app-partner-manager (notify)="toast.set($event)" />
   } @else {
     <app-fetch-all-users
       [currentUserId]="me()?.id"

@@ -7,119 +7,221 @@
     description="The schools, companies and organisations that help Learning Ladder bring better learning to every campus."
   />
 
-  <section class="py-14 sm:py-16" aria-label="Partners" aria-live="polite">
+  <section class="py-14 sm:py-16" aria-label="Partners">
     <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-      @if (result.isLoading()) {
-        <ul class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          @for (slot of skeletonSlots; track slot) {
-            <li class="rounded-2xl border border-line bg-white p-5">
-              <div class="h-16 animate-pulse rounded-lg bg-line"></div>
-              <div class="mt-4 h-5 w-1/2 animate-pulse rounded bg-line"></div>
-              <div class="mt-3 h-3 w-full animate-pulse rounded bg-line"></div>
-            </li>
-          }
-        </ul>
-        <span class="sr-only">Loading partners…</span>
-      } @else if (result.error()) {
-        <div class="rounded-2xl border border-line bg-white p-8 text-center">
-          <p class="font-semibold">We couldn't load our partners right now.</p>
-          <p class="mt-1 text-sm text-muted">{{ errorMessage() }}</p>
+      <!-- Search and filters -->
+      @let field =
+        'rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink shadow-sm focus:border-royal focus:outline-none focus:ring-4 focus:ring-royal-soft';
+      <form
+        class="mb-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
+        role="search"
+        (submit)="$event.preventDefault()"
+      >
+        <label class="relative block sm:flex-1">
+          <span class="sr-only">Search partners</span>
+          <svg
+            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.45 4.39l3.08 3.08a.75.75 0 1 1-1.06 1.06l-3.08-3.08A7 7 0 0 1 2 9Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <input
+            type="search"
+            maxlength="100"
+            placeholder="Search by name or industry"
+            [class]="field + ' w-full pl-9'"
+            [value]="keywordText()"
+            (input)="setFilter(keywordText, $any($event.target).value)"
+          />
+        </label>
+        <label>
+          <span class="sr-only">Partner type</span>
+          <select
+            [class]="field"
+            [value]="partnerType()"
+            (change)="setFilter(partnerType, $any($event.target).value)"
+          >
+            <option value="">All types</option>
+            @for (option of types; track option) {
+              <option [value]="option">{{ option | enumLabel }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span class="sr-only">Sponsorship tier</span>
+          <select
+            [class]="field"
+            [value]="tier()"
+            (change)="setFilter(tier, $any($event.target).value)"
+          >
+            <option value="">All tiers</option>
+            @for (option of tiers; track option) {
+              <option [value]="option">{{ option | enumLabel }}</option>
+            }
+          </select>
+        </label>
+        <label class="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            class="h-4 w-4 rounded border-line text-royal focus:ring-royal"
+            [checked]="sponsorsOnly()"
+            (change)="setFilter(sponsorsOnly, $any($event.target).checked)"
+          />
+          Sponsors only
+        </label>
+        @if (hasInput()) {
           <button
             type="button"
-            class="mt-4 rounded-lg bg-royal px-4 py-2 text-sm font-semibold text-white hover:bg-royal-dark"
-            (click)="result.reload()"
+            class="text-sm font-semibold text-royal hover:underline"
+            (click)="clearFilters()"
           >
-            Try again
+            Clear
           </button>
-        </div>
-      } @else if (partners().length === 0) {
-        <div class="rounded-2xl border border-dashed border-slate-400 bg-white p-10 text-center">
-          <p class="font-serif text-xl font-semibold">No partners to show yet</p>
-          <p class="mt-1 text-sm text-muted">
-            We're building our network. Check back soon to meet the organisations behind us.
-          </p>
-        </div>
-      } @else {
-        <ul class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          @for (partner of partners(); track partner.id) {
-            <li class="flex flex-col rounded-2xl border border-line bg-white p-5 shadow-sm">
-              <div class="flex items-start justify-between gap-3">
-                <div
-                  class="relative grid h-14 w-28 shrink-0 place-items-center overflow-hidden rounded-lg bg-cream text-xs font-semibold text-muted"
-                >
-                  @if (partner.logo) {
-                    <img [ngSrc]="partner.logo" fill class="object-contain p-2" alt="" />
-                  } @else {
-                    <span aria-hidden="true">{{ partner.name.charAt(0) }}</span>
-                  }
-                </div>
-                <div class="flex flex-wrap justify-end gap-1.5">
-                  @if (partner.featured) {
-                    <span
-                      class="rounded-md bg-ladder/20 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-ladder-dark"
-                      >Featured</span
-                    >
-                  }
-                  @if (partner.sponsorshipTier) {
-                    <span
-                      class="rounded-md px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide"
-                      [class]="tierClass(partner.sponsorshipTier)"
-                      >{{ partner.sponsorshipTier | enumLabel }}</span
-                    >
-                  }
-                </div>
-              </div>
-
-              <h2 class="mt-4 font-serif text-lg font-semibold">{{ partner.name }}</h2>
-              <p class="text-xs text-muted">
-                {{ partner.partnerType | enumLabel }}
-                @if (partner.industry) {
-                  · {{ partner.industry }}
-                }
-                @if (location(partner.city, partner.country); as place) {
-                  · {{ place }}
-                }
-              </p>
-              @if (partner.shortDescription) {
-                <p class="mt-3 line-clamp-3 text-sm text-muted">{{ partner.shortDescription }}</p>
-              }
-
-              @if (partner.websiteUrl) {
-                <a
-                  [href]="partner.websiteUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="mt-auto pt-4 text-sm font-semibold text-royal hover:underline"
-                  >Visit website <span aria-hidden="true">↗</span
-                  ><span class="sr-only"> (opens in a new tab)</span></a
-                >
-              }
-            </li>
-          }
-        </ul>
-
-        @if (totalPages() > 1) {
-          <nav class="mt-10 flex items-center justify-center gap-3 text-sm" aria-label="Pagination">
-            <button
-              type="button"
-              class="rounded-lg border border-line bg-white px-4 py-2 font-semibold disabled:opacity-40"
-              [disabled]="page() === 0"
-              (click)="goToPage(page() - 1)"
-            >
-              Previous
-            </button>
-            <span class="text-muted">Page {{ page() + 1 }} of {{ totalPages() }}</span>
-            <button
-              type="button"
-              class="rounded-lg border border-line bg-white px-4 py-2 font-semibold disabled:opacity-40"
-              [disabled]="page() + 1 >= totalPages()"
-              (click)="goToPage(page() + 1)"
-            >
-              Next
-            </button>
-          </nav>
         }
-      }
+      </form>
+
+      <div aria-live="polite">
+        @if (result.isLoading()) {
+          <ul class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            @for (slot of skeletonSlots; track slot) {
+              <li class="rounded-2xl border border-line bg-white p-5">
+                <div class="h-16 animate-pulse rounded-lg bg-line"></div>
+                <div class="mt-4 h-5 w-1/2 animate-pulse rounded bg-line"></div>
+                <div class="mt-3 h-3 w-full animate-pulse rounded bg-line"></div>
+              </li>
+            }
+          </ul>
+          <span class="sr-only">Loading partners…</span>
+        } @else if (result.error()) {
+          <div class="rounded-2xl border border-line bg-white p-8 text-center">
+            <p class="font-semibold">We couldn't load our partners right now.</p>
+            <p class="mt-1 text-sm text-muted">{{ errorMessage() }}</p>
+            <button
+              type="button"
+              class="mt-4 rounded-lg bg-royal px-4 py-2 text-sm font-semibold text-white hover:bg-royal-dark"
+              (click)="result.reload()"
+            >
+              Try again
+            </button>
+          </div>
+        } @else if (partners().length === 0 && isFiltered()) {
+          <div class="rounded-2xl border border-dashed border-slate-400 bg-white p-10 text-center">
+            <p class="font-serif text-xl font-semibold">No partners match your search</p>
+            <p class="mt-1 text-sm text-muted">Try another name, or clear the filters.</p>
+            <button
+              type="button"
+              class="mt-4 rounded-lg border border-line px-4 py-2 text-sm font-semibold hover:bg-cream"
+              (click)="clearFilters()"
+            >
+              Clear filters
+            </button>
+          </div>
+        } @else if (partners().length === 0) {
+          <div class="rounded-2xl border border-dashed border-slate-400 bg-white p-10 text-center">
+            <p class="font-serif text-xl font-semibold">No partners to show yet</p>
+            <p class="mt-1 text-sm text-muted">
+              We're building our network. Check back soon to meet the organisations behind us.
+            </p>
+          </div>
+        } @else {
+          <ul class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            @for (partner of partners(); track partner.id) {
+              <li
+                class="relative flex flex-col rounded-2xl border border-line bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div class="flex items-start justify-between gap-3">
+                  <div
+                    class="relative grid h-14 w-28 shrink-0 place-items-center overflow-hidden rounded-lg bg-cream text-xs font-semibold text-muted"
+                  >
+                    @if (partner.logo) {
+                      <img [ngSrc]="partner.logo" fill class="object-contain p-2" alt="" />
+                    } @else {
+                      <span aria-hidden="true">{{ partner.name.charAt(0) }}</span>
+                    }
+                  </div>
+                  <div class="flex flex-wrap justify-end gap-1.5">
+                    @if (partner.featured) {
+                      <span
+                        class="rounded-md bg-ladder/20 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-ladder-dark"
+                        >Featured</span
+                      >
+                    }
+                    @if (partner.sponsorshipTier) {
+                      <span
+                        class="rounded-md px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide"
+                        [class]="tierClass(partner.sponsorshipTier)"
+                        >{{ partner.sponsorshipTier | enumLabel }}</span
+                      >
+                    }
+                  </div>
+                </div>
+
+                <h2 class="mt-4 font-serif text-lg font-semibold">
+                  <a
+                    [routerLink]="['/partners', partner.slug]"
+                    class="after:absolute after:inset-0 hover:text-royal"
+                    >{{ partner.name }}</a
+                  >
+                </h2>
+                <p class="text-xs text-muted">
+                  {{ partner.partnerType | enumLabel }}
+                  @if (partner.industry) {
+                    · {{ partner.industry }}
+                  }
+                  @if (location(partner); as place) {
+                    · {{ place }}
+                  }
+                </p>
+                @if (partner.shortDescription) {
+                  <p class="mt-3 line-clamp-3 text-sm text-muted">{{ partner.shortDescription }}</p>
+                }
+
+                @if (partner.websiteUrl) {
+                  <a
+                    [href]="partner.websiteUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="relative z-10 mt-auto pt-4 text-sm font-semibold text-royal hover:underline"
+                    >Visit website <span aria-hidden="true">↗</span
+                    ><span class="sr-only"> (opens in a new tab)</span></a
+                  >
+                }
+              </li>
+            }
+          </ul>
+
+          @if (totalPages() > 1) {
+            <nav
+              class="mt-10 flex items-center justify-center gap-3 text-sm"
+              aria-label="Pagination"
+            >
+              <button
+                type="button"
+                class="rounded-lg border border-line bg-white px-4 py-2 font-semibold disabled:opacity-40"
+                [disabled]="page() === 0"
+                (click)="goToPage(page() - 1)"
+              >
+                Previous
+              </button>
+              <span class="text-muted">Page {{ page() + 1 }} of {{ totalPages() }}</span>
+              <button
+                type="button"
+                class="rounded-lg border border-line bg-white px-4 py-2 font-semibold disabled:opacity-40"
+                [disabled]="page() + 1 >= totalPages()"
+                (click)="goToPage(page() + 1)"
+              >
+                Next
+              </button>
+            </nav>
+          }
+        }
+      </div>
     </div>
   </section>
 </main>

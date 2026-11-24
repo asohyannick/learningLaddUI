@@ -69,6 +69,20 @@ export class FieldError {
     if (errors['pastDate']) return `${label} must be in the past.`;
     if (errors['tooManyHobbies']) return 'Add at most 20 hobbies.';
     if (errors['hobbyTooLong']) return 'Each hobby must be at most 100 characters.';
+    if (errors['tooManyItems']) {
+      return `Add at most ${errors['tooManyItems'].max} ${label.toLowerCase()}.`;
+    }
+    if (errors['itemTooLong']) {
+      return `Each entry must be at most ${errors['itemTooLong'].max} characters.`;
+    }
+    if (errors['wholeNumber']) return `${label} must be a whole number.`;
+    if (errors['moneyFormat']) {
+      const digits = (errors['moneyFormat'] as { integer?: number }).integer ?? 8;
+      return `${label} can have at most ${digits} digits and 2 decimals.`;
+    }
+    if (errors['tierRequired']) return 'Sponsors need a sponsorship tier.';
+    if (errors['endBeforeStart']) return `${label} cannot be before the start date.`;
+    if (errors['currencyRequired']) return 'Add the currency for your hourly rate, e.g. XAF.';
     if (errors['pattern']) return this.patternMessage() ?? `${label} is not valid.`;
     if (errors['passwordRules']) return 'Password does not meet all the requirements below.';
     if (errors['mismatch']) return 'Passwords do not match.';

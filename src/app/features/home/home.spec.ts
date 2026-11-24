@@ -4,12 +4,13 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { environment } from '../../../environments/environment';
-import { CourseSummary, PartnerPublic } from '../../core/interface';
+import { CourseSummary } from '../../core/interface';
 import { AuthService } from '../../core/service/auth/auth.service';
+import { fakePublicPartner } from '../../core/testing/fake-partner';
 import { Home } from './home';
 
 const api = environment.apiUrl;
-const partnersUrl = `${api}/partners/public?page=0&size=5`;
+const partnersUrl = `${api}/partners/public?page=0&size=100`;
 const coursesUrl = `${api}/course/search?published=true&page=0&size=6&sortBy=createdAt&sortDirection=desc`;
 
 function page<T>(content: T[]) {
@@ -43,7 +44,7 @@ const course = {
   thumbnailUrl: null,
 } as CourseSummary;
 
-const partner = { id: 'p1', name: 'Acme University', logo: null } as PartnerPublic;
+const partner = fakePublicPartner({ name: 'Acme University' });
 
 describe('Home', () => {
   const isAuthenticated = signal(false);
@@ -106,13 +107,19 @@ describe('Home', () => {
     expect(el.querySelector('s')?.textContent).toContain('$50.00');
   });
 
-  it('shows partners only when there are some', async () => {
+  it('shows every public partner in the moving carousel, only when there are some', async () => {
     const { fixture, el } = render();
     expect(el.querySelector('#partners-heading')).toBeNull();
-    backend.expectOne(partnersUrl).flush(page([partner]));
+    backend
+      .expectOne(partnersUrl)
+      .flush(page([partner, fakePublicPartner({ id: 'p2', name: 'City Council', slug: 'city' })]));
     await fixture.whenStable();
     fixture.detectChanges();
     expect(el.querySelector('#partners-heading')).not.toBeNull();
-    expect(el.textContent).toContain('Acme University');
+    expect(el.textContent).toContain('Climbing together with 2 organisations');
+    const carousel = el.querySelector('app-partner-carousel')!;
+    expect(carousel.textContent).toContain('Acme University');
+    expect(carousel.textContent).toContain('City Council');
+    expect(carousel.querySelector('a[href="/partners/city"]')).not.toBeNull();
   });
 });

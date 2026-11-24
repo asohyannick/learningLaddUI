@@ -341,36 +341,26 @@
 
   <!-- ─── Partners (hidden until there is at least one to show) ───────── -->
   @if (partnerList().length > 0) {
-    <section class="py-14" aria-labelledby="partners-heading">
+    <section class="py-14 sm:py-16" aria-labelledby="partners-heading">
       <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <h2
-          id="partners-heading"
-          class="text-center text-xs font-semibold uppercase tracking-[0.14em] text-muted"
-        >
-          <a routerLink="/partners" class="hover:text-royal">Our partners &amp; sponsors</a>
-        </h2>
-        <ul class="mt-6 flex flex-wrap justify-center gap-4">
-          @for (partner of partnerList(); track partner.id) {
-            <li>
-              <a
-                routerLink="/partners"
-                class="relative grid h-14 w-32 place-items-center rounded-lg border border-line bg-white px-3 text-center text-xs font-semibold text-muted transition hover:border-royal/40 hover:text-royal sm:w-36"
-                [title]="partner.name"
-              >
-                @if (partner.logo) {
-                  <img
-                    [ngSrc]="partner.logo"
-                    fill
-                    class="object-contain p-2"
-                    [alt]="partner.name"
-                  />
-                } @else {
-                  {{ partner.name }}
-                }
-              </a>
-            </li>
-          }
-        </ul>
+        <div class="text-center">
+          <h2
+            id="partners-heading"
+            class="text-xs font-semibold uppercase tracking-[0.14em] text-muted"
+          >
+            Our partners &amp; sponsors
+          </h2>
+          <p class="mt-2 font-serif text-2xl font-semibold sm:text-3xl">
+            Climbing together with {{ partnerList().length }}
+            {{ partnerList().length === 1 ? 'organisation' : 'organisations' }}
+          </p>
+        </div>
+        <app-partner-carousel class="mt-8 block" [partners]="partnerList()" />
+        <p class="mt-12 text-center">
+          <a routerLink="/partners" class="text-sm font-semibold text-royal hover:underline"
+            >Meet all our partners <span aria-hidden="true">→</span></a
+          >
+        </p>
       </div>
     </section>
   }

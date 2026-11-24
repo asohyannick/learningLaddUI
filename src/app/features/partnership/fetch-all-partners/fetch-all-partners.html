@@ -1,0 +1,556 @@
+<!-- Summary cards -->
+<section aria-label="Partner summary" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-amber-500 to-ladder p-5 text-white shadow-lg shadow-amber-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Total partners</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight" data-testid="partner-count">
+      {{ totalCount() ?? '—' }}
+    </p>
+    <p class="mt-1 text-xs text-white/75">Partners and sponsors, any status</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-sky-500 to-cyan-500 p-5 text-white shadow-lg shadow-sky-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">{{ isFiltered() ? 'Matching' : 'Listed' }}</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">
+      {{ loading() && !total() ? '—' : total() }}
+    </p>
+    <p class="mt-1 text-xs text-white/75">
+      {{ isFiltered() ? 'Partners matching your filters' : 'Partners on record' }}
+    </p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-emerald-500 to-teal-500 p-5 text-white shadow-lg shadow-emerald-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Active</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">{{ stats().active }}</p>
+    <p class="mt-1 text-xs text-white/75">of {{ stats().shown }} on this page</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-rose-500 to-fuchsia-500 p-5 text-white shadow-lg shadow-rose-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Ending within 30 days</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">{{ stats().ending }}</p>
+    <p class="mt-1 text-xs text-white/75">Agreements to renew, on this page</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+</section>
+
+<!-- Partners table -->
+<section
+  class="mt-6 rounded-2xl border border-white/10 bg-navy-900"
+  aria-labelledby="partners-heading"
+>
+  <header class="space-y-4 border-b border-white/10 p-5">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h2 id="partners-heading" class="text-base font-semibold text-white">
+          Partners &amp; sponsors
+        </h2>
+        <p class="text-sm text-slate-400">
+          Manage partnerships, agreements and sponsorship tiers. Active partners shown on the
+          website appear on the home page.
+        </p>
+      </div>
+      <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <label class="relative block">
+          <span class="sr-only">Search by name, description or industry</span>
+          <svg
+            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.45 4.39l3.08 3.08a.75.75 0 1 1-1.06 1.06l-3.08-3.08A7 7 0 0 1 2 9Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <input
+            type="search"
+            maxlength="100"
+            placeholder="Name, description or industry"
+            class="w-full rounded-lg border border-white/10 bg-navy-950 py-2 pl-9 pr-3 text-sm text-white placeholder:text-slate-500 focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40 sm:w-64"
+            [value]="keywordText()"
+            (input)="setFilter(keywordText, $any($event.target).value)"
+          />
+        </label>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-white/5 disabled:opacity-50"
+          [disabled]="loading()"
+          (click)="reload()"
+        >
+          <svg
+            class="h-4 w-4"
+            [class.animate-spin]="loading()"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M15.31 4.69a.75.75 0 0 1 .75.75V9a.75.75 0 0 1-.75.75h-3.56a.75.75 0 0 1 0-1.5h1.76A5.5 5.5 0 0 0 4.5 10a.75.75 0 0 1-1.5 0 7 7 0 0 1 11.56-5.32V5.44a.75.75 0 0 1 .75-.75ZM16.25 9.25A.75.75 0 0 1 17 10a7 7 0 0 1-11.56 5.32v1.24a.75.75 0 0 1-1.5 0V13a.75.75 0 0 1 .75-.75h3.56a.75.75 0 0 1 0 1.5H6.49A5.5 5.5 0 0 0 15.5 10a.75.75 0 0 1 .75-.75Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Refresh
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
+          [disabled]="downloading() !== null || !total()"
+          (click)="downloadAll()"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.61L6.3 8.24a.75.75 0 1 0-1.1 1.02l4.25 4.5a.75.75 0 0 0 1.1 0l4.25-4.5a.75.75 0 0 0-1.1-1.02l-2.95 3.12V2.75Z"
+            />
+            <path
+              d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z"
+            />
+          </svg>
+          {{
+            downloading() === 'all'
+              ? 'Preparing PDF…'
+              : isFiltered()
+                ? 'Download matches (PDF)'
+                : 'Download all (PDF)'
+          }}
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-royal px-3 py-2 text-sm font-semibold text-white hover:bg-royal-dark"
+          (click)="add.emit()"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"
+            />
+          </svg>
+          Add partner
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    @let select =
+      'rounded-lg border border-white/10 bg-navy-950 px-3 py-2 text-white focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40';
+    <div class="flex flex-wrap items-center gap-2 text-sm">
+      <label>
+        <span class="sr-only">Status</span>
+        <select
+          [class]="select"
+          [value]="status()"
+          (change)="setFilter(status, $any($event.target).value)"
+        >
+          <option value="">Any status</option>
+          @for (option of statuses; track option) {
+            <option [value]="option">{{ option | enumLabel }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Partner type</span>
+        <select
+          [class]="select"
+          [value]="partnerType()"
+          (change)="setFilter(partnerType, $any($event.target).value)"
+        >
+          <option value="">Any type</option>
+          @for (option of types; track option) {
+            <option [value]="option">{{ option | enumLabel }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Sponsorship tier</span>
+        <select
+          [class]="select"
+          [value]="tier()"
+          (change)="setFilter(tier, $any($event.target).value)"
+        >
+          <option value="">Any tier</option>
+          @for (option of tiers; track option) {
+            <option [value]="option">{{ option | enumLabel }}</option>
+          }
+        </select>
+      </label>
+      <label class="flex items-center gap-2 text-slate-400">
+        <span>Sort</span>
+        <select
+          [class]="select"
+          [value]="sortIndex()"
+          (change)="setSort($any($event.target).value)"
+        >
+          @for (option of sortOptions; track option.label; let i = $index) {
+            <option [value]="i">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+      <button
+        type="button"
+        class="rounded-lg px-3 py-2 font-medium text-slate-300 hover:bg-white/5"
+        [attr.aria-expanded]="showMoreFilters()"
+        (click)="showMoreFilters.set(!showMoreFilters())"
+      >
+        {{ showMoreFilters() ? 'Fewer filters' : 'More filters' }}
+      </button>
+      @if (hasInput()) {
+        <button
+          type="button"
+          class="rounded-lg px-3 py-2 font-medium text-indigo-300 hover:bg-white/5"
+          (click)="clearFilters()"
+        >
+          Clear filters
+        </button>
+      }
+    </div>
+
+    @if (showMoreFilters()) {
+      <div class="flex flex-wrap items-end gap-2 text-sm" data-testid="more-filters">
+        <label>
+          <span class="sr-only">Featured</span>
+          <select
+            [class]="select"
+            [value]="featured()"
+            (change)="setFilter(featured, $any($event.target).value)"
+          >
+            <option value="">Featured or not</option>
+            <option value="true">Featured only</option>
+            <option value="false">Not featured</option>
+          </select>
+        </label>
+        <label>
+          <span class="sr-only">Shown on the website</span>
+          <select
+            [class]="select"
+            [value]="shown()"
+            (change)="setFilter(shown, $any($event.target).value)"
+          >
+            <option value="">Website: any</option>
+            <option value="true">Shown on website</option>
+            <option value="false">Hidden from website</option>
+          </select>
+        </label>
+        <label>
+          <span class="sr-only">Industry (exact name)</span>
+          <input
+            type="text"
+            maxlength="100"
+            placeholder="Industry"
+            class="w-36 rounded-lg border border-white/10 bg-navy-950 px-3 py-2 text-white placeholder:text-slate-500 focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40"
+            [value]="industryText()"
+            (input)="setFilter(industryText, $any($event.target).value)"
+          />
+        </label>
+        <label>
+          <span class="sr-only">Country (exact name)</span>
+          <input
+            type="text"
+            maxlength="100"
+            placeholder="Country"
+            class="w-36 rounded-lg border border-white/10 bg-navy-950 px-3 py-2 text-white placeholder:text-slate-500 focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40"
+            [value]="countryText()"
+            (input)="setFilter(countryText, $any($event.target).value)"
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-xs text-slate-400">
+          Agreement ends from
+          <input
+            type="date"
+            [class]="select"
+            [value]="endFrom()"
+            (change)="setFilter(endFrom, $any($event.target).value)"
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-xs text-slate-400">
+          to
+          <input
+            type="date"
+            [class]="select"
+            [value]="endTo()"
+            (change)="setFilter(endTo, $any($event.target).value)"
+          />
+        </label>
+        <label class="flex items-center gap-2 py-2 text-slate-300">
+          <input
+            type="checkbox"
+            class="h-4 w-4 rounded border-white/20 bg-navy-950 text-royal focus:ring-royal"
+            [checked]="sponsorsOnly()"
+            (change)="setFilter(sponsorsOnly, $any($event.target).checked)"
+          />
+          Sponsors only
+        </label>
+        @if (rangeInvalid()) {
+          <p class="w-full text-xs text-rose-300" role="alert">
+            The "from" date must be on or before the "to" date; the date range is ignored.
+          </p>
+        }
+      </div>
+    }
+  </header>
+
+  @if (downloadError(); as message) {
+    <div
+      class="mx-5 mt-5 flex items-start justify-between gap-3 rounded-xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-200"
+      role="alert"
+    >
+      {{ message }}
+      <button
+        type="button"
+        class="text-rose-200/70 hover:text-white"
+        aria-label="Dismiss"
+        (click)="downloadError.set(null)"
+      >
+        ×
+      </button>
+    </div>
+  }
+
+  @if (error(); as message) {
+    <div
+      class="m-5 rounded-xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-200"
+      role="alert"
+    >
+      {{ message }}
+      <button type="button" class="ml-1 font-semibold underline" (click)="reload()">
+        Try again
+      </button>
+    </div>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm" [attr.aria-busy]="loading()">
+        <thead class="text-xs uppercase tracking-wide text-slate-500">
+          <tr class="border-b border-white/5">
+            <th scope="col" class="px-5 py-3 font-medium">Partner</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium md:table-cell">Type</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium lg:table-cell">Agreement ends</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium xl:table-cell">Sponsorship</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium sm:table-cell">Status</th>
+            <th scope="col" class="px-5 py-3 text-right font-medium">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          @if (loading() && !rows().length) {
+            @for (row of [1, 2, 3, 4, 5]; track row) {
+              <tr class="animate-pulse">
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-lg bg-white/10"></div>
+                    <div class="space-y-2">
+                      <div class="h-3 w-36 rounded bg-white/10"></div>
+                      <div class="h-3 w-24 rounded bg-white/5"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="hidden px-5 py-4 md:table-cell">
+                  <div class="h-3 w-20 rounded bg-white/10"></div>
+                </td>
+                <td class="hidden px-5 py-4 lg:table-cell">
+                  <div class="h-3 w-24 rounded bg-white/10"></div>
+                </td>
+                <td class="hidden px-5 py-4 xl:table-cell">
+                  <div class="h-3 w-20 rounded bg-white/10"></div>
+                </td>
+                <td class="hidden px-5 py-4 sm:table-cell">
+                  <div class="h-5 w-16 rounded-full bg-white/10"></div>
+                </td>
+                <td class="px-5 py-4"></td>
+              </tr>
+            }
+          } @else {
+            @for (row of rows(); track row.id) {
+              <tr class="transition hover:bg-white/3" [class.opacity-60]="loading()">
+                <td class="px-5 py-3.5">
+                  <div class="flex items-center gap-3">
+                    @if (row.logo) {
+                      <img
+                        [src]="row.logo"
+                        alt=""
+                        class="h-10 w-10 shrink-0 rounded-lg bg-white object-contain p-1"
+                        loading="lazy"
+                      />
+                    } @else {
+                      <span
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-xs font-semibold text-amber-200"
+                        aria-hidden="true"
+                        >{{ row.initials }}</span
+                      >
+                    }
+                    <div class="min-w-0">
+                      <p class="flex max-w-xs items-center gap-1.5 font-medium text-white">
+                        <span class="truncate">{{ row.name }}</span>
+                        @if (row.featured) {
+                          <span class="text-amber-300" title="Featured" aria-label="Featured"
+                            >★</span
+                          >
+                        }
+                        @if (!row.showOnWebsite) {
+                          <span
+                            class="rounded bg-white/5 px-1.5 text-[0.65rem] font-medium text-slate-400"
+                            >Hidden</span
+                          >
+                        }
+                      </p>
+                      <p class="max-w-xs truncate text-xs text-slate-400">
+                        {{ row.industry || row.shortDescription || '—' }}
+                      </p>
+                    </div>
+                  </div>
+                </td>
+                <td class="hidden px-5 py-3.5 md:table-cell">
+                  <p class="text-slate-300">{{ row.partnerType | enumLabel }}</p>
+                  @if (row.sponsorshipTier) {
+                    <span
+                      class="mt-1 inline-flex rounded-full px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide ring-1 ring-inset"
+                      [class]="row.tierClasses"
+                      >{{ row.sponsorshipTier | enumLabel }}</span
+                    >
+                  }
+                </td>
+                <td class="hidden px-5 py-3.5 lg:table-cell">
+                  <p class="text-slate-300">{{ row.agreementEndDate || 'Open-ended' }}</p>
+                  @if (row.endsLabel; as label) {
+                    <p class="text-xs" [class]="row.ended ? 'text-rose-300' : 'text-amber-300'">
+                      {{ label }}
+                    </p>
+                  }
+                </td>
+                <td class="hidden px-5 py-3.5 text-slate-300 xl:table-cell">
+                  {{ row.amount || '—' }}
+                </td>
+                <td class="hidden px-5 py-3.5 sm:table-cell">
+                  <span
+                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset"
+                    [class]="row.statusClasses"
+                    >{{ row.status | enumLabel }}</span
+                  >
+                </td>
+                <td class="px-5 py-3.5">
+                  <div class="flex justify-end gap-1">
+                    <button
+                      type="button"
+                      class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-indigo-300 hover:bg-white/5"
+                      [attr.aria-label]="'View ' + row.name"
+                      (click)="view.emit(row)"
+                    >
+                      View
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/5"
+                      [attr.aria-label]="'Edit ' + row.name"
+                      (click)="edit.emit(row)"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
+                      [disabled]="downloading() !== null"
+                      [attr.aria-label]="'Download ' + row.name + ' as PDF'"
+                      (click)="downloadOne(row)"
+                    >
+                      {{ downloading() === row.id ? 'PDF…' : 'PDF' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-lg border border-rose-400/40 px-2.5 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-400/10"
+                      [attr.aria-label]="'Delete ' + row.name"
+                      (click)="remove.emit(row)"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="px-5 py-12 text-center text-sm text-slate-400">
+                  @if (isFiltered()) {
+                    No partners match your filters.
+                    <button
+                      type="button"
+                      class="ml-1 font-semibold text-indigo-300 underline"
+                      (click)="clearFilters()"
+                    >
+                      Clear filters
+                    </button>
+                  } @else {
+                    No partners yet.
+                    <button
+                      type="button"
+                      class="ml-1 font-semibold text-indigo-300 underline"
+                      (click)="add.emit()"
+                    >
+                      Add the first one
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <footer
+      class="flex flex-col gap-3 border-t border-white/10 px-5 py-4 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div class="flex items-center gap-3">
+        <span aria-live="polite">{{ rangeLabel() }}</span>
+        <label class="flex items-center gap-2">
+          <span>Rows</span>
+          <select
+            class="rounded-md border border-white/10 bg-navy-950 px-2 py-1 text-sm text-white focus:border-royal focus:outline-none"
+            [value]="size()"
+            (change)="setSize($any($event.target).value)"
+          >
+            @for (option of pageSizes; track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <nav class="flex items-center gap-2" aria-label="Pagination">
+        <button
+          type="button"
+          class="rounded-lg border border-white/10 px-3 py-1.5 font-medium text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!hasPrevious() || loading()"
+          (click)="goTo(page() - 1)"
+        >
+          Previous
+        </button>
+        <span class="px-1">Page {{ page() + 1 }} of {{ totalPages() }}</span>
+        <button
+          type="button"
+          class="rounded-lg border border-white/10 px-3 py-1.5 font-medium text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!hasNext() || loading()"
+          (click)="goTo(page() + 1)"
+        >
+          Next
+        </button>
+      </nav>
+    </footer>
+  }
+</section>

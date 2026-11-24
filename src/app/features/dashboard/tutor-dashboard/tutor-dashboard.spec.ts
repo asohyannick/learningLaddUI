@@ -8,6 +8,7 @@ import { errorInterceptor } from '../../../core/interceptor/error.interceptor';
 import { AuthService } from '../../../core/service/auth/auth.service';
 import { coursePage, fakeCourseSummary } from '../../../core/testing/fake-course';
 import { fakeLoginResponse, ok } from '../../../core/testing/fake-login-response';
+import { fakeTutorSummary } from '../../../core/testing/fake-tutor-profile';
 import { TutorDashboard } from './tutor-dashboard';
 
 const api = `${environment.apiUrl}/course`;
@@ -50,5 +51,37 @@ describe('TutorDashboard', () => {
     expect(el.querySelector('a[href="/logout"]')).not.toBeNull();
     // Tutors don't get "Delete my account" in this console.
     expect(el.textContent).not.toContain('Delete my account');
+  });
+
+  it('lets the tutor set up their own profile in the My profile section', async () => {
+    const fixture = TestBed.createComponent(TutorDashboard);
+    fixture.componentRef.setInput('section', 'profile');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('h1')?.textContent).toContain('My tutor profile');
+    expect(el.textContent).toContain('Set up your tutor profile');
+    // Professors cannot read profiles, so there is no tutor directory.
+    expect([...el.querySelectorAll('a')].map((a) => a.textContent?.trim())).not.toContain('Tutors');
+    expect(el.querySelector('app-tutor-profile-manager')).toBeNull();
+  });
+
+  it('shows super admins the tutor directory', async () => {
+    const auth = TestBed.inject(AuthService);
+    auth.endSession();
+    auth.startSession(fakeLoginResponse({ role: UserRole.SUPER_ADMIN }));
+    const fixture = TestBed.createComponent(TutorDashboard);
+    fixture.componentRef.setInput('section', 'tutors');
+    fixture.detectChanges();
+    const profiles = `${environment.apiUrl}/tutor-profile`;
+    backend.expectOne(`${profiles}/count`).flush(ok(3));
+    backend.expectOne(`${profiles}?page=0&size=20`).flush(ok(coursePage([fakeTutorSummary()], 3)));
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('h1')?.textContent).toContain('Tutor profiles');
+    expect(el.querySelector('[data-testid="profile-count"]')?.textContent?.trim()).toBe('3');
+    expect(el.querySelector('button[aria-label="Edit Dr. Chidi Eze"]')).not.toBeNull();
   });
 });

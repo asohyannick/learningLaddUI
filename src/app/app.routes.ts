@@ -21,6 +21,13 @@ export const routes: Routes = [
     loadComponent: () => import('./features/partnership/partnership').then((m) => m.Partnership),
   },
   {
+    // The page sets the partner's name as the title once it has loaded.
+    path: 'partners/:slug',
+    title: 'Partner | Learning Ladder',
+    loadComponent: () =>
+      import('./features/partnership/partner-page/partner-page').then((m) => m.PartnerPage),
+  },
+  {
     path: 'jobs',
     title: 'Careers | Learning Ladder',
     loadComponent: () => import('./features/job-listing/job-listing').then((m) => m.JobListing),

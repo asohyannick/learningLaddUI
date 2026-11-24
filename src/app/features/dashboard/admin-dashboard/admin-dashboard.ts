@@ -13,29 +13,37 @@ import {
   DashboardShell,
 } from '../../../shared/reusable-components/dashboard-shell/dashboard-shell';
 import { CourseManager } from '../../course/course-manager/course-manager';
+import { PartnerManager } from '../../partnership/partner-manager/partner-manager';
 import { StudentProfileManager } from '../../student-profile/student-profile-manager/student-profile-manager';
+import { TutorProfileManager } from '../../tutor-profile/tutor-profile-manager/tutor-profile-manager';
 
 type Dialog =
   | { kind: 'block'; user: IUserResponse }
   | { kind: 'unblock'; user: IUserResponse }
   | { kind: 'delete' };
 
-type Section = 'users' | 'students' | 'courses';
+type Section = 'users' | 'students' | 'tutors' | 'courses' | 'partners';
 
 const SECTIONS: readonly DashboardSection[] = [
   { id: 'users', label: 'Users', icon: 'users' },
   { id: 'students', label: 'Students', icon: 'students' },
+  { id: 'tutors', label: 'Tutors', icon: 'tutors' },
   { id: 'courses', label: 'Courses', icon: 'courses' },
+  { id: 'partners', label: 'Partners', icon: 'partners' },
 ];
 
 const HEADINGS: Record<Section, string> = {
   users: 'Users',
   students: 'Student profiles',
+  tutors: 'Tutor profiles',
   courses: 'Courses',
+  partners: 'Partners & sponsors',
 };
 
 /**
- * Admin console. Users: list, view, block / unblock. Courses: the same tools as the tutor
+ * Admin console. Users: list, view, block / unblock. Students and Tutors: their profiles.
+ * Partners: partners and sponsors shown on the website.
+ * Courses: the same tools as the tutor
  * dashboard. Plus deleting your own account and signing out.
  */
 @Component({
@@ -47,7 +55,9 @@ const HEADINGS: Record<Section, string> = {
     DeleteUserAccount,
     FetchAllUsers,
     FetchUser,
+    PartnerManager,
     StudentProfileManager,
+    TutorProfileManager,
     UnBlockUserAccount,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -62,7 +72,12 @@ export class AdminDashboard {
   protected readonly sections = SECTIONS;
   protected readonly active = computed<Section>(() => {
     const section = this.section();
-    return section === 'courses' || section === 'students' ? section : 'users';
+    return section === 'courses' ||
+      section === 'students' ||
+      section === 'tutors' ||
+      section === 'partners'
+      ? section
+      : 'users';
   });
 
   protected readonly me = this.auth.user;
@@ -77,6 +92,10 @@ export class AdminDashboard {
         return 'Create, search, edit and remove courses, and download them as PDF.';
       case 'students':
         return 'Search, open, edit and remove student profiles, and export them as PDF.';
+      case 'tutors':
+        return 'Search, open, edit and remove tutor profiles, and export them as PDF.';
+      case 'partners':
+        return 'Add partners and sponsors, manage their agreements and tiers, and choose who appears on the website.';
       default:
         return `Welcome back, ${this.firstName()}. Here is everyone with an account.`;
     }

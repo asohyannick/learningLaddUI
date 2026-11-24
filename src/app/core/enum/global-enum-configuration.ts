@@ -156,3 +156,46 @@ export const STUDENT_PROFILE_ADMIN_ROLES: readonly UserRole[] = [
   UserRole.ADMIN,
   UserRole.IT_ADMIN,
 ];
+
+/** Mirrors the backend enum TutorStatus. New profiles start as PENDING_APPROVAL. */
+export const TutorStatus = {
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  ACTIVE: 'ACTIVE',
+  ON_LEAVE: 'ON_LEAVE',
+  SUSPENDED: 'SUSPENDED',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+export type TutorStatus = (typeof TutorStatus)[keyof typeof TutorStatus];
+
+export const TUTOR_STATUSES = Object.values(TutorStatus);
+
+/** Who may create a tutor profile (`TutorProfileController.TUTORS`). */
+export const TUTOR_PROFILE_CREATE_ROLES: readonly UserRole[] = [
+  UserRole.LECTURER,
+  UserRole.PROFESSOR,
+  UserRole.ASSISTANT_LECTURER,
+  UserRole.SUPER_ADMIN,
+];
+
+/**
+ * Who may list, open, search, count and export tutor profiles (`TutorProfileController.STAFF`).
+ * Students may browse tutors; tutors themselves (other than super admins) cannot read profiles.
+ */
+export const TUTOR_PROFILE_READ_ROLES: readonly UserRole[] = [
+  UserRole.SUPER_ADMIN,
+  UserRole.ADMIN,
+  UserRole.IT_ADMIN,
+  UserRole.REGISTRAR,
+  UserRole.DEPUTY_REGISTRAR,
+  UserRole.ADMISSIONS_OFFICER,
+  UserRole.STUDENT_REGISTRAR,
+  UserRole.STUDENT,
+];
+
+/** Who may update or delete any tutor's profile; a tutor may change only their own. */
+export const TUTOR_PROFILE_ADMIN_ROLES: readonly UserRole[] = [
+  UserRole.SUPER_ADMIN,
+  UserRole.ADMIN,
+  UserRole.IT_ADMIN,
+];

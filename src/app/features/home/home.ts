@@ -1,12 +1,14 @@
-import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { ApiErrorResponse, CourseSummary, isApiErrorResponse } from '../../core/interface';
+import { CourseSummary } from '../../core/interface';
+import { resourceErrorMessage } from '../../shared/utils/resource-error';
 import { AuthService } from '../../core/service/auth/auth.service';
 import { SiteFooter } from '../../shared/reusable-components/site-footer/site-footer';
 import { SiteHeader } from '../../shared/reusable-components/site-header/site-header';
 import { CourseCard } from '../course/course-card/course-card';
+import { PartnerCarousel } from '../partnership/partner-carousel/partner-carousel';
+import { PartnershipService } from '../partnership/partnership.service';
 import { HomeService } from './home.service';
 import { injectHeaderAccount } from '../../core/service/auth/header-account';
 
@@ -40,13 +42,14 @@ interface Step {
 /** Public landing page. */
 @Component({
   selector: 'app-home',
-  imports: [CourseCard, NgOptimizedImage, RouterLink, SiteHeader, SiteFooter],
+  imports: [CourseCard, PartnerCarousel, RouterLink, SiteHeader, SiteFooter],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.html',
 })
 export class Home {
   protected readonly account = injectHeaderAccount();
   private readonly homeService = inject(HomeService);
+  private readonly partnershipService = inject(PartnershipService);
 
   protected readonly isSignedIn = inject(AuthService).isAuthenticated;
 
@@ -65,14 +68,16 @@ export class Home {
     this.courses.hasValue() ? this.courses.value().totalElements : 0,
   );
 
-  protected readonly coursesErrorMessage = computed(() => {
-    const error = this.courses.error() as ApiErrorResponse | Error | undefined;
-    return isApiErrorResponse(error) ? error.message : 'Please try again in a moment.';
-  });
+  protected readonly coursesErrorMessage = computed(() =>
+    resourceErrorMessage(this.courses.error()),
+  );
 
-  /** Public partners. The section stays hidden while loading, on error or when there are none. */
+  /**
+   * Every public partner, for the carousel (`GET /partners/public`). The section stays hidden
+   * while loading, on error or when there are none.
+   */
   protected readonly partners = rxResource({
-    stream: () => this.homeService.getPartners(5),
+    stream: () => this.partnershipService.getAllPublicPartners(),
   });
 
   protected readonly partnerList = computed(() =>

@@ -1,16 +1,12 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { ApiResponse, CourseSummary, PageResponse, PartnerPublic } from '../../core/interface';
+import { Observable } from 'rxjs';
+import { CourseSummary, PageResponse } from '../../core/interface';
 import { CourseService } from '../course/course.service';
 
 /** API calls made by the landing page. */
 @Injectable({ providedIn: 'root' })
 export class HomeService {
-  private readonly http = inject(HttpClient);
   private readonly courses = inject(CourseService);
-  private readonly api = environment.apiUrl;
 
   /**
    * Newest published courses (`GET /course/search`); drafts are never shown here.
@@ -24,14 +20,5 @@ export class HomeService {
       sortBy: 'createdAt',
       sortDirection: 'desc',
     });
-  }
-
-  /** Partners shown on the website, featured first. Public: no login required. */
-  getPartners(size = 5): Observable<PartnerPublic[]> {
-    return this.http
-      .get<ApiResponse<PageResponse<PartnerPublic>>>(`${this.api}/partners/public`, {
-        params: { page: 0, size },
-      })
-      .pipe(map((res) => res.data.content));
   }
 }

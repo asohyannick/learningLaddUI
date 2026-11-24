@@ -7,7 +7,9 @@ import { UserRole } from '../../../core/enum/global-enum-configuration';
 import { errorInterceptor } from '../../../core/interceptor/error.interceptor';
 import { AuthService } from '../../../core/service/auth/auth.service';
 import { coursePage, fakeCourseSummary } from '../../../core/testing/fake-course';
+import { fakePartner } from '../../../core/testing/fake-partner';
 import { fakeStudentSummary } from '../../../core/testing/fake-student-profile';
+import { fakeTutorSummary } from '../../../core/testing/fake-tutor-profile';
 import { fakeUser } from '../../../core/testing/fake-user';
 import { fakeLoginResponse, ok } from '../../../core/testing/fake-login-response';
 import { AdminDashboard } from './admin-dashboard';
@@ -125,5 +127,40 @@ describe('AdminDashboard', () => {
     button.click();
     await fixture.whenStable();
     expect(el.querySelector('app-delete-user-account #delete-password')).not.toBeNull();
+  });
+
+  it('shows the tutor profiles in the Tutors section', async () => {
+    const fixture = TestBed.createComponent(AdminDashboard);
+    fixture.componentRef.setInput('section', 'tutors');
+    fixture.detectChanges();
+    const profiles = `${environment.apiUrl}/tutor-profile`;
+    backend.expectOne(`${profiles}/count`).flush(ok(4));
+    backend.expectOne(`${profiles}?page=0&size=20`).flush(ok(coursePage([fakeTutorSummary()], 4)));
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('h1')?.textContent).toContain('Tutor profiles');
+    expect(el.querySelector('[data-testid="profile-count"]')?.textContent?.trim()).toBe('4');
+    expect(el.querySelector('button[aria-label="Delete Dr. Chidi Eze"]')).not.toBeNull();
+  });
+
+  it('manages partners and sponsors in the Partners section', async () => {
+    const fixture = TestBed.createComponent(AdminDashboard);
+    fixture.componentRef.setInput('section', 'partners');
+    fixture.detectChanges();
+    const partners = `${environment.apiUrl}/partners`;
+    backend.expectOne(`${partners}/count`).flush(ok(3));
+    backend.expectOne(`${partners}?page=0&size=20`).flush(ok(coursePage([fakePartner()], 3)));
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('h1')?.textContent).toContain('Partners & sponsors');
+    const links = [...el.querySelectorAll('nav a')].map((a) => a.textContent?.trim());
+    expect(links).toContain('Partners');
+    expect(el.querySelector('[data-testid="partner-count"]')?.textContent?.trim()).toBe('3');
+    expect(el.querySelector('button[aria-label="Edit Orange Foundation"]')).not.toBeNull();
+    expect(
+      [...el.querySelectorAll('button')].some((b) => b.textContent?.trim() === 'Add partner'),
+    ).toBe(true);
   });
 });
