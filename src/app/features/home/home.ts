@@ -7,6 +7,8 @@ import { AuthService } from '../../core/service/auth/auth.service';
 import { SiteFooter } from '../../shared/reusable-components/site-footer/site-footer';
 import { SiteHeader } from '../../shared/reusable-components/site-header/site-header';
 import { CourseCard } from '../course/course-card/course-card';
+import { JobCard } from '../job-listing/job-card/job-card';
+import { JobListingService } from '../job-listing/job-listing.service';
 import { PartnerCarousel } from '../partnership/partner-carousel/partner-carousel';
 import { PartnershipService } from '../partnership/partnership.service';
 import { HomeService } from './home.service';
@@ -30,6 +32,9 @@ interface RoleCard {
 /** Two rows of three on large screens. */
 const FEATURED_COURSES = 6;
 
+/** One row of three. */
+const FEATURED_JOBS = 3;
+
 interface Step {
   number: string;
   title: string;
@@ -42,7 +47,7 @@ interface Step {
 /** Public landing page. */
 @Component({
   selector: 'app-home',
-  imports: [CourseCard, PartnerCarousel, RouterLink, SiteHeader, SiteFooter],
+  imports: [CourseCard, JobCard, PartnerCarousel, RouterLink, SiteHeader, SiteFooter],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.html',
 })
@@ -50,6 +55,7 @@ export class Home {
   protected readonly account = injectHeaderAccount();
   private readonly homeService = inject(HomeService);
   private readonly partnershipService = inject(PartnershipService);
+  private readonly jobListingService = inject(JobListingService);
 
   protected readonly isSignedIn = inject(AuthService).isAuthenticated;
 
@@ -83,6 +89,20 @@ export class Home {
   protected readonly partnerList = computed(() =>
     this.partners.hasValue() ? this.partners.value() : [],
   );
+
+  /** The newest open roles, for signed-in users only (the API returns 401 to guests). */
+  protected readonly jobs = rxResource({
+    params: () => (this.isSignedIn() ? true : undefined),
+    stream: () => this.jobListingService.searchOpenJobListings({ page: 0, size: FEATURED_JOBS }),
+  });
+  protected readonly jobCards = computed(() =>
+    this.jobs.hasValue() ? this.jobs.value().content : [],
+  );
+  protected readonly openJobsTotal = computed(() =>
+    this.jobs.hasValue() ? this.jobs.value().totalElements : 0,
+  );
+  protected readonly jobsErrorMessage = computed(() => resourceErrorMessage(this.jobs.error()));
+  protected readonly jobSkeletons = [1, 2, 3];
 
   protected readonly skeletonSlots = Array.from({ length: FEATURED_COURSES }, (_, i) => i);
 

@@ -32,6 +32,13 @@ export const routes: Routes = [
     title: 'Careers | Learning Ladder',
     loadComponent: () => import('./features/job-listing/job-listing').then((m) => m.JobListing),
   },
+  {
+    // The page sets the job title as the title once it has loaded.
+    path: 'jobs/:id',
+    title: 'Job | Learning Ladder',
+    loadComponent: () =>
+      import('./features/job-listing/job-detail/job-detail').then((m) => m.JobDetail),
+  },
 
   // 🔓 Auth pages open to everyone
   {

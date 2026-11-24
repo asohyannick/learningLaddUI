@@ -13,8 +13,11 @@ import {
   DashboardShell,
 } from '../../../shared/reusable-components/dashboard-shell/dashboard-shell';
 import { CourseManager } from '../../course/course-manager/course-manager';
+import { JobApplicationManager } from '../../job-application/job-application-manager/job-application-manager';
+import { JobListingManager } from '../../job-listing/job-listing-manager/job-listing-manager';
 import { PartnerManager } from '../../partnership/partner-manager/partner-manager';
 import { StudentProfileManager } from '../../student-profile/student-profile-manager/student-profile-manager';
+import { TimeTableManager } from '../../time-table/time-table-manager/time-table-manager';
 import { TutorProfileManager } from '../../tutor-profile/tutor-profile-manager/tutor-profile-manager';
 
 type Dialog =
@@ -22,14 +25,18 @@ type Dialog =
   | { kind: 'unblock'; user: IUserResponse }
   | { kind: 'delete' };
 
-type Section = 'users' | 'students' | 'tutors' | 'courses' | 'partners';
+type Section =
+  'users' | 'students' | 'tutors' | 'courses' | 'timetable' | 'partners' | 'jobs' | 'applications';
 
 const SECTIONS: readonly DashboardSection[] = [
   { id: 'users', label: 'Users', icon: 'users' },
   { id: 'students', label: 'Students', icon: 'students' },
   { id: 'tutors', label: 'Tutors', icon: 'tutors' },
   { id: 'courses', label: 'Courses', icon: 'courses' },
+  { id: 'timetable', label: 'Timetable', icon: 'timetable' },
   { id: 'partners', label: 'Partners', icon: 'partners' },
+  { id: 'jobs', label: 'Job listings', icon: 'jobs' },
+  { id: 'applications', label: 'Applications', icon: 'applications' },
 ];
 
 const HEADINGS: Record<Section, string> = {
@@ -37,7 +44,10 @@ const HEADINGS: Record<Section, string> = {
   students: 'Student profiles',
   tutors: 'Tutor profiles',
   courses: 'Courses',
+  timetable: 'Timetable',
   partners: 'Partners & sponsors',
+  jobs: 'Job listings',
+  applications: 'Job applications',
 };
 
 /**
@@ -55,8 +65,11 @@ const HEADINGS: Record<Section, string> = {
     DeleteUserAccount,
     FetchAllUsers,
     FetchUser,
+    JobApplicationManager,
+    JobListingManager,
     PartnerManager,
     StudentProfileManager,
+    TimeTableManager,
     TutorProfileManager,
     UnBlockUserAccount,
   ],
@@ -75,7 +88,10 @@ export class AdminDashboard {
     return section === 'courses' ||
       section === 'students' ||
       section === 'tutors' ||
-      section === 'partners'
+      section === 'partners' ||
+      section === 'timetable' ||
+      section === 'jobs' ||
+      section === 'applications'
       ? section
       : 'users';
   });
@@ -94,8 +110,14 @@ export class AdminDashboard {
         return 'Search, open, edit and remove student profiles, and export them as PDF.';
       case 'tutors':
         return 'Search, open, edit and remove tutor profiles, and export them as PDF.';
+      case 'timetable':
+        return 'Schedule classes and sessions for every course, search and filter them, and export them as PDF.';
       case 'partners':
         return 'Add partners and sponsors, manage their agreements and tiers, and choose who appears on the website.';
+      case 'jobs':
+        return 'Post jobs, publish them to the careers page, search and filter them, and export them as PDF.';
+      case 'applications':
+        return 'Review who applied for each job, open their CVs and documents, and export applications as PDF.';
       default:
         return `Welcome back, ${this.firstName()}. Here is everyone with an account.`;
     }

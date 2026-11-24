@@ -6,12 +6,14 @@ import { provideRouter } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { CourseSummary } from '../../core/interface';
 import { AuthService } from '../../core/service/auth/auth.service';
+import { fakeJobSummary, jobPage } from '../../core/testing/fake-job-listing';
 import { fakePublicPartner } from '../../core/testing/fake-partner';
 import { Home } from './home';
 
 const api = environment.apiUrl;
 const partnersUrl = `${api}/partners/public?page=0&size=100`;
 const coursesUrl = `${api}/course/search?published=true&page=0&size=6&sortBy=createdAt&sortDirection=desc`;
+const jobsUrl = `${api}/job-listing/search`;
 
 function page<T>(content: T[]) {
   return {
@@ -99,6 +101,7 @@ describe('Home', () => {
     const { fixture, el } = render();
     backend.expectOne(partnersUrl).flush(page([]));
     backend.expectOne(coursesUrl).flush(page([course]));
+    backend.expectOne((r) => r.url === jobsUrl).flush(jobPage([]));
     await fixture.whenStable();
     fixture.detectChanges();
     expect(el.textContent).toContain('Data Science 101');
@@ -121,5 +124,24 @@ describe('Home', () => {
     expect(carousel.textContent).toContain('Acme University');
     expect(carousel.textContent).toContain('City Council');
     expect(carousel.querySelector('a[href="/partners/city"]')).not.toBeNull();
+  });
+
+  it('shows the newest open roles to signed-in users, linking to each job', async () => {
+    isAuthenticated.set(true);
+    const { fixture, el } = render();
+    backend.expectOne(partnersUrl).flush(page([]));
+    backend.expectOne(coursesUrl).flush(page([]));
+    const jobs = backend.expectOne((r) => r.url === jobsUrl);
+    expect(jobs.request.params.get('openOnly')).toBe('true');
+    expect(jobs.request.params.get('size')).toBe('3');
+    expect(jobs.request.params.get('sortBy')).toBe('publishedAt');
+    jobs.flush(jobPage([fakeJobSummary()], 5));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const section = el.querySelector('[data-testid="home-jobs"]')!;
+    expect(section.textContent).toContain('Lecturer in Mathematics');
+    expect(section.textContent).toContain('Apply by 31 Dec 2099');
+    expect(section.querySelector('a[href="/jobs/job-1"]')).not.toBeNull();
+    expect(el.textContent).toContain('See all 5 open roles');
   });
 });

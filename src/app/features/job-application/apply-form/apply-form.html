@@ -1,0 +1,270 @@
+<app-modal
+  [heading]="(isEdit() ? 'Edit your application: ' : 'Apply: ') + job().title"
+  [description]="
+    isEdit()
+      ? 'Change what you need, then save. You can edit until the team starts reviewing it. Clearing a field keeps its saved value.'
+      : 'Fields marked optional can be left blank. Your CV is required; you can apply only once.'
+  "
+  size="lg"
+  [busy]="submitting()"
+  (closed)="cancelled.emit()"
+>
+  @if (serverError(); as message) {
+    <app-form-alert class="mb-4">{{ message }}</app-form-alert>
+  }
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-6">
+    <fieldset>
+      <legend class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
+        About you
+      </legend>
+      <div class="grid gap-4 sm:grid-cols-2">
+        @for (field of fields; track field.name) {
+          @let id = 'ap-' + field.name;
+          <div [class.sm:col-span-2]="field.wide">
+            <label [for]="id" class="mb-1.5 block text-sm font-medium">
+              {{ field.label }}
+              @if (!field.required) {
+                <span class="font-normal text-muted">(optional)</span>
+              }
+            </label>
+            @if (field.textarea) {
+              <textarea
+                [id]="id"
+                rows="6"
+                [formControlName]="field.name"
+                [attr.maxlength]="field.max ?? null"
+                [placeholder]="field.placeholder ?? ''"
+                [class]="inputClasses(invalid(field.name))"
+                [attr.aria-invalid]="invalid(field.name)"
+                [attr.aria-describedby]="id + '-error'"
+              ></textarea>
+            } @else {
+              <input
+                [id]="id"
+                [type]="field.type ?? 'text'"
+                [formControlName]="field.name"
+                [attr.maxlength]="field.max ?? null"
+                [attr.min]="field.type === 'date' ? today : null"
+                [placeholder]="field.placeholder ?? ''"
+                [attr.inputmode]="field.inputMode ?? null"
+                [attr.autocomplete]="field.autocomplete ?? null"
+                [class]="inputClasses(invalid(field.name))"
+                [attr.aria-invalid]="invalid(field.name)"
+                [attr.aria-describedby]="id + '-error'"
+              />
+            }
+            @if (field.name === 'expectedSalary') {
+              <p class="mt-1 text-xs text-muted">
+                In {{ job().currency ?? 'USD' }}, per
+                {{ (job().salaryPeriod ?? 'MONTHLY').toLowerCase() }}.
+              </p>
+            }
+            <app-field-error
+              [control]="form.controls[field.name]"
+              [label]="field.label"
+              [errorId]="id + '-error'"
+              [patternMessage]="field.patternMessage"
+            />
+          </div>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
+        Documents
+      </legend>
+      <div class="space-y-4 text-sm">
+        <div>
+          <p class="mb-1.5 font-medium">CV / résumé</p>
+          <label
+            class="inline-flex cursor-pointer items-center rounded-lg border border-line px-3 py-2 font-semibold text-ink hover:bg-slate-50"
+          >
+            {{ cv() ? 'Change CV' : isEdit() ? 'Replace your CV' : 'Attach your CV' }}
+            <input
+              #cvInput
+              id="ap-cv"
+              type="file"
+              class="sr-only"
+              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              (change)="pickCv($event)"
+            />
+          </label>
+          @if (cv(); as file) {
+            <span class="ml-2 text-muted">{{ file.name }}</span>
+            <button
+              type="button"
+              class="ml-2 font-medium text-muted hover:text-ink"
+              (click)="removeFile('cv', cvInput)"
+            >
+              Remove
+            </button>
+          } @else if (existing()?.uploadCV; as current) {
+            <a
+              [href]="current"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="ml-2 text-muted underline"
+              >Current CV</a
+            >
+            <p class="mt-1 text-xs text-muted">
+              Keep it, or replace it with a PDF, DOC or DOCX up to 10 MB.
+            </p>
+          } @else {
+            <p class="mt-1 text-xs text-muted">PDF, DOC or DOCX, up to 10 MB.</p>
+          }
+          @if (fileErrors().cv; as message) {
+            <p class="mt-1 text-sm text-red-600" role="alert">{{ message }}</p>
+          }
+        </div>
+
+        <div>
+          <p class="mb-1.5 font-medium">
+            Supporting documents <span class="font-normal text-muted">(optional)</span>
+          </p>
+          <label
+            class="inline-flex cursor-pointer items-center rounded-lg border border-line px-3 py-2 font-semibold text-ink hover:bg-slate-50"
+            [class.opacity-50]="docs().length + keptDocs().length >= maxDocs"
+          >
+            Add documents
+            <input
+              id="ap-docs"
+              type="file"
+              class="sr-only"
+              multiple
+              [disabled]="docs().length + keptDocs().length >= maxDocs"
+              accept=".pdf,.doc,.docx,image/jpeg,image/png,image/webp"
+              (change)="pickDocs($event)"
+            />
+          </label>
+          <p class="mt-1 text-xs text-muted">
+            Certificates, references or transcripts: up to {{ maxDocs }} files, 10 MB each.
+          </p>
+          @if (keptDocs().length) {
+            <ul class="mt-2 space-y-1" aria-label="Documents already attached">
+              @for (doc of keptDocs(); track doc.id; let i = $index) {
+                <li class="flex items-center gap-2 text-muted">
+                  @if (doc.url) {
+                    <a [href]="doc.url" target="_blank" rel="noopener noreferrer" class="underline"
+                      >Attached document {{ i + 1 }}</a
+                    >
+                  } @else {
+                    <span>Attached document {{ i + 1 }}</span>
+                  }
+                  <button
+                    type="button"
+                    class="font-medium hover:text-ink"
+                    [attr.aria-label]="'Remove attached document ' + (i + 1)"
+                    (click)="removeKeptDoc(doc.id)"
+                  >
+                    Remove
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+          @if (docs().length) {
+            <ul class="mt-2 space-y-1">
+              @for (doc of docs(); track $index) {
+                <li class="flex items-center gap-2 text-muted">
+                  <span class="truncate">{{ doc.name }}</span>
+                  <button
+                    type="button"
+                    class="font-medium hover:text-ink"
+                    [attr.aria-label]="'Remove ' + doc.name"
+                    (click)="removeDoc($index)"
+                  >
+                    Remove
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+          @if (fileErrors().supportingDocuments; as message) {
+            <p class="mt-1 text-sm text-red-600" role="alert">{{ message }}</p>
+          }
+        </div>
+
+        <div>
+          <p class="mb-1.5 font-medium">
+            Photo <span class="font-normal text-muted">(optional)</span>
+          </p>
+          <label
+            class="inline-flex cursor-pointer items-center rounded-lg border border-line px-3 py-2 font-semibold text-ink hover:bg-slate-50"
+          >
+            {{ profilePic() ? 'Change photo' : 'Add a photo' }}
+            <input
+              #picInput
+              type="file"
+              class="sr-only"
+              accept="image/jpeg,image/png,image/webp"
+              (change)="pickProfilePic($event)"
+            />
+          </label>
+          @if (profilePic(); as file) {
+            <span class="ml-2 text-muted">{{ file.name }}</span>
+            <button
+              type="button"
+              class="ml-2 font-medium text-muted hover:text-ink"
+              (click)="removeFile('profilePic', picInput)"
+            >
+              Remove
+            </button>
+          } @else {
+            <p class="mt-1 text-xs text-muted">JPEG, PNG or WebP, up to 5 MB.</p>
+          }
+          @if (fileErrors().profilePic; as message) {
+            <p class="mt-1 text-sm text-red-600" role="alert">{{ message }}</p>
+          }
+        </div>
+      </div>
+    </fieldset>
+
+    <div [hidden]="isEdit()">
+      <label class="flex items-start gap-3 text-sm">
+        <input
+          id="ap-consent"
+          type="checkbox"
+          formControlName="consentGiven"
+          class="mt-0.5 h-4 w-4 rounded border-line text-royal focus:ring-royal"
+          aria-describedby="ap-consent-error"
+        />
+        <span>
+          I agree that Learning Ladder may store and review my application and documents for this
+          and related roles.
+        </span>
+      </label>
+      @if (invalid('consentGiven')) {
+        <p id="ap-consent-error" class="mt-1.5 text-sm text-red-600">
+          Please agree before sending your application.
+        </p>
+      }
+    </div>
+
+    <div class="flex flex-col-reverse gap-2 border-t border-line pt-5 sm:flex-row sm:justify-end">
+      <button
+        type="button"
+        class="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50 disabled:opacity-60"
+        [disabled]="submitting()"
+        (click)="cancelled.emit()"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="rounded-lg bg-royal px-4 py-2.5 text-sm font-semibold text-white hover:bg-royal-dark disabled:opacity-60"
+        [disabled]="submitting()"
+      >
+        {{
+          submitting()
+            ? isEdit()
+              ? 'Saving…'
+              : 'Sending…'
+            : isEdit()
+              ? 'Save changes'
+              : 'Send application'
+        }}
+      </button>
+    </div>
+  </form>
+</app-modal>

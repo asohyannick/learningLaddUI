@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { catchError, throwError } from 'rxjs';
+import { Observable, catchError, from, switchMap, throwError } from 'rxjs';
 import { ApiErrorResponse, isApiErrorResponse } from '../interface';
 import { isApiRequest } from './api-url';
 
@@ -12,10 +12,40 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   if (!isApiRequest(req.url)) {
     return next(req);
   }
-  return next(req).pipe(
-    catchError((error: unknown) => throwError(() => toApiError(error, req.url))),
-  );
+  return next(req).pipe(catchError((error: unknown) => toApiError$(error, req.url)));
 };
+
+/**
+ * Requests made with `responseType: 'blob'` (PDF downloads) get their error body as a Blob;
+ * read it as JSON first so the API's message is not lost.
+ */
+function toApiError$(error: unknown, url: string): Observable<never> {
+  if (error instanceof HttpErrorResponse && error.error instanceof Blob) {
+    return from(error.error.text()).pipe(
+      catchError(() => [''] as string[]),
+      switchMap((text) => throwError(() => toApiError(withBody(error, parseJson(text)), url))),
+    );
+  }
+  return throwError(() => toApiError(error, url));
+}
+
+function parseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+function withBody(error: HttpErrorResponse, body: unknown): HttpErrorResponse {
+  return new HttpErrorResponse({
+    error: body,
+    headers: error.headers,
+    status: error.status,
+    statusText: error.statusText,
+    url: error.url ?? undefined,
+  });
+}
 
 export function toApiError(error: unknown, url: string): ApiErrorResponse {
   if (error instanceof HttpErrorResponse && isApiErrorResponse(error.error)) {

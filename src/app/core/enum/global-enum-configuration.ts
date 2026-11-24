@@ -199,3 +199,11 @@ export const TUTOR_PROFILE_ADMIN_ROLES: readonly UserRole[] = [
   UserRole.ADMIN,
   UserRole.IT_ADMIN,
 ];
+
+/** May delete timetable entries (mirrors `TIMETABLE_DELETE_ROLES` on the backend). */
+export const TIMETABLE_DELETE_ROLES: readonly UserRole[] = [
+  UserRole.SUPER_ADMIN,
+  UserRole.ADMIN,
+  UserRole.IT_ADMIN,
+  UserRole.ACADEMIC_DIRECTOR,
+];

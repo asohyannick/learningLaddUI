@@ -1,0 +1,260 @@
+<app-modal
+  [heading]="isEdit() ? 'Edit job listing' : 'Post a job'"
+  [description]="
+    isEdit()
+      ? 'Change what you need, then save. Clearing a text or list field removes it; numbers, dates, the currency and the photo link keep their saved value when cleared.'
+      : 'Only the title and description are required. New listings are saved as drafts unless you publish them now.'
+  "
+  size="lg"
+  [busy]="submitting()"
+  (closed)="cancelled.emit()"
+>
+  @if (loading()) {
+    <div class="animate-pulse space-y-3" role="status" aria-label="Loading listing">
+      @for (row of [1, 2, 3, 4, 5]; track row) {
+        <div class="h-10 rounded-lg bg-slate-100"></div>
+      }
+    </div>
+  } @else if (loadError(); as message) {
+    <app-form-alert>{{ message }}</app-form-alert>
+    <div class="mt-4 flex justify-end gap-2">
+      <button
+        type="button"
+        class="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50"
+        (click)="cancelled.emit()"
+      >
+        Close
+      </button>
+      <button
+        type="button"
+        class="rounded-lg bg-royal px-4 py-2.5 text-sm font-semibold text-white hover:bg-royal-dark"
+        (click)="load()"
+      >
+        Try again
+      </button>
+    </div>
+  } @else {
+    @if (serverError(); as message) {
+      <app-form-alert class="mb-4">{{ message }}</app-form-alert>
+    }
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-6">
+      <!-- Photo -->
+      <fieldset>
+        <legend class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
+          Photo
+        </legend>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+          @let current =
+            photoPreview() || original()?.jobPhotoUrl || form.controls.jobPhotoUrl.value;
+          <app-job-photo [src]="current" class="h-20 w-36 shrink-0 rounded-lg border border-line" />
+          <div class="flex-1 space-y-3 text-sm">
+            <div>
+              <label
+                class="inline-flex cursor-pointer items-center rounded-lg border border-line px-3 py-2 font-semibold text-ink hover:bg-slate-50"
+              >
+                {{ photo() || original()?.jobPhotoUrl ? 'Change photo' : 'Upload a photo' }}
+                <input
+                  #fileInput
+                  type="file"
+                  class="sr-only"
+                  accept="image/jpeg,image/png,image/webp"
+                  data-testid="photo-input"
+                  (change)="pickPhoto($event)"
+                />
+              </label>
+              @if (photo(); as file) {
+                <button
+                  type="button"
+                  class="ml-2 font-medium text-muted hover:text-ink"
+                  (click)="clearPhoto(fileInput)"
+                >
+                  Remove
+                </button>
+                <p class="mt-1 max-w-64 truncate text-xs text-muted">{{ file.name }}</p>
+              } @else {
+                <p class="mt-1 text-xs text-muted">
+                  JPEG, PNG or WebP, up to 5 MB. It appears a moment after saving.
+                </p>
+              }
+              @if (photoError(); as message) {
+                <p class="mt-1 text-sm text-red-600" role="alert">{{ message }}</p>
+              }
+            </div>
+            <div>
+              <label for="jf-jobPhotoUrl" class="mb-1.5 block text-sm font-medium">
+                Or a photo link <span class="font-normal text-muted">(optional)</span>
+              </label>
+              <input
+                id="jf-jobPhotoUrl"
+                type="text"
+                inputmode="url"
+                maxlength="1024"
+                placeholder="https://…"
+                formControlName="jobPhotoUrl"
+                [class]="inputClasses(invalid('jobPhotoUrl'))"
+                [attr.aria-invalid]="invalid('jobPhotoUrl')"
+                aria-describedby="jf-jobPhotoUrl-error"
+              />
+              <app-field-error
+                [control]="form.controls.jobPhotoUrl"
+                label="Photo link"
+                errorId="jf-jobPhotoUrl-error"
+                patternMessage="Enter a web address starting with http:// or https://"
+              />
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      @for (section of sections(); track section.title) {
+        <fieldset>
+          <legend class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
+            {{ section.title }}
+          </legend>
+
+          @if (section.title === 'Salary') {
+            <label class="mb-4 flex items-start gap-3 text-sm">
+              <input
+                id="jf-salaryVisible"
+                type="checkbox"
+                formControlName="salaryVisible"
+                class="mt-0.5 h-4 w-4 rounded border-line text-royal focus:ring-royal"
+              />
+              <span>
+                <span class="font-medium">Show the salary on the job page</span>
+                <span class="block text-xs text-muted">
+                  When hidden, the range is kept but only staff see it.
+                </span>
+              </span>
+            </label>
+          }
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            @for (field of section.fields; track field.name) {
+              @let id = 'jf-' + field.name;
+              <div [class.sm:col-span-2]="field.wide">
+                <label [for]="id" class="mb-1.5 block text-sm font-medium">
+                  {{ field.label }}
+                  @if (!field.required && field.kind !== 'select') {
+                    <span class="font-normal text-muted">(optional)</span>
+                  }
+                </label>
+                @switch (field.kind) {
+                  @case ('textarea') {
+                    <textarea
+                      [id]="id"
+                      [rows]="field.rows ?? 3"
+                      [formControlName]="field.name"
+                      [attr.maxlength]="field.max ?? null"
+                      [placeholder]="field.placeholder ?? ''"
+                      [class]="inputClasses(invalid(field.name))"
+                      [attr.aria-invalid]="invalid(field.name)"
+                      [attr.aria-describedby]="id + '-error ' + id + '-hint'"
+                    ></textarea>
+                  }
+                  @case ('select') {
+                    <select
+                      [id]="id"
+                      [formControlName]="field.name"
+                      [class]="inputClasses(invalid(field.name))"
+                      [attr.aria-invalid]="invalid(field.name)"
+                      [attr.aria-describedby]="id + '-error ' + id + '-hint'"
+                    >
+                      @if (field.emptyLabel) {
+                        <option value="">{{ field.emptyLabel }}</option>
+                      }
+                      @for (option of field.options; track option) {
+                        <option [value]="option">{{ option | enumLabel }}</option>
+                      }
+                    </select>
+                  }
+                  @case ('date') {
+                    <input
+                      [id]="id"
+                      type="date"
+                      [formControlName]="field.name"
+                      [attr.min]="
+                        field.name === 'expectedStartDate'
+                          ? form.controls.applicationDeadline.value || today
+                          : today
+                      "
+                      [class]="inputClasses(invalid(field.name))"
+                      [attr.aria-invalid]="invalid(field.name)"
+                      [attr.aria-describedby]="id + '-error'"
+                    />
+                  }
+                  @default {
+                    <input
+                      [id]="id"
+                      [type]="field.kind"
+                      [formControlName]="field.name"
+                      [attr.maxlength]="field.max ?? null"
+                      [placeholder]="field.placeholder ?? ''"
+                      [attr.inputmode]="field.inputMode ?? null"
+                      [class]="inputClasses(invalid(field.name))"
+                      [attr.aria-invalid]="invalid(field.name)"
+                      [attr.aria-describedby]="id + '-error ' + id + '-hint'"
+                    />
+                  }
+                }
+                @if (field.hint) {
+                  <p [id]="id + '-hint'" class="mt-1 text-xs text-muted">{{ field.hint }}</p>
+                }
+                <app-field-error
+                  [control]="form.controls[field.name]"
+                  [label]="field.label"
+                  [errorId]="id + '-error'"
+                  [patternMessage]="field.patternMessage"
+                />
+              </div>
+            }
+          </div>
+        </fieldset>
+      }
+
+      @if (!isEdit()) {
+        <label class="flex items-start gap-3 rounded-xl border border-line bg-cream p-4 text-sm">
+          <input
+            id="jf-publishNow"
+            type="checkbox"
+            formControlName="publishNow"
+            class="mt-0.5 h-4 w-4 rounded border-line text-royal focus:ring-royal"
+          />
+          <span>
+            <span class="font-medium">Publish now</span>
+            <span class="block text-xs text-muted">
+              Open the listing for applications and show it on the website straight away. Otherwise
+              it stays a draft.
+            </span>
+          </span>
+        </label>
+      }
+
+      <div class="flex flex-col-reverse gap-2 border-t border-line pt-5 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          class="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50 disabled:opacity-60"
+          [disabled]="submitting()"
+          (click)="cancelled.emit()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="rounded-lg bg-royal px-4 py-2.5 text-sm font-semibold text-white hover:bg-royal-dark disabled:opacity-60"
+          [disabled]="submitting()"
+        >
+          {{
+            submitting()
+              ? 'Saving…'
+              : isEdit()
+                ? 'Save changes'
+                : form.controls.publishNow.value
+                  ? 'Post and publish'
+                  : 'Save as draft'
+          }}
+        </button>
+      </div>
+    </form>
+  }
+</app-modal>

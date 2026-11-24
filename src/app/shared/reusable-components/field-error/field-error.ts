@@ -82,6 +82,13 @@ export class FieldError {
     }
     if (errors['tierRequired']) return 'Sponsors need a sponsorship tier.';
     if (errors['endBeforeStart']) return `${label} cannot be before the start date.`;
+    if (errors['endTimeBeforeStart']) return 'End time must be after the start time.';
+    if (errors['salaryRange']) return 'Maximum salary cannot be less than the minimum.';
+    if (errors['beforeDeadline'])
+      return 'Expected start cannot be before the application deadline.';
+    if (errors['pastDeadline']) return 'The deadline must be today or later.';
+    if (errors['notPast']) return `${label} cannot be in the past.`;
+    if (errors['timeZone']) return 'Use a time zone name such as Africa/Douala or UTC.';
     if (errors['currencyRequired']) return 'Add the currency for your hourly rate, e.g. XAF.';
     if (errors['pattern']) return this.patternMessage() ?? `${label} is not valid.`;
     if (errors['passwordRules']) return 'Password does not meet all the requirements below.';

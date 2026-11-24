@@ -15,8 +15,14 @@
     <app-student-profile-manager (notify)="toast.set($event)" />
   } @else if (active() === 'tutors') {
     <app-tutor-profile-manager (notify)="toast.set($event)" />
+  } @else if (active() === 'timetable') {
+    <app-time-table-manager (notify)="toast.set($event)" />
   } @else if (active() === 'partners') {
     <app-partner-manager (notify)="toast.set($event)" />
+  } @else if (active() === 'jobs') {
+    <app-job-listing-manager (notify)="toast.set($event)" />
+  } @else if (active() === 'applications') {
+    <app-job-application-manager (notify)="toast.set($event)" />
   } @else {
     <app-fetch-all-users
       [currentUserId]="me()?.id"

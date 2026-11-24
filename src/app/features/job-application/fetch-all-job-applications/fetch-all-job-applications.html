@@ -1,0 +1,436 @@
+<!-- Summary cards -->
+<section aria-label="Job applications summary" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-teal-500 to-emerald-500 p-5 text-white shadow-lg shadow-teal-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Total applications</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight" data-testid="application-count">
+      {{ totalCount() ?? '—' }}
+    </p>
+    <p class="mt-1 text-xs text-white/75">Across every job listing</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-sky-500 to-indigo-500 p-5 text-white shadow-lg shadow-sky-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">{{ isFiltered() ? 'Matching' : 'Listed' }}</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">
+      {{ loading() && !total() ? '—' : total() }}
+    </p>
+    <p class="mt-1 text-xs text-white/75">
+      {{ isFiltered() ? 'Applications matching your filters' : 'Applications on record' }}
+    </p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-violet-500 to-fuchsia-500 p-5 text-white shadow-lg shadow-violet-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Awaiting review</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">{{ stats().awaiting }}</p>
+    <p class="mt-1 text-xs text-white/75">Submitted, of {{ stats().shown }} on this page</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+  <article
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-amber-500 to-rose-500 p-5 text-white shadow-lg shadow-amber-900/30"
+  >
+    <p class="text-sm font-medium text-white/80">Supporting documents</p>
+    <p class="mt-2 text-3xl font-bold tracking-tight">{{ stats().documents }}</p>
+    <p class="mt-1 text-xs text-white/75">Attached on this page, besides CVs</p>
+    <span
+      class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10"
+      aria-hidden="true"
+    ></span>
+  </article>
+</section>
+
+<section
+  class="mt-6 rounded-2xl border border-white/10 bg-navy-900"
+  aria-labelledby="applications-heading"
+>
+  <header class="space-y-4 border-b border-white/10 p-5">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h2 id="applications-heading" class="text-base font-semibold text-white">
+          Job applications
+        </h2>
+        <p class="text-sm text-slate-400">Everyone who applied, with their CV and documents.</p>
+      </div>
+      <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <label class="relative block">
+          <span class="sr-only">Search by name or email</span>
+          <svg
+            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.45 4.39l3.08 3.08a.75.75 0 1 1-1.06 1.06l-3.08-3.08A7 7 0 0 1 2 9Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <input
+            type="search"
+            maxlength="100"
+            placeholder="Name or email"
+            class="w-full rounded-lg border border-white/10 bg-navy-950 py-2 pl-9 pr-3 text-sm text-white placeholder:text-slate-500 focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40 sm:w-64"
+            [value]="keywordText()"
+            (input)="setFilter(keywordText, $any($event.target).value)"
+          />
+        </label>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-white/5 disabled:opacity-50"
+          [disabled]="loading()"
+          (click)="reload()"
+        >
+          Refresh
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-royal px-3 py-2 text-sm font-semibold text-white hover:bg-royal-dark disabled:opacity-50"
+          [disabled]="downloading() !== null || !total()"
+          (click)="downloadAll()"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.61L6.3 8.24a.75.75 0 1 0-1.1 1.02l4.25 4.5a.75.75 0 0 0 1.1 0l4.25-4.5a.75.75 0 0 0-1.1-1.02l-2.95 3.12V2.75Z"
+            />
+            <path
+              d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z"
+            />
+          </svg>
+          {{
+            downloading() === 'all'
+              ? 'Preparing PDF…'
+              : isFiltered()
+                ? 'Download matches (PDF)'
+                : 'Download all (PDF)'
+          }}
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
+          (click)="add.emit()"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"
+            />
+          </svg>
+          Submit application
+        </button>
+      </div>
+    </div>
+
+    @let select =
+      'rounded-lg border border-white/10 bg-navy-950 px-3 py-2 text-white focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/40';
+    <div class="flex flex-wrap items-center gap-2 text-sm">
+      <label>
+        <span class="sr-only">Job</span>
+        <select
+          [class]="select + ' max-w-64'"
+          [value]="jobId()"
+          (change)="setFilter(jobId, $any($event.target).value)"
+        >
+          <option value="">Any job</option>
+          @if (jobOptions.hasValue()) {
+            @for (job of jobOptions.value(); track job.id) {
+              <option [value]="job.id">{{ job.title }} ({{ job.code }})</option>
+            }
+          }
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Status</span>
+        <select
+          [class]="select"
+          [value]="status()"
+          (change)="setFilter(status, $any($event.target).value)"
+        >
+          <option value="">Any status</option>
+          @for (option of statuses; track option) {
+            <option [value]="option">{{ option | enumLabel }}</option>
+          }
+        </select>
+      </label>
+      <label class="flex items-center gap-2 text-slate-400">
+        <span>Sort</span>
+        <select
+          [class]="select"
+          [value]="sortIndex()"
+          (change)="setSort($any($event.target).value)"
+        >
+          @for (option of sortOptions; track option.label; let i = $index) {
+            <option [value]="i">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+      <button
+        type="button"
+        class="rounded-lg px-3 py-2 font-medium text-slate-300 hover:bg-white/5"
+        [attr.aria-expanded]="showMoreFilters()"
+        (click)="showMoreFilters.set(!showMoreFilters())"
+      >
+        {{ showMoreFilters() ? 'Fewer filters' : 'More filters' }}
+      </button>
+      @if (hasInput()) {
+        <button
+          type="button"
+          class="rounded-lg px-3 py-2 font-medium text-indigo-300 hover:bg-white/5"
+          (click)="clearFilters()"
+        >
+          Clear filters
+        </button>
+      }
+    </div>
+
+    @if (showMoreFilters()) {
+      <div class="flex flex-wrap items-end gap-2 text-sm" data-testid="more-filters">
+        <label class="flex flex-col gap-1 text-xs text-slate-400">
+          Submitted from
+          <input
+            type="date"
+            [class]="select"
+            [value]="fromDate()"
+            (change)="setFilter(fromDate, $any($event.target).value)"
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-xs text-slate-400">
+          Submitted until
+          <input
+            type="date"
+            [class]="select"
+            [value]="toDate()"
+            (change)="setFilter(toDate, $any($event.target).value)"
+          />
+        </label>
+        @if (dateRangeInvalid()) {
+          <p class="w-full text-xs text-rose-300" role="alert">
+            "Submitted from" must be on or before "Submitted until"; the date range is ignored.
+          </p>
+        }
+        <p class="w-full text-xs text-slate-500">Dates are whole days in UTC.</p>
+      </div>
+    }
+  </header>
+
+  @if (downloadError(); as message) {
+    <div
+      class="mx-5 mt-5 flex items-start justify-between gap-3 rounded-xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-200"
+      role="alert"
+    >
+      {{ message }}
+      <button
+        type="button"
+        class="text-rose-200/70 hover:text-white"
+        aria-label="Dismiss"
+        (click)="downloadError.set(null)"
+      >
+        ×
+      </button>
+    </div>
+  }
+
+  @if (error(); as message) {
+    <div
+      class="m-5 rounded-xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-200"
+      role="alert"
+    >
+      {{ message }}
+      <button type="button" class="ml-1 font-semibold underline" (click)="reload()">
+        Try again
+      </button>
+    </div>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm" [attr.aria-busy]="loading()">
+        <thead class="text-xs uppercase tracking-wide text-slate-500">
+          <tr class="border-b border-white/5">
+            <th scope="col" class="px-5 py-3 font-medium">Applicant</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium md:table-cell">Job</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium lg:table-cell">Submitted</th>
+            <th scope="col" class="hidden px-5 py-3 font-medium sm:table-cell">Status</th>
+            <th scope="col" class="px-5 py-3 text-right font-medium">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          @if (loading() && !rows().length) {
+            @for (row of [1, 2, 3, 4, 5]; track row) {
+              <tr class="animate-pulse">
+                <td class="px-5 py-4"><div class="h-3 w-44 rounded bg-white/10"></div></td>
+                <td class="hidden px-5 py-4 md:table-cell">
+                  <div class="h-3 w-32 rounded bg-white/10"></div>
+                </td>
+                <td class="hidden px-5 py-4 lg:table-cell">
+                  <div class="h-3 w-20 rounded bg-white/10"></div>
+                </td>
+                <td class="hidden px-5 py-4 sm:table-cell">
+                  <div class="h-5 w-20 rounded-full bg-white/10"></div>
+                </td>
+                <td class="px-5 py-4"></td>
+              </tr>
+            }
+          } @else {
+            @for (row of rows(); track row.id) {
+              <tr class="transition hover:bg-white/3" [class.opacity-60]="loading()">
+                <td class="px-5 py-3.5">
+                  <div class="flex items-center gap-3">
+                    @if (row.profilePic && !brokenPhotos().has(row.id)) {
+                      <img
+                        [src]="row.profilePic"
+                        alt=""
+                        class="h-9 w-9 shrink-0 rounded-full object-cover"
+                        (error)="photoFailed(row.id)"
+                      />
+                    } @else {
+                      <span
+                        class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-indigo-500/20 text-xs font-semibold text-indigo-200"
+                        aria-hidden="true"
+                        >{{ row.initials }}</span
+                      >
+                    }
+                    <div class="min-w-0">
+                      <p class="max-w-xs truncate font-medium text-white">{{ row.name }}</p>
+                      <p class="max-w-xs truncate text-xs text-slate-400">{{ row.email }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="hidden px-5 py-3.5 md:table-cell">
+                  <p class="max-w-56 truncate text-slate-200">{{ row.jobTitle }}</p>
+                  @if (row.currentJobTitle) {
+                    <p class="max-w-56 truncate text-xs text-slate-400">
+                      Now: {{ row.currentJobTitle }}
+                    </p>
+                  }
+                </td>
+                <td class="hidden px-5 py-3.5 text-slate-200 lg:table-cell">{{ row.submitted }}</td>
+                <td class="hidden px-5 py-3.5 sm:table-cell">
+                  <span
+                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset"
+                    [class]="row.statusClasses"
+                    >{{ row.status | enumLabel }}</span
+                  >
+                </td>
+                <td class="px-5 py-3.5">
+                  <div class="flex justify-end gap-1">
+                    <button
+                      type="button"
+                      class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-indigo-300 hover:bg-white/5"
+                      [attr.aria-label]="'View application from ' + row.name"
+                      (click)="view.emit(row)"
+                    >
+                      View
+                    </button>
+                    @if (row.uploadCV) {
+                      <a
+                        class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/5"
+                        [href]="row.uploadCV"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        [attr.aria-label]="'Open the CV of ' + row.name"
+                        >CV</a
+                      >
+                    }
+                    <button
+                      type="button"
+                      class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
+                      [disabled]="downloading() !== null"
+                      [attr.aria-label]="'Download the application from ' + row.name + ' as PDF'"
+                      (click)="downloadOne(row)"
+                    >
+                      {{ downloading() === row.id ? 'PDF…' : 'PDF' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-lg border border-rose-400/40 px-2.5 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-400/10"
+                      [attr.aria-label]="'Delete application from ' + row.name"
+                      (click)="remove.emit(row)"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="px-5 py-12 text-center text-sm text-slate-400">
+                  @if (isFiltered()) {
+                    No applications match your filters.
+                    <button
+                      type="button"
+                      class="ml-1 font-semibold text-indigo-300 underline"
+                      (click)="clearFilters()"
+                    >
+                      Clear filters
+                    </button>
+                  } @else {
+                    No applications yet. They appear here once people apply to an open job.
+                    <button
+                      type="button"
+                      class="ml-1 font-semibold text-indigo-300 underline"
+                      (click)="add.emit()"
+                    >
+                      Submit one
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <footer
+      class="flex flex-col gap-3 border-t border-white/10 px-5 py-4 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div class="flex items-center gap-3">
+        <span aria-live="polite">{{ rangeLabel() }}</span>
+        <label class="flex items-center gap-2">
+          <span>Rows</span>
+          <select
+            class="rounded-md border border-white/10 bg-navy-950 px-2 py-1 text-sm text-white focus:border-royal focus:outline-none"
+            [value]="size()"
+            (change)="setSize($any($event.target).value)"
+          >
+            @for (option of pageSizes; track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <nav class="flex items-center gap-2" aria-label="Pagination">
+        <button
+          type="button"
+          class="rounded-lg border border-white/10 px-3 py-1.5 font-medium text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!hasPrevious() || loading()"
+          (click)="goTo(page() - 1)"
+        >
+          Previous
+        </button>
+        <span class="px-1">Page {{ page() + 1 }} of {{ totalPages() }}</span>
+        <button
+          type="button"
+          class="rounded-lg border border-white/10 px-3 py-1.5 font-medium text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!hasNext() || loading()"
+          (click)="goTo(page() + 1)"
+        >
+          Next
+        </button>
+      </nav>
+    </footer>
+  }
+</section>

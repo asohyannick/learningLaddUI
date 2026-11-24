@@ -7,8 +7,10 @@ import { UserRole } from '../../../core/enum/global-enum-configuration';
 import { errorInterceptor } from '../../../core/interceptor/error.interceptor';
 import { AuthService } from '../../../core/service/auth/auth.service';
 import { coursePage, fakeCourseSummary } from '../../../core/testing/fake-course';
+import { fakeJobSummary, jobPage } from '../../../core/testing/fake-job-listing';
 import { fakePartner } from '../../../core/testing/fake-partner';
 import { fakeStudentSummary } from '../../../core/testing/fake-student-profile';
+import { fakeTimeTable, timeTablePage } from '../../../core/testing/fake-time-table';
 import { fakeTutorSummary } from '../../../core/testing/fake-tutor-profile';
 import { fakeUser } from '../../../core/testing/fake-user';
 import { fakeLoginResponse, ok } from '../../../core/testing/fake-login-response';
@@ -162,5 +164,40 @@ describe('AdminDashboard', () => {
     expect(
       [...el.querySelectorAll('button')].some((b) => b.textContent?.trim() === 'Add partner'),
     ).toBe(true);
+  });
+
+  it('manages the timetable in the Timetable section, with Delete for admins', async () => {
+    const fixture = TestBed.createComponent(AdminDashboard);
+    fixture.componentRef.setInput('section', 'timetable');
+    fixture.detectChanges();
+    const timetable = `${environment.apiUrl}/time-table`;
+    backend.expectOne(`${timetable}/count`).flush(5);
+    backend.expectOne(`${timetable}?page=0&size=20`).flush(timeTablePage([fakeTimeTable()], 5));
+    TestBed.tick();
+    backend
+      .expectOne((r) => r.url === `${environment.apiUrl}/course/search`)
+      .flush(ok(coursePage([fakeCourseSummary()])));
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('h1')?.textContent).toContain('Timetable');
+    expect(el.querySelector('[data-testid="timetable-count"]')?.textContent?.trim()).toBe('5');
+    expect(el.querySelector('button[aria-label="Delete Weekly lecture"]')).not.toBeNull();
+  });
+
+  it('manages job listings in the Job listings section', async () => {
+    const fixture = TestBed.createComponent(AdminDashboard);
+    fixture.componentRef.setInput('section', 'jobs');
+    fixture.detectChanges();
+    const jobs = `${environment.apiUrl}/job-listing`;
+    backend.expectOne(`${jobs}/count`).flush(ok(4));
+    backend.expectOne(`${jobs}?page=0&size=20`).flush(jobPage([fakeJobSummary()], 4));
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('h1')?.textContent).toContain('Job listings');
+    expect(el.querySelector('[data-testid="job-count"]')?.textContent?.trim()).toBe('4');
+    expect(el.querySelector('tbody')?.textContent).toContain('JOB-2026-0042');
+    expect(el.querySelector('button[aria-label="Delete Lecturer in Mathematics"]')).not.toBeNull();
   });
 });

@@ -14,7 +14,16 @@ import { AuthService } from '../../../core/service/auth/auth.service';
 import { displayName, initials } from '../../../core/service/auth/user-admin.service';
 import { EnumLabelPipe } from '../../custom-pipe/enum-label-pipe';
 
-export type DashboardIcon = 'users' | 'courses' | 'profile' | 'students' | 'tutors' | 'partners';
+export type DashboardIcon =
+  | 'users'
+  | 'courses'
+  | 'profile'
+  | 'students'
+  | 'tutors'
+  | 'partners'
+  | 'timetable'
+  | 'jobs'
+  | 'applications';
 
 /** One sidebar entry. Selecting it sets `?section=<id>` on the current dashboard URL. */
 export interface DashboardSection {

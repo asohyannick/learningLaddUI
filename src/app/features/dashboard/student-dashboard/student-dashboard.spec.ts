@@ -8,6 +8,7 @@ import { errorInterceptor } from '../../../core/interceptor/error.interceptor';
 import { AuthService } from '../../../core/service/auth/auth.service';
 import { coursePage, fakeCourse, fakeCourseSummary } from '../../../core/testing/fake-course';
 import { fakeLoginResponse, ok } from '../../../core/testing/fake-login-response';
+import { fakeTimeTable, timeTablePage } from '../../../core/testing/fake-time-table';
 import { fakeTutorSummary } from '../../../core/testing/fake-tutor-profile';
 import { StudentDashboard } from './student-dashboard';
 
@@ -103,5 +104,26 @@ describe('StudentDashboard', () => {
     expect(el.querySelector('button[aria-label="View Dr. Chidi Eze"]')).not.toBeNull();
     expect(el.querySelector('button[aria-label="Edit Dr. Chidi Eze"]')).toBeNull();
     expect(el.querySelector('button[aria-label="Delete Dr. Chidi Eze"]')).toBeNull();
+  });
+
+  it('shows the timetable to students without the Delete action', async () => {
+    const fixture = TestBed.createComponent(StudentDashboard);
+    fixture.componentRef.setInput('section', 'timetable');
+    fixture.detectChanges();
+    const timetable = `${environment.apiUrl}/time-table`;
+    backend.expectOne(`${timetable}/count`).flush(2);
+    backend.expectOne(`${timetable}?page=0&size=20`).flush(timeTablePage([fakeTimeTable()], 2));
+    TestBed.tick();
+    backend
+      .expectOne((r) => r.url === `${api}/search`)
+      .flush(ok(coursePage([fakeCourseSummary()])));
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('h1')?.textContent).toContain('Timetable');
+    expect(el.querySelector('a[aria-current="page"]')?.textContent).toContain('Timetable');
+    expect(el.querySelector('[data-testid="timetable-count"]')?.textContent?.trim()).toBe('2');
+    expect(el.querySelector('button[aria-label="Edit Weekly lecture"]')).not.toBeNull();
+    expect(el.querySelector('button[aria-label="Delete Weekly lecture"]')).toBeNull();
   });
 });

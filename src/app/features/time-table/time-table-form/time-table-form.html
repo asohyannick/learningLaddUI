@@ -1,0 +1,395 @@
+<app-modal
+  [heading]="isEdit() ? 'Edit timetable entry' : 'Add to the timetable'"
+  [description]="
+    isEdit()
+      ? 'Change what you need, then save. The creator is told about the change by email.'
+      : 'Schedule a one-off session or a weekly class for a course.'
+  "
+  size="lg"
+  [busy]="submitting()"
+  (closed)="cancelled.emit()"
+>
+  @if (loading()) {
+    <div class="animate-pulse space-y-3" role="status" aria-label="Loading entry">
+      @for (row of [1, 2, 3, 4, 5]; track row) {
+        <div class="h-10 rounded-lg bg-slate-100"></div>
+      }
+    </div>
+  } @else if (loadError(); as message) {
+    <app-form-alert>{{ message }}</app-form-alert>
+    <div class="mt-4 flex justify-end gap-2">
+      <button
+        type="button"
+        class="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50"
+        (click)="cancelled.emit()"
+      >
+        Close
+      </button>
+      <button
+        type="button"
+        class="rounded-lg bg-royal px-4 py-2.5 text-sm font-semibold text-white hover:bg-royal-dark"
+        (click)="load()"
+      >
+        Try again
+      </button>
+    </div>
+  } @else {
+    @if (serverError(); as message) {
+      <app-form-alert class="mb-4">{{ message }}</app-form-alert>
+    }
+    @let c = form.controls;
+    @let label = 'mb-1.5 block text-sm font-medium';
+    @let optional = 'font-normal text-muted';
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-6">
+      <!-- Session -->
+      <fieldset>
+        <legend class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
+          Session
+        </legend>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <label for="tf-courseId" [class]="label">Course</label>
+            @if (isEdit()) {
+              <p
+                id="tf-courseId"
+                class="rounded-lg border border-line bg-cream px-3.5 py-2.5 text-sm text-ink"
+              >
+                {{ original()?.courseName }}
+              </p>
+              <p class="mt-1 text-xs text-muted">
+                An entry stays with its course. To move it, add a new entry and delete this one.
+              </p>
+            } @else {
+              <select
+                id="tf-courseId"
+                formControlName="courseId"
+                [class]="inputClasses(invalid('courseId'))"
+                [attr.aria-invalid]="invalid('courseId')"
+                aria-describedby="tf-courseId-error tf-courseId-hint"
+              >
+                <option value="">
+                  {{ courseOptions.isLoading() ? 'Loading courses…' : 'Choose a course' }}
+                </option>
+                @if (courseOptions.hasValue()) {
+                  @for (course of courseOptions.value(); track course.id) {
+                    <option [value]="course.id">{{ course.name }}</option>
+                  }
+                }
+              </select>
+              @if (courseOptions.error()) {
+                <p id="tf-courseId-hint" class="mt-1 text-sm text-red-600" role="alert">
+                  Could not load the courses.
+                  <button
+                    type="button"
+                    class="font-semibold underline"
+                    (click)="courseOptions.reload()"
+                  >
+                    Try again
+                  </button>
+                </p>
+              }
+              <app-field-error [control]="c.courseId" label="Course" errorId="tf-courseId-error" />
+            }
+          </div>
+
+          <div class="sm:col-span-2">
+            <label for="tf-title" [class]="label">Title</label>
+            <input
+              id="tf-title"
+              type="text"
+              formControlName="title"
+              maxlength="200"
+              placeholder="e.g. Introduction to Algebra – Weekly Lecture"
+              [class]="inputClasses(invalid('title'))"
+              [attr.aria-invalid]="invalid('title')"
+              aria-describedby="tf-title-error"
+            />
+            <app-field-error [control]="c.title" label="Title" errorId="tf-title-error" />
+          </div>
+
+          <div class="sm:col-span-2">
+            <label for="tf-description" [class]="label">
+              Description <span [class]="optional">(optional)</span>
+            </label>
+            <textarea
+              id="tf-description"
+              rows="3"
+              formControlName="description"
+              maxlength="5000"
+              placeholder="What the session covers"
+              [class]="inputClasses(invalid('description'))"
+              [attr.aria-invalid]="invalid('description')"
+              aria-describedby="tf-description-error"
+            ></textarea>
+            <app-field-error
+              [control]="c.description"
+              label="Description"
+              errorId="tf-description-error"
+            />
+          </div>
+
+          <div class="sm:col-span-2">
+            <label for="tf-notes" [class]="label">
+              Notes for learners <span [class]="optional">(optional)</span>
+            </label>
+            <textarea
+              id="tf-notes"
+              rows="2"
+              formControlName="notes"
+              maxlength="2000"
+              placeholder="e.g. Bring a calculator"
+              [class]="inputClasses(invalid('notes'))"
+              [attr.aria-invalid]="invalid('notes')"
+              aria-describedby="tf-notes-error"
+            ></textarea>
+            <app-field-error [control]="c.notes" label="Notes" errorId="tf-notes-error" />
+          </div>
+
+          @if (isEdit()) {
+            <div>
+              <label for="tf-status" [class]="label">Status</label>
+              <select
+                id="tf-status"
+                formControlName="status"
+                [class]="inputClasses(false)"
+                aria-describedby="tf-status-hint"
+              >
+                @for (option of statuses; track option) {
+                  <option [value]="option">{{ option | enumLabel }}</option>
+                }
+              </select>
+              <p id="tf-status-hint" class="mt-1 text-xs text-muted">
+                Cancel or postpone a session without deleting it.
+              </p>
+            </div>
+          }
+        </div>
+      </fieldset>
+
+      <!-- When -->
+      <fieldset>
+        <legend class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">When</legend>
+        <label class="mb-4 flex items-start gap-3 text-sm">
+          <input
+            id="tf-recurring"
+            type="checkbox"
+            formControlName="recurring"
+            class="mt-0.5 h-4 w-4 rounded border-line text-royal focus:ring-royal"
+          />
+          <span>
+            <span class="font-medium">Repeats every week</span>
+            <span class="block text-xs text-muted">
+              @if (recurring() && weekday(); as day) {
+                Every {{ day }}, from the first date to the last date.
+              } @else {
+                Leave unticked for a one-off session.
+              }
+            </span>
+          </span>
+        </label>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="tf-startDate" [class]="label">
+              {{ recurring() ? 'First date' : 'Date' }}
+            </label>
+            <input
+              id="tf-startDate"
+              type="date"
+              formControlName="startDate"
+              [class]="inputClasses(invalid('startDate'))"
+              [attr.aria-invalid]="invalid('startDate')"
+              aria-describedby="tf-startDate-error"
+            />
+            <app-field-error
+              [control]="c.startDate"
+              [label]="recurring() ? 'First date' : 'Date'"
+              errorId="tf-startDate-error"
+            />
+          </div>
+          @if (recurring()) {
+            <div>
+              <label for="tf-endDate" [class]="label">Last date</label>
+              <input
+                id="tf-endDate"
+                type="date"
+                formControlName="endDate"
+                [attr.min]="c.startDate.value || null"
+                [class]="inputClasses(invalid('endDate'))"
+                [attr.aria-invalid]="invalid('endDate')"
+                aria-describedby="tf-endDate-error"
+              />
+              <app-field-error [control]="c.endDate" label="Last date" errorId="tf-endDate-error" />
+            </div>
+          }
+          <div>
+            <label for="tf-startTime" [class]="label">Starts at</label>
+            <input
+              id="tf-startTime"
+              type="time"
+              formControlName="startTime"
+              [class]="inputClasses(invalid('startTime'))"
+              [attr.aria-invalid]="invalid('startTime')"
+              aria-describedby="tf-startTime-error"
+            />
+            <app-field-error
+              [control]="c.startTime"
+              label="Start time"
+              errorId="tf-startTime-error"
+            />
+          </div>
+          <div>
+            <label for="tf-endTime" [class]="label">Ends at</label>
+            <input
+              id="tf-endTime"
+              type="time"
+              formControlName="endTime"
+              [class]="inputClasses(invalid('endTime'))"
+              [attr.aria-invalid]="invalid('endTime')"
+              aria-describedby="tf-endTime-error"
+            />
+            <app-field-error [control]="c.endTime" label="End time" errorId="tf-endTime-error" />
+          </div>
+          <div class="sm:col-span-2">
+            <label for="tf-timezone" [class]="label">Time zone</label>
+            <input
+              id="tf-timezone"
+              type="text"
+              formControlName="timezone"
+              maxlength="60"
+              list="tf-timezones"
+              autocomplete="off"
+              placeholder="Africa/Douala"
+              [class]="inputClasses(invalid('timezone'))"
+              [attr.aria-invalid]="invalid('timezone')"
+              aria-describedby="tf-timezone-error tf-timezone-hint"
+            />
+            <datalist id="tf-timezones">
+              @for (zone of timeZones; track zone) {
+                <option [value]="zone"></option>
+              }
+            </datalist>
+            <p id="tf-timezone-hint" class="mt-1 text-xs text-muted">
+              The times above are in this zone. Starts as your device's zone.
+            </p>
+            <app-field-error [control]="c.timezone" label="Time zone" errorId="tf-timezone-error" />
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Where -->
+      <fieldset>
+        <legend class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
+          Where
+        </legend>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="tf-sessionMode" [class]="label">Session mode</label>
+            <select
+              id="tf-sessionMode"
+              formControlName="sessionMode"
+              [class]="inputClasses(invalid('sessionMode'))"
+              [attr.aria-invalid]="invalid('sessionMode')"
+              aria-describedby="tf-sessionMode-error"
+            >
+              @if (!isEdit()) {
+                <option value="">Choose how it runs</option>
+              }
+              @for (option of modes; track option) {
+                <option [value]="option">{{ option | enumLabel }}</option>
+              }
+            </select>
+            <app-field-error
+              [control]="c.sessionMode"
+              label="Session mode"
+              errorId="tf-sessionMode-error"
+            />
+          </div>
+          <div>
+            <label for="tf-capacity" [class]="label">
+              Capacity <span [class]="optional">(optional)</span>
+            </label>
+            <input
+              id="tf-capacity"
+              type="text"
+              inputmode="numeric"
+              formControlName="capacity"
+              maxlength="6"
+              placeholder="Unlimited"
+              [class]="inputClasses(invalid('capacity'))"
+              [attr.aria-invalid]="invalid('capacity')"
+              aria-describedby="tf-capacity-error tf-capacity-hint"
+            />
+            <p id="tf-capacity-hint" class="mt-1 text-xs text-muted">
+              {{
+                isEdit() && original()?.capacity
+                  ? 'Most learners, 1–100,000. A saved capacity cannot be removed, only changed.'
+                  : 'Most learners, 1–100,000. Leave blank for no limit.'
+              }}
+            </p>
+            <app-field-error [control]="c.capacity" label="Capacity" errorId="tf-capacity-error" />
+          </div>
+          @if (needsLocation()) {
+            <div class="sm:col-span-2">
+              <label for="tf-location" [class]="label">Location</label>
+              <input
+                id="tf-location"
+                type="text"
+                formControlName="location"
+                maxlength="255"
+                placeholder="e.g. Block B, Room 204"
+                [class]="inputClasses(invalid('location'))"
+                [attr.aria-invalid]="invalid('location')"
+                aria-describedby="tf-location-error"
+              />
+              <app-field-error
+                [control]="c.location"
+                label="Location"
+                errorId="tf-location-error"
+              />
+            </div>
+          }
+          @if (needsMeetingUrl()) {
+            <div class="sm:col-span-2">
+              <label for="tf-meetingUrl" [class]="label">Meeting link</label>
+              <input
+                id="tf-meetingUrl"
+                type="url"
+                inputmode="url"
+                formControlName="meetingUrl"
+                maxlength="500"
+                placeholder="https://meet.example.com/algebra-101"
+                [class]="inputClasses(invalid('meetingUrl'))"
+                [attr.aria-invalid]="invalid('meetingUrl')"
+                aria-describedby="tf-meetingUrl-error"
+              />
+              <app-field-error
+                [control]="c.meetingUrl"
+                label="Meeting link"
+                errorId="tf-meetingUrl-error"
+                patternMessage="The link must start with http:// or https://, with no spaces."
+              />
+            </div>
+          }
+        </div>
+      </fieldset>
+
+      <div class="flex flex-col-reverse gap-2 border-t border-line pt-5 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          class="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50 disabled:opacity-60"
+          [disabled]="submitting()"
+          (click)="cancelled.emit()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="rounded-lg bg-royal px-4 py-2.5 text-sm font-semibold text-white hover:bg-royal-dark disabled:opacity-60"
+          [disabled]="submitting()"
+        >
+          {{ submitting() ? 'Saving…' : isEdit() ? 'Save changes' : 'Add entry' }}
+        </button>
+      </div>
+    </form>
+  }
+</app-modal>
