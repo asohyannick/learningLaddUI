@@ -1,0 +1,181 @@
+<app-modal
+  [heading]="isEdit() ? 'Edit book' : 'Add a book'"
+  [description]="
+    isEdit()
+      ? 'Change what you need, then save. Numbers, the ISBN and the currency keep their saved value when cleared.'
+      : 'Only the title and author are required; the loan rules use the library defaults when left blank.'
+  "
+  size="lg"
+  [busy]="submitting()"
+  (closed)="cancelled.emit()"
+>
+  @if (loading()) {
+    <div class="animate-pulse space-y-3" role="status" aria-label="Loading book">
+      @for (row of [1, 2, 3, 4]; track row) {
+        <div class="h-10 rounded-lg bg-slate-100"></div>
+      }
+    </div>
+  } @else if (loadError(); as message) {
+    <app-form-alert>{{ message }}</app-form-alert>
+    <div class="mt-4 flex justify-end gap-2">
+      <button
+        type="button"
+        class="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold"
+        (click)="cancelled.emit()"
+      >
+        Close
+      </button>
+      <button
+        type="button"
+        class="rounded-lg bg-royal px-4 py-2.5 text-sm font-semibold text-white"
+        (click)="load()"
+      >
+        Try again
+      </button>
+    </div>
+  } @else {
+    @if (serverError(); as message) {
+      <app-form-alert class="mb-4">{{ message }}</app-form-alert>
+    }
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-6">
+      <fieldset>
+        <legend class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
+          Cover
+        </legend>
+        <div class="flex items-center gap-4">
+          @let current = coverPreview() || original()?.coverImage;
+          <div
+            class="grid h-24 w-16 shrink-0 place-items-center overflow-hidden rounded border border-line bg-cream text-xs text-muted"
+          >
+            @if (current) {
+              <img [src]="current" alt="" class="h-full w-full object-cover" />
+            } @else {
+              No cover
+            }
+          </div>
+          <div class="text-sm">
+            <label
+              class="inline-flex cursor-pointer items-center rounded-lg border border-line px-3 py-2 font-semibold hover:bg-slate-50"
+            >
+              {{ current ? 'Change cover' : 'Upload a cover' }}
+              <input
+                type="file"
+                class="sr-only"
+                accept="image/jpeg,image/png,image/webp"
+                data-testid="cover-input"
+                (change)="pickCover($event)"
+              />
+            </label>
+            <p class="mt-1 text-xs text-muted">JPEG, PNG or WebP, up to 5 MB.</p>
+            @if (coverError(); as message) {
+              <p class="mt-1 text-sm text-red-600" role="alert">{{ message }}</p>
+            }
+          </div>
+        </div>
+      </fieldset>
+
+      @for (section of sections; track section.title) {
+        <fieldset>
+          <legend class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
+            {{ section.title }}
+          </legend>
+          @if (section.title === 'Copies & loans') {
+            <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:gap-8">
+              <label class="flex items-start gap-3 text-sm">
+                <input
+                  id="bf-borrowable"
+                  type="checkbox"
+                  formControlName="borrowable"
+                  class="mt-0.5 h-4 w-4 rounded border-line text-royal"
+                />
+                <span>
+                  <span class="font-medium">Can be borrowed</span>
+                  <span class="block text-xs text-muted">Untick for reference-only books.</span>
+                </span>
+              </label>
+              @if (isEdit()) {
+                <label class="flex items-start gap-3 text-sm">
+                  <input
+                    id="bf-active"
+                    type="checkbox"
+                    formControlName="active"
+                    class="mt-0.5 h-4 w-4 rounded border-line text-royal"
+                  />
+                  <span>
+                    <span class="font-medium">In the catalog</span>
+                    <span class="block text-xs text-muted"
+                      >Untick to withdraw it without deleting.</span
+                    >
+                  </span>
+                </label>
+              }
+            </div>
+          }
+          <div class="grid gap-4 sm:grid-cols-2">
+            @for (field of section.fields; track field.name) {
+              @let id = 'bf-' + field.name;
+              <div [class.sm:col-span-2]="field.wide">
+                <label [for]="id" class="mb-1.5 block text-sm font-medium">
+                  {{ field.label }}
+                  @if (!field.required) {
+                    <span class="font-normal text-muted">(optional)</span>
+                  }
+                </label>
+                @if (field.textarea) {
+                  <textarea
+                    [id]="id"
+                    rows="4"
+                    [formControlName]="field.name"
+                    [attr.maxlength]="field.max ?? null"
+                    [class]="inputClasses(invalid(field.name))"
+                    [attr.aria-invalid]="invalid(field.name)"
+                    [attr.aria-describedby]="id + '-error'"
+                  ></textarea>
+                } @else {
+                  <input
+                    [id]="id"
+                    type="text"
+                    [formControlName]="field.name"
+                    [attr.maxlength]="field.max ?? null"
+                    [attr.inputmode]="field.numeric ? 'decimal' : null"
+                    [placeholder]="field.placeholder ?? ''"
+                    [class]="inputClasses(invalid(field.name))"
+                    [attr.aria-invalid]="invalid(field.name)"
+                    [attr.aria-describedby]="id + '-error ' + id + '-hint'"
+                  />
+                }
+                @if (field.hint) {
+                  <p [id]="id + '-hint'" class="mt-1 text-xs text-muted">{{ field.hint }}</p>
+                }
+                <app-field-error
+                  [control]="form.controls[field.name]"
+                  [label]="field.label"
+                  [errorId]="id + '-error'"
+                  [patternMessage]="field.patternMessage"
+                />
+              </div>
+            }
+          </div>
+        </fieldset>
+      }
+
+      <div class="flex flex-col-reverse gap-2 border-t border-line pt-5 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          class="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50 disabled:opacity-60"
+          [disabled]="submitting()"
+          (click)="cancelled.emit()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="rounded-lg bg-royal px-4 py-2.5 text-sm font-semibold text-white hover:bg-royal-dark disabled:opacity-60"
+          [disabled]="submitting()"
+        >
+          {{ submitting() ? 'Saving…' : isEdit() ? 'Save changes' : 'Add book' }}
+        </button>
+      </div>
+    </form>
+  }
+</app-modal>

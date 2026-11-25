@@ -21,6 +21,10 @@
     <app-partner-manager (notify)="toast.set($event)" />
   } @else if (active() === 'jobs') {
     <app-job-listing-manager (notify)="toast.set($event)" />
+  } @else if (active() === 'library') {
+    <app-book-manager (notify)="toast.set($event)" />
+  } @else if (active() === 'loans') {
+    <app-loan-manager mode="staff" (notify)="toast.set($event)" />
   } @else if (active() === 'applications') {
     <app-job-application-manager (notify)="toast.set($event)" />
   } @else {

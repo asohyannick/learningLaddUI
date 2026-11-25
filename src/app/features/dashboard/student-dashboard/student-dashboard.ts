@@ -5,16 +5,20 @@ import {
   DashboardSection,
   DashboardShell,
 } from '../../../shared/reusable-components/dashboard-shell/dashboard-shell';
+import { BookManager } from '../../library/book-manager/book-manager';
+import { LoanManager } from '../../library/loan-manager/loan-manager';
 import { CourseManager } from '../../course/course-manager/course-manager';
 import { MyStudentProfile } from '../../student-profile/my-student-profile/my-student-profile';
 import { TimeTableManager } from '../../time-table/time-table-manager/time-table-manager';
 import { TutorProfileManager } from '../../tutor-profile/tutor-profile-manager/tutor-profile-manager';
 
-type Section = 'courses' | 'timetable' | 'tutors' | 'profile';
+type Section = 'courses' | 'timetable' | 'library' | 'loans' | 'tutors' | 'profile';
 
 const SECTIONS: readonly DashboardSection[] = [
   { id: 'courses', label: 'Courses', icon: 'courses' },
   { id: 'timetable', label: 'Timetable', icon: 'timetable' },
+  { id: 'library', label: 'Library', icon: 'library' },
+  { id: 'loans', label: 'My loans', icon: 'loans' },
   { id: 'tutors', label: 'Find a tutor', icon: 'tutors' },
   { id: 'profile', label: 'My profile', icon: 'profile' },
 ];
@@ -22,6 +26,8 @@ const SECTIONS: readonly DashboardSection[] = [
 const HEADINGS: Record<Section, string> = {
   courses: 'Courses',
   timetable: 'Timetable',
+  library: 'Library',
+  loans: 'My loans',
   tutors: 'Find a tutor',
   profile: 'My profile',
 };
@@ -34,7 +40,15 @@ const HEADINGS: Record<Section, string> = {
  */
 @Component({
   selector: 'app-student-dashboard',
-  imports: [CourseManager, DashboardShell, MyStudentProfile, TimeTableManager, TutorProfileManager],
+  imports: [
+    BookManager,
+    CourseManager,
+    DashboardShell,
+    LoanManager,
+    MyStudentProfile,
+    TimeTableManager,
+    TutorProfileManager,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-dashboard-shell
@@ -48,6 +62,12 @@ const HEADINGS: Record<Section, string> = {
       @switch (active()) {
         @case ('profile') {
           <app-my-student-profile (notify)="toast.set($event)" />
+        }
+        @case ('library') {
+          <app-book-manager (notify)="toast.set($event)" />
+        }
+        @case ('loans') {
+          <app-loan-manager mode="student" (notify)="toast.set($event)" />
         }
         @case ('timetable') {
           <app-time-table-manager (notify)="toast.set($event)" />
@@ -71,7 +91,11 @@ export class StudentDashboard {
   protected readonly sections = SECTIONS;
   protected readonly active = computed<Section>(() => {
     const section = this.section();
-    return section === 'profile' || section === 'tutors' || section === 'timetable'
+    return section === 'profile' ||
+      section === 'tutors' ||
+      section === 'timetable' ||
+      section === 'library' ||
+      section === 'loans'
       ? section
       : 'courses';
   });
@@ -83,6 +107,10 @@ export class StudentDashboard {
         return 'Your personal details, studies and emergency contact.';
       case 'timetable':
         return 'Classes and sessions for every course. Find yours by course, day or time, add a session, or download the timetable as PDF.';
+      case 'library':
+        return 'Find books by title, author or ISBN and reserve a copy; pick it up at the library desk within 48 hours.';
+      case 'loans':
+        return 'Your reservations and borrowed books: renew, return, cancel a reservation or report a lost book.';
       case 'tutors':
         return 'Find tutors by subject, experience or name, and see their rates and qualifications.';
       default: {

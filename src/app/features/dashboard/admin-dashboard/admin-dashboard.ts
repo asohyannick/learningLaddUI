@@ -13,6 +13,8 @@ import {
   DashboardShell,
 } from '../../../shared/reusable-components/dashboard-shell/dashboard-shell';
 import { CourseManager } from '../../course/course-manager/course-manager';
+import { BookManager } from '../../library/book-manager/book-manager';
+import { LoanManager } from '../../library/loan-manager/loan-manager';
 import { JobApplicationManager } from '../../job-application/job-application-manager/job-application-manager';
 import { JobListingManager } from '../../job-listing/job-listing-manager/job-listing-manager';
 import { PartnerManager } from '../../partnership/partner-manager/partner-manager';
@@ -26,7 +28,16 @@ type Dialog =
   | { kind: 'delete' };
 
 type Section =
-  'users' | 'students' | 'tutors' | 'courses' | 'timetable' | 'partners' | 'jobs' | 'applications';
+  | 'users'
+  | 'students'
+  | 'tutors'
+  | 'courses'
+  | 'timetable'
+  | 'partners'
+  | 'jobs'
+  | 'applications'
+  | 'library'
+  | 'loans';
 
 const SECTIONS: readonly DashboardSection[] = [
   { id: 'users', label: 'Users', icon: 'users' },
@@ -34,6 +45,8 @@ const SECTIONS: readonly DashboardSection[] = [
   { id: 'tutors', label: 'Tutors', icon: 'tutors' },
   { id: 'courses', label: 'Courses', icon: 'courses' },
   { id: 'timetable', label: 'Timetable', icon: 'timetable' },
+  { id: 'library', label: 'Library', icon: 'library' },
+  { id: 'loans', label: 'Loans', icon: 'loans' },
   { id: 'partners', label: 'Partners', icon: 'partners' },
   { id: 'jobs', label: 'Job listings', icon: 'jobs' },
   { id: 'applications', label: 'Applications', icon: 'applications' },
@@ -45,6 +58,8 @@ const HEADINGS: Record<Section, string> = {
   tutors: 'Tutor profiles',
   courses: 'Courses',
   timetable: 'Timetable',
+  library: 'Library catalog',
+  loans: 'Borrowed books',
   partners: 'Partners & sponsors',
   jobs: 'Job listings',
   applications: 'Job applications',
@@ -65,7 +80,9 @@ const HEADINGS: Record<Section, string> = {
     DeleteUserAccount,
     FetchAllUsers,
     FetchUser,
+    BookManager,
     JobApplicationManager,
+    LoanManager,
     JobListingManager,
     PartnerManager,
     StudentProfileManager,
@@ -91,7 +108,9 @@ export class AdminDashboard {
       section === 'partners' ||
       section === 'timetable' ||
       section === 'jobs' ||
-      section === 'applications'
+      section === 'applications' ||
+      section === 'library' ||
+      section === 'loans'
       ? section
       : 'users';
   });
@@ -118,6 +137,10 @@ export class AdminDashboard {
         return 'Post jobs, publish them to the careers page, search and filter them, and export them as PDF.';
       case 'applications':
         return 'Review who applied for each job, open their CVs and documents, and export applications as PDF.';
+      case 'library':
+        return 'Add, edit and remove books, manage copies and loan rules, and search the catalog.';
+      case 'loans':
+        return 'Issue reservations, confirm returns, handle late fees and lost books, and export loans as PDF.';
       default:
         return `Welcome back, ${this.firstName()}. Here is everyone with an account.`;
     }

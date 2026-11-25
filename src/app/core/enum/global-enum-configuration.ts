@@ -207,3 +207,14 @@ export const TIMETABLE_DELETE_ROLES: readonly UserRole[] = [
   UserRole.IT_ADMIN,
   UserRole.ACADEMIC_DIRECTOR,
 ];
+
+/**
+ * Manage the library catalog and loans in the UI. The backend's library "staff" list also
+ * includes STUDENT, but students only get the borrower screens here.
+ */
+export const LIBRARY_MANAGER_ROLES: readonly UserRole[] = [
+  UserRole.SUPER_ADMIN,
+  UserRole.ADMIN,
+  UserRole.IT_ADMIN,
+  UserRole.LIBRARIAN,
+];

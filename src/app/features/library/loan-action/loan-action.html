@@ -1,0 +1,197 @@
+<app-modal
+  [heading]="heading()"
+  [description]="description_()"
+  [tone]="danger() ? 'danger' : 'default'"
+  [busy]="saving()"
+  (closed)="cancelled.emit()"
+>
+  @if (error(); as message) {
+    <app-form-alert class="mb-4">{{ message }}</app-form-alert>
+  }
+  @let a = action();
+  @let p = problems();
+  @let errorText = 'mt-1 text-sm text-red-600';
+
+  <form class="space-y-4 text-sm" novalidate (submit)="$event.preventDefault(); submit()">
+    @if (a === 'issue' || a === 'update' || a === 'confirm') {
+      <div>
+        <label for="la-condition" class="mb-1.5 block font-medium">
+          {{ a === 'confirm' ? 'Condition on return' : 'Condition on hand-over' }}
+          @if (a !== 'confirm') {
+            <span class="font-normal text-muted">(optional)</span>
+          }
+        </label>
+        <input
+          id="la-condition"
+          maxlength="255"
+          placeholder="e.g. Good, cover slightly worn"
+          [class]="inputClasses(submitted() && !!p.condition)"
+          [value]="condition()"
+          (input)="condition.set($any($event.target).value)"
+        />
+        @if (submitted() && p.condition) {
+          <p [class]="errorText">{{ p.condition }}</p>
+        }
+      </div>
+    }
+
+    @if (a === 'issue' || a === 'update') {
+      <div>
+        <label for="la-due" class="mb-1.5 block font-medium">
+          Due date <span class="font-normal text-muted">(optional)</span>
+        </label>
+        <input
+          id="la-due"
+          type="date"
+          [min]="today"
+          [class]="inputClasses(submitted() && !!p.dueDate)"
+          [value]="dueDate()"
+          (change)="dueDate.set($any($event.target).value)"
+        />
+        @if (submitted() && p.dueDate) {
+          <p [class]="errorText">{{ p.dueDate }}</p>
+        }
+      </div>
+    }
+
+    @if (a === 'confirm') {
+      <div>
+        <label for="la-returned" class="mb-1.5 block font-medium">
+          Returned on <span class="font-normal text-muted">(today when left blank)</span>
+        </label>
+        <input
+          id="la-returned"
+          type="date"
+          [max]="today"
+          [class]="inputClasses(submitted() && !!p.returnedOn)"
+          [value]="returnedOn()"
+          (change)="returnedOn.set($any($event.target).value)"
+        />
+        @if (submitted() && p.returnedOn) {
+          <p [class]="errorText">{{ p.returnedOn }}</p>
+        }
+      </div>
+      <fieldset>
+        <legend class="mb-1.5 font-medium">Late fee</legend>
+        <div class="space-y-2">
+          @for (
+            choice of [
+              { value: 'calculate', label: 'Charge the calculated fee' },
+              { value: 'waive', label: 'Waive the fee' },
+              { value: 'override', label: 'Charge a different amount' },
+            ];
+            track choice.value
+          ) {
+            <label class="flex items-center gap-2">
+              <input
+                type="radio"
+                name="la-fee"
+                [id]="'la-fee-' + choice.value"
+                [checked]="feeChoice() === choice.value"
+                (change)="feeChoice.set($any(choice.value))"
+              />
+              {{ choice.label }}
+            </label>
+          }
+        </div>
+        @if (feeChoice() === 'override') {
+          <input
+            id="la-fee-amount"
+            inputmode="decimal"
+            placeholder="2.50"
+            [class]="inputClasses(submitted() && !!p.feeOverride) + ' mt-2'"
+            [value]="feeOverride()"
+            (input)="feeOverride.set($any($event.target).value)"
+          />
+          @if (submitted() && p.feeOverride) {
+            <p [class]="errorText">{{ p.feeOverride }}</p>
+          }
+        }
+        <label class="mt-3 flex items-center gap-2">
+          <input
+            id="la-fee-paid"
+            type="checkbox"
+            [checked]="feePaid()"
+            (change)="feePaid.set($any($event.target).checked)"
+          />
+          The fee was paid at the desk
+        </label>
+      </fieldset>
+    }
+
+    @if (a === 'lost') {
+      <div>
+        <label for="la-description" class="mb-1.5 block font-medium">What happened?</label>
+        <textarea
+          id="la-description"
+          rows="3"
+          maxlength="1000"
+          [class]="inputClasses(submitted() && !!p.description)"
+          [value]="description()"
+          (input)="description.set($any($event.target).value)"
+        ></textarea>
+        @if (submitted() && p.description) {
+          <p [class]="errorText">{{ p.description }}</p>
+        }
+      </div>
+      @if (mode() === 'staff') {
+        <div>
+          <label for="la-replacement" class="mb-1.5 block font-medium">
+            Replacement fee <span class="font-normal text-muted">(optional)</span>
+          </label>
+          <input
+            id="la-replacement"
+            inputmode="decimal"
+            placeholder="25.00"
+            [class]="inputClasses(submitted() && !!p.replacementFee)"
+            [value]="replacementFee()"
+            (input)="replacementFee.set($any($event.target).value)"
+          />
+          @if (submitted() && p.replacementFee) {
+            <p [class]="errorText">{{ p.replacementFee }}</p>
+          }
+        </div>
+      }
+    }
+
+    @if (a === 'issue' || a === 'update' || a === 'confirm' || a === 'return') {
+      <div>
+        <label for="la-notes" class="mb-1.5 block font-medium">
+          {{ a === 'return' ? 'Note for the librarian' : 'Note' }}
+          <span class="font-normal text-muted">(optional)</span>
+        </label>
+        <textarea
+          id="la-notes"
+          rows="2"
+          maxlength="1000"
+          [class]="inputClasses(false)"
+          [value]="notes()"
+          (input)="notes.set($any($event.target).value)"
+        ></textarea>
+      </div>
+    }
+
+    @if (submitted() && p.nothing) {
+      <p [class]="errorText" role="alert">{{ p.nothing }}</p>
+    }
+
+    <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+      <button
+        type="button"
+        class="rounded-lg border border-line px-4 py-2.5 font-semibold text-ink hover:bg-slate-50 disabled:opacity-60"
+        [disabled]="saving()"
+        (click)="cancelled.emit()"
+      >
+        {{ a === 'cancel' ? 'Keep it' : 'Cancel' }}
+      </button>
+      <button
+        type="submit"
+        class="rounded-lg px-4 py-2.5 font-semibold text-white disabled:opacity-60"
+        [class]="danger() ? 'bg-rose-600 hover:bg-rose-700' : 'bg-royal hover:bg-royal-dark'"
+        [disabled]="saving()"
+      >
+        {{ saving() ? 'Saving…' : label() }}
+      </button>
+    </div>
+  </form>
+</app-modal>
