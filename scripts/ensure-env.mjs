@@ -40,7 +40,7 @@ function readDotEnv(path) {
   return values;
 }
 
-const dotEnv = readDotEnv(join(root, '.env'));
+const dotEnv = { ...readDotEnv(join(root, '.env')), ...process.env };
 const firebase = Object.entries(FIREBASE_KEYS).filter(([key]) => dotEnv[key]);
 
 if (firebase.length > 0) {
@@ -56,5 +56,19 @@ if (firebase.length > 0) {
       writeFileSync(target, after);
       console.log(`ensure-env: copied Firebase settings from .env into src/environments/${name}`);
     }
+  }
+}
+
+const apiUrl = dotEnv.BASE_URL;
+if (apiUrl) {
+  const target = join(envDir, 'environment.ts');
+  const before = readFileSync(target, 'utf8');
+  const after = before.replace(
+    /(apiUrl:\s*)(['"`]).*?\2/,
+    (_, prefix) => `${prefix}'${apiUrl}'`,
+  );
+  if (after !== before) {
+    writeFileSync(target, after);
+    console.log('ensure-env: set apiUrl from BASE_URL in environment.ts');
   }
 }
