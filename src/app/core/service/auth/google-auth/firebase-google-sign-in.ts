@@ -11,31 +11,18 @@ interface Ready {
   fb: FirebaseAuthModule;
 }
 
-/** False while the environment file still holds the template placeholders. */
 export function isFirebaseConfigured(config: FirebaseOptions = environment.firebase): boolean {
   return [config.apiKey, config.authDomain, config.projectId, config.appId].every(
     (value) => typeof value === 'string' && value.length > 0 && !value.startsWith('<'),
   );
 }
 
-/**
- * Opens the Google pop-up through Firebase and returns the Firebase ID token, which the backend
- * swaps for our own session (`POST /auth/google`).
- *
- * - The Firebase SDK is loaded on demand, so it is not part of the main bundle.
- * - Firebase keeps the Google session in memory only and signs out right after: our own access
- *   and refresh tokens are the only session in the browser.
- */
 @Injectable({ providedIn: 'root' })
 export class FirebaseGoogleSignIn {
   readonly configured = isFirebaseConfigured();
   private ready: Ready | null = null;
   private loading: Promise<Ready> | null = null;
 
-  /**
-   * Loads the SDK ahead of the click. Browsers only allow pop-ups straight after a click, so the
-   * pop-up must open without waiting for a download first.
-   */
   prepare(): Promise<Ready> {
     this.loading ??= Promise.all([import('firebase/app'), import('firebase/auth')]).then(
       ([app, fb]) => {
@@ -50,11 +37,10 @@ export class FirebaseGoogleSignIn {
         return this.ready;
       },
     );
-    this.loading.catch(() => (this.loading = null)); // allow a retry after a failed download
+    this.loading.catch(() => (this.loading = null));
     return this.loading;
   }
 
-  /** Resolves with the ID token. Rejects with the Firebase error (see `googleSignInErrorMessage`). */
   signIn(): Promise<string> {
     return this.ready ? this.popup(this.ready) : this.prepare().then((ready) => this.popup(ready));
   }
@@ -62,7 +48,7 @@ export class FirebaseGoogleSignIn {
   private async popup({ auth, fb }: Ready): Promise<string> {
     const provider = new fb.GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-    const result = await fb.signInWithPopup(auth, provider); // opens before any other await
+    const result = await fb.signInWithPopup(auth, provider);
     try {
       return await result.user.getIdToken();
     } finally {
@@ -71,10 +57,9 @@ export class FirebaseGoogleSignIn {
   }
 }
 
-/** Message for a failed Google sign-in, or null when the user simply closed the pop-up. */
 export function googleSignInErrorMessage(error: unknown): string | null {
   if (isApiErrorResponse(error)) {
-    return error.message; // the backend refused the account (e.g. blocked)
+    return error.message;
   }
   const code =
     typeof error === 'object' && error !== null ? (error as { code?: unknown }).code : '';

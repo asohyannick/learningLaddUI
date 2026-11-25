@@ -46,10 +46,6 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 type PublishedFilter = '' | 'true' | 'false';
 
-/**
- * Course list for the tutor and admin dashboards. Without a keyword, filter or custom sort it
- * calls `GET /course`; otherwise `GET /course/search`. The first card is `GET /course/count`.
- */
 @Component({
   selector: 'app-fetch-all-courses',
   imports: [CurrencyPipe, DatePipe, EnumLabelPipe],
@@ -71,7 +67,6 @@ export class FetchAllCourses {
   protected readonly levels = COURSE_LEVELS;
   protected readonly statuses = COURSE_STATUSES;
 
-  /** What the user types; the request waits until they pause. */
   protected readonly searchText = signal('');
   private readonly search = toSignal(
     toObservable(this.searchText).pipe(debounceTime(SEARCH_DEBOUNCE_MS), distinctUntilChanged()),
@@ -110,7 +105,6 @@ export class FetchAllCourses {
     };
   });
 
-  /** A keyword, filter or non-default sort needs the search endpoint. */
   protected readonly isFiltered = computed(() => {
     const q = this.query();
     return !!(q.search || q.level || q.status || q.published !== undefined);
@@ -134,7 +128,6 @@ export class FetchAllCourses {
     return `${start}–${start + count - 1} of ${this.total()}`;
   });
 
-  /** Published and free counts are for the loaded page. */
   protected readonly stats = computed(() => {
     const rows = this.rows();
     return {
@@ -157,7 +150,6 @@ export class FetchAllCourses {
     });
   }
 
-  /** Reloads the page and the total, e.g. after a course was created, edited or deleted. */
   reload(): void {
     this.load(this.query(), this.needsSearch());
     this.loadCount();
@@ -248,7 +240,6 @@ export class FetchAllCourses {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (count) => this.totalCount.set(count),
-        // The card shows a dash; the table reports the error.
         error: () => this.totalCount.set(null),
       });
   }

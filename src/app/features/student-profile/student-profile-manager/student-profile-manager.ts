@@ -21,10 +21,6 @@ import { fullName } from '../student-profile.service';
 type Dialog =
   { kind: 'edit'; id: string } | { kind: 'delete'; profile: { id: string; name: string } };
 
-/**
- * Student profiles for staff dashboards: list, search, count, open and export as PDF.
- * Admins can also edit and delete. Profiles are created by the students themselves.
- */
 @Component({
   selector: 'app-student-profile-manager',
   imports: [DeleteStudentProfile, FetchAllStudentProfiles, FetchStudentProfile, StudentProfileForm],
@@ -67,7 +63,6 @@ type Dialog =
 export class StudentProfileManager {
   private readonly auth = inject(AuthService);
 
-  /** Success messages for the dashboard's toast. */
   readonly notify = output<string>();
 
   protected readonly canManage = computed(() => {

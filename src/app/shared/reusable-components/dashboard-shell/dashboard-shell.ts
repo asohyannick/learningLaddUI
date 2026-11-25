@@ -28,7 +28,6 @@ export type DashboardIcon =
   | 'loans'
   | 'bookings';
 
-/** One sidebar entry. Selecting it sets `?section=<id>` on the current dashboard URL. */
 export interface DashboardSection {
   id: string;
   label: string;
@@ -37,10 +36,6 @@ export interface DashboardSection {
 
 const TOAST_MS = 5_000;
 
-/**
- * Dark dashboard layout: sidebar with sections and account actions, top bar with the signed-in
- * user, page heading and a success toast. The page content goes inside.
- */
 @Component({
   selector: 'app-dashboard-shell',
   imports: [EnumLabelPipe, RouterLink],
@@ -50,18 +45,14 @@ const TOAST_MS = 5_000;
 export class DashboardShell {
   private readonly auth = inject(AuthService);
 
-  /** Shown under the logo, e.g. "Admin console". */
   readonly consoleLabel = input.required<string>();
   readonly sections = input.required<readonly DashboardSection[]>();
-  /** ID of the section on screen. */
   readonly active = input.required<string>();
   readonly heading = input.required<string>();
   readonly description = input<string>();
-  /** `null` hides "Delete my account"; `false` shows it disabled. */
   readonly canDeleteAccount = input<boolean | null>(null);
   readonly deleteAccountDisabledReason = input<string>();
   readonly deleteAccount = output<void>();
-  /** Success message; it hides itself after a few seconds. */
   readonly toast = model<string | null>(null);
 
   protected readonly me = this.auth.user;

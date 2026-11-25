@@ -53,7 +53,6 @@ const SORT_OPTIONS: readonly SortOption[] = [
 const PAGE_SIZES = [10, 20, 50, 100] as const;
 const SEARCH_DEBOUNCE_MS = 300;
 
-/** '' = any, otherwise the boolean sent to the API. */
 type YesNo = '' | 'true' | 'false';
 
 export type PartnerRow = PartnersResponseDto & {
@@ -62,7 +61,6 @@ export type PartnerRow = PartnersResponseDto & {
   statusClasses: string;
   tierClasses: string;
   daysLeft: number | null;
-  /** "Ends in 12 day(s)" within 30 days, "Ended 3 day(s) ago" after; null otherwise. */
   endsLabel: string | null;
   ended: boolean;
 };
@@ -73,11 +71,6 @@ function endsLabel(days: number | null): string | null {
   return days === 0 ? 'Ends today' : `Ends in ${days} day(s)`;
 }
 
-/**
- * Staff partner list. Without a keyword, filter or custom sort it calls `GET /partners`;
- * otherwise `/search`. The first card is `/count`, and "Download PDF" exports every partner
- * matching the current filters (`/download`).
- */
 @Component({
   selector: 'app-fetch-all-partners',
   imports: [EnumLabelPipe],
@@ -99,7 +92,6 @@ export class FetchAllPartners {
   protected readonly types = PARTNER_TYPES;
   protected readonly tiers = SPONSORSHIP_TIERS;
 
-  /** Typed text; requests wait until the user pauses. */
   protected readonly keywordText = signal('');
   protected readonly industryText = signal('');
   protected readonly countryText = signal('');
@@ -127,11 +119,9 @@ export class FetchAllPartners {
   protected readonly totalCount = signal<number | null>(null);
   private countRequest?: Subscription;
 
-  /** Row ID being exported, or 'all' for the whole filtered list. */
   protected readonly downloading = signal<string | null>(null);
   protected readonly downloadError = signal<string | null>(null);
 
-  /** The API rejects a range that ends before it starts. */
   protected readonly rangeInvalid = computed(
     () => !!this.endFrom() && !!this.endTo() && this.endFrom() > this.endTo(),
   );
@@ -164,7 +154,6 @@ export class FetchAllPartners {
     return Object.values(filters).some((value) => value !== undefined);
   });
   private readonly needsSearch = computed(() => this.isFiltered() || this.sortIndex() !== 0);
-  /** Something typed or picked, even if the debounced query has not caught up yet. */
   protected readonly hasInput = computed(
     () =>
       this.isFiltered() ||
@@ -198,7 +187,6 @@ export class FetchAllPartners {
     return `${start}–${start + count - 1} of ${this.total()}`;
   });
 
-  /** Counts for the loaded page. */
   protected readonly stats = computed(() => {
     const rows = this.rows();
     return {
@@ -221,13 +209,11 @@ export class FetchAllPartners {
     });
   }
 
-  /** Reloads the page and the total, e.g. after a partner was added, edited or deleted. */
   reload(): void {
     this.load(this.query(), this.needsSearch());
     this.loadCount();
   }
 
-  /** Sets a filter and goes back to the first page. */
   protected setFilter<T>(target: { set(value: T): void }, value: T): void {
     target.set(value);
     this.page.set(0);
@@ -258,7 +244,6 @@ export class FetchAllPartners {
     this.page.set(Math.min(Math.max(page, 0), this.totalPages() - 1));
   }
 
-  /** Exports every partner matching the filters (not only this page). */
   protected downloadAll(): void {
     this.export('all', this.partners.downloadPartnersPdf(this.query()), 'this list');
   }
@@ -314,13 +299,11 @@ export class FetchAllPartners {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (count) => this.totalCount.set(count),
-        // The card shows a dash; the table reports the error.
         error: () => this.totalCount.set(null),
       });
   }
 }
 
-/** The signal's value once the user stops typing for a moment. */
 function debounced(source: Signal<string>): Signal<string> {
   return toSignal(
     toObservable(source).pipe(debounceTime(SEARCH_DEBOUNCE_MS), distinctUntilChanged()),

@@ -14,13 +14,8 @@ import { FormAlert } from '../../../../shared/reusable-components/form-alert/for
 import { createCountdown } from '../../../../shared/utils/countdown';
 import { AuthService } from '../auth.service';
 
-/** The API allows one new link per minute. */
 export const MAGIC_LINK_COOLDOWN_SECONDS = 60;
 
-/**
- * "Send another link" button with the 60-second cooldown. Starts counting down straight away,
- * because it is shown right after a link was sent. The previous link stops working.
- */
 @Component({
   selector: 'app-resend-magic-link',
   imports: [FormAlert],
@@ -32,7 +27,6 @@ export class ResendMagicLink {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly email = input.required<string>();
-  /** Emits the API message after a new link is sent. */
   readonly resent = output<string>();
 
   protected readonly sending = signal(false);

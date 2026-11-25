@@ -21,11 +21,9 @@ export type BookingDecisionKind = 'approve' | 'decline' | 'delete';
 
 export interface BookingDecisionDone {
   message: string;
-  /** The updated booking, or null when it was deleted. */
   booking: BookingResponseDto | null;
 }
 
-/** Approve (`/approve`), decline (`/disapprove`) or delete a booking. */
 @Component({
   selector: 'app-booking-decision',
   imports: [FormAlert, Modal],
@@ -167,7 +165,6 @@ export class BookingDecision {
   protected readonly submitted = signal(false);
   protected readonly error = signal<string | null>(null);
 
-  /** Online and hybrid sessions need a link, unless the booking already has one. */
   protected readonly linkRequired = computed(
     () => needsMeetingLink(this.booking().sessionMode) && !this.booking().meetingLink,
   );

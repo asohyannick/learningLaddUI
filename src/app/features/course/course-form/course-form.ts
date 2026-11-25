@@ -36,7 +36,6 @@ import { CourseService } from '../course.service';
 
 type SingleFile = 'thumbnail' | 'promoVideo' | 'syllabus';
 
-/** The discount is an amount in the course currency, so it cannot exceed the price. */
 function discountNotAbovePrice(control: AbstractControl): ValidationErrors | null {
   const discount = control.value as number | null;
   if (discount === null || discount === undefined) return null;
@@ -44,10 +43,6 @@ function discountNotAbovePrice(control: AbstractControl): ValidationErrors | nul
   return discount > price ? { discountAbovePrice: true } : null;
 }
 
-/**
- * Dialog to create a course (`POST /course`) or, with `courseId`, update one (`PATCH /course/{id}`).
- * An update only sends the fields that changed; files are optional either way.
- */
 @Component({
   selector: 'app-course-form',
   imports: [EnumLabelPipe, FieldError, FormAlert, Modal, ReactiveFormsModule],
@@ -59,9 +54,7 @@ export class CourseForm implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder).nonNullable;
 
-  /** Course to edit; leave empty to create one. */
   readonly courseId = input<string | null>(null);
-  /** Emits the API message once saved. */
   readonly done = output<string>();
   readonly cancelled = output<void>();
 
@@ -98,21 +91,18 @@ export class CourseForm implements OnInit {
   });
   protected readonly materials = signal<File[]>([]);
 
-  /** The course being edited, as loaded; used to send only what changed. */
   protected readonly original = signal<CourseResponse | null>(null);
   protected readonly loading = signal(false);
   protected readonly loadError = signal<string | null>(null);
   protected readonly submitting = signal(false);
   protected readonly serverError = signal<string | null>(null);
 
-  /** Same key on every retry of this dialog, so a slow network never creates duplicates. */
   private readonly idempotencyKey =
     typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
   constructor() {
-    // The discount rule depends on the price.
     this.form.controls.price.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.form.controls.discount.updateValueAndValidity());
@@ -212,7 +202,6 @@ export class CourseForm implements OnInit {
       });
   }
 
-  /** Values to send on create: blanks are left out so the server applies its defaults. */
   private createPayload(): CreateCourseRequest {
     const v = this.form.getRawValue();
     const text = (value: string) => value.trim() || undefined;
@@ -234,7 +223,6 @@ export class CourseForm implements OnInit {
     });
   }
 
-  /** Only the fields that differ from the loaded course. A cleared text field is sent as "". */
   private changedFields(original: CourseResponse): Partial<CreateCourseRequest> {
     const before = this.toFormValue(original);
     const after = this.form.getRawValue();
@@ -245,7 +233,6 @@ export class CourseForm implements OnInit {
       if (key === 'currency') value = String(value).toUpperCase();
       const previous = typeof before[key] === 'string' ? String(before[key]).trim() : before[key];
       if (value === previous) continue;
-      // The API has no way to clear a number or an enum: leaving it blank keeps the old value.
       if (value === null || (value === '' && (key === 'level' || key === 'status'))) continue;
       changes[key] = value;
     }

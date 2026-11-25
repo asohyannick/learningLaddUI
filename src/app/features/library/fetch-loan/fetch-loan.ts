@@ -28,7 +28,6 @@ import {
 } from '../library.service';
 import { LoanActionRequest } from '../fetch-all-loans/fetch-all-loans';
 
-/** Side panel: one loan (`GET /library/loans/{id}`), its history and the actions its status allows. */
 @Component({
   selector: 'app-fetch-loan',
   imports: [EnumLabelPipe],
@@ -237,7 +236,6 @@ export class FetchLoan {
     if (!document.querySelector('app-modal')) this.closed.emit();
   }
 
-  /** Shows an updated loan without a request (after an action). */
   show(loan: LibraryLoanResponseDto): void {
     this.loan.set(loan);
   }

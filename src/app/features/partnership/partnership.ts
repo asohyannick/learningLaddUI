@@ -21,10 +21,6 @@ import { PartnershipService, partnerLocation } from './partnership.service';
 
 const PAGE_SIZE = 12;
 
-/**
- * Public "Partners & sponsors" page. Without filters it lists `GET /partners/public`
- * (featured first); with a keyword or filter it uses `/partners/public/search`.
- */
 @Component({
   selector: 'app-partnership',
   imports: [EnumLabelPipe, NgOptimizedImage, PageHero, RouterLink, SiteFooter, SiteHeader],
@@ -47,7 +43,6 @@ export class Partnership {
   protected readonly tier = signal<SponsorshipTier | ''>('');
   protected readonly sponsorsOnly = signal(false);
 
-  /** Zero-based page index. */
   protected readonly page = signal(0);
 
   private readonly query = computed<PagedQueryRequestDto>(() => ({

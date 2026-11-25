@@ -26,7 +26,6 @@ import {
 
 export interface LoanActionDone {
   message: string;
-  /** The updated loan, or null when it was deleted. */
   loan: LibraryLoanResponseDto | null;
 }
 
@@ -34,7 +33,6 @@ type FeeChoice = 'calculate' | 'waive' | 'override';
 
 const MONEY = /^\d{1,10}(\.\d{1,2})?$/;
 
-/** One dialog for every loan action; the fields shown depend on the action. */
 @Component({
   selector: 'app-loan-action',
   imports: [FormAlert, Modal],
@@ -54,7 +52,6 @@ export class LoanActionDialog {
   protected readonly inputClasses = inputClasses;
   protected readonly today = todayLocal();
 
-  // Fields (only those for the current action are shown and sent).
   protected readonly condition = signal('');
   protected readonly dueDate = signal('');
   protected readonly notes = signal('');
@@ -116,7 +113,6 @@ export class LoanActionDialog {
     }
   });
 
-  /** Message per field, shown after the first submit attempt. */
   protected readonly problems = computed(() => {
     const p: Partial<
       Record<
@@ -233,17 +229,14 @@ export class LoanActionDialog {
   }
 }
 
-/** Drops undefined fields so the JSON only carries what was filled in. */
 function clean<T extends object>(value: T): T {
   return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined)) as T;
 }
 
-/** End of the chosen day in the user's time zone, as an ISO instant. */
 function endOfDay(date: string): string {
   return new Date(`${date}T23:59:59`).toISOString();
 }
 
-/** End of the chosen day, but never in the future (the API refuses future return dates). */
 function endOfDayOrNow(date: string): string {
   const end = new Date(`${date}T23:59:59`);
   return (end.getTime() > Date.now() ? new Date() : end).toISOString();

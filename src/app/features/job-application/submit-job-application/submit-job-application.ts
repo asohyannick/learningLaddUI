@@ -17,11 +17,6 @@ import { JobListingService } from '../../job-listing/job-listing.service';
 import { ApplyForm } from '../apply-form/apply-form';
 import { JobApplicationResponseDto } from '../job-application.model';
 
-/**
- * Submit an application from the dashboard (`POST /job-application`): pick an open job, then
- * fill in the same form applicants use on the job page. The API records the application under
- * the signed-in account and allows one application per account.
- */
 @Component({
   selector: 'app-submit-job-application',
   imports: [ApplyForm, FormAlert, Modal],
@@ -90,7 +85,6 @@ export class SubmitJobApplication {
 
   protected readonly inputClasses = inputClasses;
 
-  /** Jobs still taking applications (OPEN, before the deadline), by title. */
   protected readonly openJobs = rxResource({
     stream: () =>
       this.jobs.searchOpenJobListings({

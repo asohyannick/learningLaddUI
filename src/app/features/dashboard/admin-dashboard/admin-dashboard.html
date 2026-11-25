@@ -37,7 +37,6 @@
       (unblock)="openDialog({ kind: 'unblock', user: $event })"
     />
 
-    <!-- User details panel -->
     @if (selectedUserId(); as userId) {
       <app-fetch-user
         [userId]="userId"
@@ -49,7 +48,6 @@
     }
   }
 
-  <!-- Dialogs -->
   @if (dialog(); as d) {
     @if (d.kind === 'block') {
       <app-block-user-account

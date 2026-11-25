@@ -24,10 +24,6 @@ const DESCRIPTIONS: Record<Section, string> = {
     'Issue reservations, update loans, confirm returns, handle late fees and lost books, and export loans as PDF.',
 };
 
-/**
- * Librarian console. Catalog: add, search, view, edit and delete books.
- * Loans: issue, update, confirm returns, cancel, report lost, delete, search, count and PDF.
- */
 @Component({
   selector: 'app-librarian-dashboard',
   imports: [BookManager, DashboardShell, LoanManager],
@@ -50,7 +46,6 @@ const DESCRIPTIONS: Record<Section, string> = {
   `,
 })
 export class LibrarianDashboard {
-  /** `?section=` from the URL (bound by the router). */
   readonly section = input<string>();
 
   protected readonly sections = SECTIONS;

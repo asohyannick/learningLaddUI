@@ -1,6 +1,5 @@
 import { TutorStatus } from '../../core/enum/global-enum-configuration';
 
-/** Badge colours for a tutor status on the dark dashboard. */
 export function tutorStatusClasses(status: TutorStatus | undefined): string {
   switch (status) {
     case 'ACTIVE':

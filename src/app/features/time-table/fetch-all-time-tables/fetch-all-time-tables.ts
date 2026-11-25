@@ -43,7 +43,6 @@ interface SortOption {
   sortDirection: TimeTableSortDirection;
 }
 
-/** The first option is the order of `GET /time-table`, so it needs no search. */
 const SORT_OPTIONS: readonly SortOption[] = [
   { label: 'Newest first', sortBy: 'createdAt', sortDirection: 'desc' },
   { label: 'Date, soonest first', sortBy: 'startDate', sortDirection: 'asc' },
@@ -61,7 +60,6 @@ const SORT_OPTIONS: readonly SortOption[] = [
 const PAGE_SIZES = [10, 20, 50, 100] as const;
 const SEARCH_DEBOUNCE_MS = 300;
 
-/** '' = any, otherwise the boolean sent to the API. */
 type YesNo = '' | 'true' | 'false';
 
 export type TimeTableRow = TimeTableResponseDto & {
@@ -72,11 +70,6 @@ export type TimeTableRow = TimeTableResponseDto & {
   modeClasses: string;
 };
 
-/**
- * Timetable list. Without a keyword, filter or custom sort it calls `GET /time-table`;
- * otherwise `/search`. The first card is `/count`, and "Download PDF" exports every entry
- * matching the current filters (`/download`).
- */
 @Component({
   selector: 'app-fetch-all-time-tables',
   imports: [EnumLabelPipe],
@@ -88,7 +81,6 @@ export class FetchAllTimeTables {
   private readonly courses = inject(CourseService);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** Shows the Delete buttons (the API lets only some staff roles delete). */
   readonly canDelete = input(false);
   readonly add = output<void>();
   readonly view = output<TimeTableResponseDto>();
@@ -101,7 +93,6 @@ export class FetchAllTimeTables {
   protected readonly modes = SESSION_MODES;
   protected readonly days = DAYS_OF_WEEK;
 
-  /** Courses for the course filter (the first 100, by name). */
   protected readonly courseOptions = rxResource({
     stream: () =>
       this.courses
@@ -109,7 +100,6 @@ export class FetchAllTimeTables {
         .pipe(map((page) => page.content.map((c) => ({ id: c.id, name: c.name })))),
   });
 
-  /** Typed text; requests wait until the user pauses. */
   protected readonly keywordText = signal('');
   private readonly keyword = toSignal(
     toObservable(this.keywordText).pipe(debounceTime(SEARCH_DEBOUNCE_MS), distinctUntilChanged()),
@@ -137,11 +127,9 @@ export class FetchAllTimeTables {
   protected readonly totalCount = signal<number | null>(null);
   private countRequest?: Subscription;
 
-  /** Row ID being exported, or 'all' for the whole filtered list. */
   protected readonly downloading = signal<string | null>(null);
   protected readonly downloadError = signal<string | null>(null);
 
-  /** The API rejects ranges that end before they start; they are left out until fixed. */
   protected readonly dateRangeInvalid = computed(
     () => !!this.fromDate() && !!this.toDate() && this.fromDate() > this.toDate(),
   );
@@ -177,7 +165,6 @@ export class FetchAllTimeTables {
     return Object.values(filters).some((value) => value !== undefined);
   });
   private readonly needsSearch = computed(() => this.isFiltered() || this.sortIndex() !== 0);
-  /** Something typed or picked, even if the debounced query has not caught up yet. */
   protected readonly hasInput = computed(
     () =>
       this.isFiltered() ||
@@ -207,7 +194,6 @@ export class FetchAllTimeTables {
     return `${start}–${start + count - 1} of ${this.total()}`;
   });
 
-  /** Counts for the loaded page. */
   protected readonly stats = computed(() => {
     const rows = this.rows();
     return {
@@ -232,13 +218,11 @@ export class FetchAllTimeTables {
     });
   }
 
-  /** Reloads the page and the total, e.g. after an entry was added, edited or deleted. */
   reload(): void {
     this.load(this.query(), this.needsSearch());
     this.loadCount();
   }
 
-  /** Sets a filter and goes back to the first page. */
   protected setFilter<T>(target: { set(value: T): void }, value: T): void {
     target.set(value);
     this.page.set(0);
@@ -274,7 +258,6 @@ export class FetchAllTimeTables {
     this.page.set(Math.min(Math.max(page, 0), this.totalPages() - 1));
   }
 
-  /** Exports every entry matching the filters (not only this page). */
   protected downloadAll(): void {
     this.export('all', this.timeTables.downloadTimeTablesPdf(this.query()), 'this list');
   }
@@ -330,7 +313,6 @@ export class FetchAllTimeTables {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (count) => this.totalCount.set(count),
-        // The card shows a dash; the table reports the error.
         error: () => this.totalCount.set(null),
       });
   }

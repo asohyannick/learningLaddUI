@@ -86,7 +86,7 @@ describe('PartnerManager', () => {
 
     tier.value = 'GOLD';
     tier.dispatchEvent(new Event('change'));
-    sort.value = '6'; // Agreement ends soonest
+    sort.value = '6';
     sort.dispatchEvent(new Event('change'));
     fixture.detectChanges();
     const req = backend.expectOne((r) => r.url === `${api}/search`);
@@ -144,7 +144,6 @@ describe('PartnerManager', () => {
       'Sponsorship amount can have at most 12 digits and 2 decimals.',
     );
     expect(el.textContent).toContain('Agreement end cannot be before the start date.');
-    // The slug the API will generate.
     expect(el.querySelector<HTMLInputElement>('#pf-slug')!.placeholder).toBe('orange-foundation');
 
     type('pf-sponsorshipTier', 'GOLD');

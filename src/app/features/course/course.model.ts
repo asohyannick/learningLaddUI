@@ -40,7 +40,7 @@ export interface CourseMaterialResponse {
 }
 
 export interface CourseResponse {
-  id: string; // UUID
+  id: string;
   name: string;
   slug: string;
   idempotencyKey?: string;
@@ -62,27 +62,23 @@ export interface CourseResponse {
   promoVideoUrl?: string;
   syllabusUrl?: string;
   materials?: CourseMaterialResponse[];
-  createdBy?: string; // UUID of the creating user
-  createdAt?: string; // ISO-8601 instant
-  updatedAt?: string; // ISO-8601 instant
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-/** `PATCH /course/{id}`: send only what changes; omitted fields keep their value. */
 export type UpdateCourseRequest = Partial<CreateCourseRequest>;
 
-/** Optional files sent with a create or update. A new file replaces the current one. */
 export interface CourseFiles {
   thumbnail?: File | null;
   promoVideo?: File | null;
   syllabus?: File | null;
-  /** Added to the course's existing materials. */
   materials?: readonly File[];
 }
 
 export type CourseSortField =
   'name' | 'price' | 'createdAt' | 'updatedAt' | 'publishedAt' | 'durationMinutes';
 
-/** Query of `GET /course/search` (`CoursePagedQueryDto`). Empty values are not sent. */
 export interface CourseSearchQuery {
   search?: string;
   category?: string;
@@ -93,7 +89,6 @@ export interface CourseSearchQuery {
   minPrice?: number;
   maxPrice?: number;
   page?: number;
-  /** 1–100. */
   size?: number;
   sortBy?: CourseSortField;
   sortDirection?: 'asc' | 'desc';

@@ -27,10 +27,6 @@ import {
 } from './job-application.service';
 import { MyApplicationStore } from './my-application.store';
 
-/**
- * "My application" (`/job-applications`): the signed-in user's own application
- * (`GET /job-application/{id}`), its files and status, and an edit form while it is SUBMITTED.
- */
 @Component({
   selector: 'app-job-application',
   imports: [ApplyForm, EnumLabelPipe, RouterLink, SiteFooter, SiteHeader],
@@ -49,7 +45,6 @@ export class JobApplication {
     params: () => this.applicationId() ?? undefined,
     stream: ({ params: id }) => this.applications.getApplication(id),
   });
-  /** Set after an edit, so the page shows the saved version without a reload. */
   private readonly saved = signal<JobApplicationResponseDto | null>(null);
   protected readonly application = computed(
     () => this.saved() ?? (this.result.hasValue() ? this.result.value() : null),
@@ -60,7 +55,6 @@ export class JobApplication {
     stream: ({ params: id }) => this.jobs.getJobListing(id).pipe(catchError(() => of(null))),
   });
 
-  /** 403/404: the remembered ID is not (or no longer) this user's application. */
   protected readonly gone = computed(() =>
     [400, 403, 404].includes(resourceApiError(this.result.error())?.status ?? 0),
   );

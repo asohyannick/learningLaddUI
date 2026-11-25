@@ -61,7 +61,6 @@ describe('Register', () => {
     expect(errorFor('email')).toContain('valid email');
     expect(errorFor('confirmPassword')).toBe('Passwords do not match.');
     expect(el.textContent).toContain('Password does not meet all the requirements');
-    // Unmet password rules turn red once the field shows an error.
     expect(el.querySelector('#password-rules .text-red-600')?.textContent).toContain(
       'An uppercase letter',
     );

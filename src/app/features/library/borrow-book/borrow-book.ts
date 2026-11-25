@@ -16,10 +16,6 @@ import { inputClasses } from '../../../shared/validators/field-styles';
 import { LIBRARY_LIMITS, LibraryBookResponseDto, LibraryLoanResponseDto } from '../library.model';
 import { LibraryService } from '../library.service';
 
-/**
- * Reserve a copy (`POST /library/loans`) for the signed-in student. The copy is held for 48 hours
- * until a librarian issues it. One Idempotency-Key per dialog, so a retry never reserves twice.
- */
 @Component({
   selector: 'app-borrow-book',
   imports: [FormAlert, Modal],
@@ -89,7 +85,6 @@ export class BorrowBook {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly book = input.required<LibraryBookResponseDto>();
-  /** Emits the reservation and the API's message (with the pick-up deadline). */
   readonly done = output<{ loan: LibraryLoanResponseDto; message: string }>();
   readonly cancelled = output<void>();
 

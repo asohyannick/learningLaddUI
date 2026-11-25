@@ -15,7 +15,6 @@ interface Row {
   value: string | null | undefined;
 }
 
-/** Read-only staff view of one partner, grouped like the form. Dark dashboard styling. */
 @Component({
   selector: 'app-partner-details',
   imports: [DatePipe, EnumLabelPipe],
@@ -171,7 +170,6 @@ export class PartnerDetails {
     () => this.partner().status === PartnerStatus.ACTIVE && this.partner().showOnWebsite,
   );
 
-  /** Warns when the agreement has ended or ends within 30 days, like the API message. */
   protected readonly agreementNotice = computed(() => {
     const days = daysUntilAgreementEnds(this.partner());
     if (days === null || days > 30) return null;

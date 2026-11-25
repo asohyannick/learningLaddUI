@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-/** Message box above a form: red for errors (announced at once), green for success. */
 @Component({
   selector: 'app-form-alert',
   changeDetection: ChangeDetectionStrategy.OnPush,

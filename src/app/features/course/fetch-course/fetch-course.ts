@@ -20,7 +20,6 @@ import { EnumLabelPipe } from '../../../shared/custom-pipe/enum-label-pipe';
 import { CourseResponse } from '../course.model';
 import { CourseService, finalPrice } from '../course.service';
 
-/** Side panel: loads one course (`GET /course/{id}`), with edit, delete and PDF download. */
 @Component({
   selector: 'app-fetch-course',
   imports: [CurrencyPipe, DatePipe, DecimalPipe, EnumLabelPipe],
@@ -47,7 +46,6 @@ export class FetchCourse {
 
   protected readonly downloading = signal(false);
   protected readonly downloadError = signal<string | null>(null);
-  /** The bucket is private: links are presigned and expire, so a stale one fails to play. */
   protected readonly videoFailed = signal(false);
 
   protected isVideo(contentType: string | null | undefined): boolean {
@@ -68,7 +66,6 @@ export class FetchCourse {
     this.destroyRef.onDestroy(() => this.request?.unsubscribe());
   }
 
-  /** Escape closes a dialog opened on top of the panel first, not the panel. */
   protected onEscape(): void {
     if (!document.querySelector('app-modal')) this.closed.emit();
   }

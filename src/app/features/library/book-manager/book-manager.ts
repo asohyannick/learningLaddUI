@@ -23,10 +23,6 @@ type Dialog =
   | { kind: 'delete'; book: { id: string; title: string } }
   | { kind: 'borrow'; book: LibraryBookResponseDto };
 
-/**
- * Library catalog section. Staff (super admin, admin, IT admin, librarian): add, edit and delete
- * books. Students: browse and borrow. Everyone: search, filter, sort and view.
- */
 @Component({
   selector: 'app-book-manager',
   imports: [BookForm, BorrowBook, DeleteBook, FetchAllBooks, FetchBook],
@@ -85,14 +81,12 @@ export class BookManager {
   private readonly identity = inject(StudentIdentityStore);
 
   readonly notify = output<string>();
-  /** A reservation was made (so "My loans" can refresh). */
   readonly borrowed = output<LibraryLoanResponseDto>();
 
   protected readonly canManage = computed(() => {
     this.auth.role();
     return this.auth.hasAnyRole(LIBRARY_MANAGER_ROLES);
   });
-  /** The API only lets students borrow (with a student profile). */
   protected readonly canBorrow = computed(() => this.auth.role() === UserRole.STUDENT);
 
   protected readonly selectedId = signal<string | null>(null);

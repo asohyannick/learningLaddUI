@@ -1,10 +1,3 @@
-// Runs before `npm start`, `npm run build`, `npm test` and `npm run watch`.
-//
-// 1. Creates the git-ignored environment files from the committed template when they are missing,
-//    so a fresh clone can run straight away. Existing files are never replaced.
-// 2. Copies the FIREBASE_* values from `.env` (also git-ignored) into the `firebase` block of both
-//    environment files. Angular cannot read `.env` in the browser, so this is the bridge.
-//    Only the Firebase WEB config belongs there: it is public by design and ends up in the bundle.
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,7 +17,6 @@ for (const name of targets) {
   }
 }
 
-/** `.env` key → property of `environment.firebase`. */
 const FIREBASE_KEYS = {
   FIREBASE_API_KEY: 'apiKey',
   FIREBASE_AUTH_DOMAIN: 'authDomain',

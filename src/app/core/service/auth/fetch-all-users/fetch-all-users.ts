@@ -51,10 +51,6 @@ const SORT_OPTIONS: readonly SortOption[] = [
 
 const PAGE_SIZES = [10, 20, 50, 100] as const;
 
-/**
- * Admin users list (`GET /auth/users`): summary cards plus a sortable, paged table.
- * Emits the user to view, block or unblock; the parent opens the matching panel or dialog.
- */
 @Component({
   selector: 'app-fetch-all-users',
   imports: [DatePipe, EnumLabelPipe],
@@ -76,7 +72,6 @@ export class FetchAllUsers {
   protected readonly page = signal(0);
   protected readonly size = signal<number>(20);
   protected readonly sortIndex = signal(0);
-  /** Narrows the loaded page by name or email (the API has no search yet). */
   protected readonly filter = signal('');
 
   private readonly result = signal<IPagedResponse<IUserResponse> | null>(null);
@@ -94,7 +89,6 @@ export class FetchAllUsers {
     };
   });
 
-  /** Rows of the current page, with blocks/unblocks made in this browser applied. */
   private readonly rows = computed(() => {
     this.users.localChanges();
     return (this.result()?.content ?? []).map((user) => this.users.withLocalChanges(user));
@@ -118,7 +112,6 @@ export class FetchAllUsers {
     return `${start}–${start + count - 1} of ${this.total()}`;
   });
 
-  /** Counts for the summary cards: total is for every user, the rest for the loaded page. */
   protected readonly stats = computed(() => {
     const rows = this.rows();
     const count = (status: string) => rows.filter((u) => accountStatus(u) === status).length;

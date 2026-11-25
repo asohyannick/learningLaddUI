@@ -87,7 +87,6 @@ describe('TutorProfileManager', () => {
       .expectOne((r) => r.params.get('minYearsOfExperience') === '5')
       .flush(ok(coursePage([fakeTutorSummary()])));
 
-    // Typed filters wait for the user to pause.
     const subject = el.querySelector<HTMLInputElement>('input[placeholder^="Subject"]')!;
     subject.value = 'Calculus';
     subject.dispatchEvent(new Event('input'));

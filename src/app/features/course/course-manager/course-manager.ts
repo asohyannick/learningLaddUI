@@ -22,10 +22,6 @@ type Dialog =
   | { kind: 'edit'; id: string }
   | { kind: 'delete'; course: { id: string; name: string } };
 
-/**
- * Course management shared by the tutor and admin dashboards: list, search and count courses,
- * open one, create, edit, delete and download PDFs. Buttons follow the role's API permissions.
- */
 @Component({
   selector: 'app-course-manager',
   imports: [CourseForm, DeleteCourse, FetchAllCourses, FetchCourse],
@@ -89,7 +85,6 @@ type Dialog =
 export class CourseManager {
   private readonly auth = inject(AuthService);
 
-  /** Success messages for the dashboard's toast. */
   readonly notify = output<string>();
 
   protected readonly canWrite = computed(() => {

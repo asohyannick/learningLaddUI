@@ -15,7 +15,6 @@ import { FormAlert } from '../../../shared/reusable-components/form-alert/form-a
 import { Modal } from '../../../shared/reusable-components/modal/modal';
 import { StudentProfileService } from '../student-profile.service';
 
-/** Confirms and deletes a student profile (`DELETE /student-profile/{id}`): owner or admin. */
 @Component({
   selector: 'app-delete-student-profile',
   imports: [FormAlert, Modal],
@@ -57,9 +56,7 @@ export class DeleteStudentProfile {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly profile = input.required<{ id: string; name: string }>();
-  /** The signed-in student is deleting their own profile. */
   readonly own = input(false);
-  /** Emits the API message once deleted. */
   readonly done = output<string>();
   readonly cancelled = output<void>();
 

@@ -46,7 +46,6 @@ const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 type ImageField = 'logo' | 'banner';
 
-/** Whole number, 0–10,000. */
 function displayOrderValidator(control: AbstractControl): ValidationErrors | null {
   const value = (control.value as string).trim();
   if (!value) return null;
@@ -54,7 +53,6 @@ function displayOrderValidator(control: AbstractControl): ValidationErrors | nul
   return Number(value) > 10_000 ? { max: { max: 10_000 } } : null;
 }
 
-/** ≥ 0, at most 12 digits before the point and 2 after (`@Digits(integer = 12, fraction = 2)`). */
 function amountValidator(control: AbstractControl): ValidationErrors | null {
   const value = (control.value as string).trim();
   if (!value) return null;
@@ -62,13 +60,11 @@ function amountValidator(control: AbstractControl): ValidationErrors | null {
   return /^\d{1,12}(\.\d{1,2})?$/.test(value) ? null : { moneyFormat: { integer: 12 } };
 }
 
-/** Sponsors need a tier (`isSponsorTierProvided`). */
 function tierForSponsor(control: AbstractControl): ValidationErrors | null {
   const type = control.parent?.get('partnerType')?.value as string | undefined;
   return type === PartnerType.SPONSOR && !control.value ? { tierRequired: true } : null;
 }
 
-/** End date on or after the start date (`isAgreementPeriodValid`). */
 function endAfterStart(control: AbstractControl): ValidationErrors | null {
   const start = control.parent?.get('agreementStartDate')?.value as string | undefined;
   const end = control.value as string;
@@ -120,11 +116,8 @@ interface FieldConfig {
   hint?: string;
   patternMessage?: string;
   inputMode?: 'numeric' | 'decimal' | 'url';
-  /** Choices of a select. */
   options?: readonly string[];
-  /** Label of the empty choice when creating; null hides it. */
   emptyLabel?: string | null;
-  /** Label of the empty choice when editing; null hides it. */
   emptyLabelEdit?: string | null;
   required?: boolean;
   wide?: boolean;
@@ -356,11 +349,6 @@ export interface PartnerSaved {
   partner: PartnersResponseDto;
 }
 
-/**
- * Dialog to add a partner (`POST /partners`) or update one (`PATCH /partners/{id}`), with an
- * optional logo and banner. An update only sends the fields that changed. The API treats a
- * blank field as "keep", so only the tier and the agreement end date can be removed.
- */
 @Component({
   selector: 'app-partner-form',
   imports: [EnumLabelPipe, FieldError, FormAlert, Modal, ReactiveFormsModule],
@@ -372,7 +360,6 @@ export class PartnerForm implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder).nonNullable;
 
-  /** Partner to update; leave empty to add one. */
   readonly partnerId = input<string | null>(null);
   readonly done = output<PartnerSaved>();
   readonly cancelled = output<void>();
@@ -418,7 +405,6 @@ export class PartnerForm implements OnInit {
     featured: [false],
   });
 
-  /** Slug the API will generate when the slug field is blank. */
   protected readonly suggestedSlug = toSignal(
     this.form.controls.name.valueChanges.pipe(map((name) => slugify(name))),
     { initialValue: '' },
@@ -443,7 +429,6 @@ export class PartnerForm implements OnInit {
     this.destroyRef.onDestroy(() => {
       for (const url of Object.values(this.previews())) if (url) URL.revokeObjectURL(url);
     });
-    // Cross-field rules: re-check the dependent control when the other one changes.
     const recheck = (source: AbstractControl, target: AbstractControl) =>
       source.valueChanges
         .pipe(takeUntilDestroyed(this.destroyRef))
@@ -546,7 +531,6 @@ export class PartnerForm implements OnInit {
       });
   }
 
-  /** Values to send on create; blank fields are left out so the API defaults apply. */
   private createPayload(): CreatePartnersRequestDto {
     const { showOnWebsite, featured, ...text } = this.form.getRawValue();
     const payload: Record<string, unknown> = { showOnWebsite, featured };
@@ -557,7 +541,6 @@ export class PartnerForm implements OnInit {
     return payload as unknown as CreatePartnersRequestDto;
   }
 
-  /** Only what differs from the saved partner. */
   private changedFields(): UpdatePartnerRequestDto {
     const original = this.original();
     if (!original) return {};
@@ -571,7 +554,6 @@ export class PartnerForm implements OnInit {
       const previous = String(before[key as keyof typeof before]).trim();
       if (value === previous) continue;
       if (value === '') {
-        // Blank means "keep" for the API; these two have explicit remove flags.
         if (key === 'sponsorshipTier') changes['removeSponsorshipTier'] = true;
         if (key === 'agreementEndDate') changes['removeAgreementEndDate'] = true;
         continue;

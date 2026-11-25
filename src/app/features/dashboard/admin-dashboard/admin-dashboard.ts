@@ -69,12 +69,6 @@ const HEADINGS: Record<Section, string> = {
   applications: 'Job applications',
 };
 
-/**
- * Admin console. Users: list, view, block / unblock. Students and Tutors: their profiles.
- * Partners: partners and sponsors shown on the website.
- * Courses: the same tools as the tutor
- * dashboard. Plus deleting your own account and signing out.
- */
 @Component({
   selector: 'app-admin-dashboard',
   imports: [
@@ -101,7 +95,6 @@ const HEADINGS: Record<Section, string> = {
 export class AdminDashboard {
   private readonly auth = inject(AuthService);
 
-  /** `?section=` from the URL (bound by the router). */
   readonly section = input<string>();
 
   protected readonly sections = SECTIONS;
@@ -153,7 +146,6 @@ export class AdminDashboard {
         return `Welcome back, ${this.firstName()}. Here is everyone with an account.`;
     }
   });
-  /** The API refuses to delete super admin accounts. */
   protected readonly canDeleteSelf = computed(() => this.me()?.role !== UserRole.SUPER_ADMIN);
 
   protected readonly selectedUserId = signal<UUID | null>(null);

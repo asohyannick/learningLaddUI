@@ -150,7 +150,7 @@ describe('JobListingManager', () => {
     set('jf-status', JobStatus.CLOSED);
     set('jf-benefits', '');
     set('jf-requirements', '');
-    set('jf-salaryMax', ''); // numbers keep their value when cleared
+    set('jf-salaryMax', '');
     await submit();
     const update = backend.expectOne(`${api}/job-1`);
     expect(update.request.method).toBe('PATCH');

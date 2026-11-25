@@ -14,7 +14,6 @@ import { FormAlert } from '../../../shared/reusable-components/form-alert/form-a
 import { Modal } from '../../../shared/reusable-components/modal/modal';
 import { JobApplicationService } from '../job-application.service';
 
-/** Confirms and deletes a job application (`DELETE /job-application/{id}`). */
 @Component({
   selector: 'app-delete-job-application',
   imports: [FormAlert, Modal],

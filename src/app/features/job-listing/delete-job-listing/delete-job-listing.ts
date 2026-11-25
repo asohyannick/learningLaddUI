@@ -14,7 +14,6 @@ import { FormAlert } from '../../../shared/reusable-components/form-alert/form-a
 import { Modal } from '../../../shared/reusable-components/modal/modal';
 import { JobListingService } from '../job-listing.service';
 
-/** Confirms and deletes a job listing (`DELETE /job-listing/{id}`). */
 @Component({
   selector: 'app-delete-job-listing',
   imports: [FormAlert, Modal],
@@ -60,7 +59,6 @@ export class DeleteJobListing {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly listing = input.required<{ id: string; title: string }>();
-  /** Emits a message for the toast once deleted. */
   readonly done = output<string>();
   readonly cancelled = output<void>();
 

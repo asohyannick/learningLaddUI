@@ -19,10 +19,6 @@ import { inputClasses } from '../../../../shared/validators/field-styles';
 import { applyServerErrors, trimmed } from '../../../../shared/validators/form-validators';
 import { UserAdminService, displayName } from '../user-admin.service';
 
-/**
- * Admin dialog: blocks an account with a reason (5–500 characters). The server signs the user
- * out and emails them the reason.
- */
 @Component({
   selector: 'app-block-user-account',
   imports: [FieldError, FormAlert, Modal, ReactiveFormsModule],
@@ -34,7 +30,6 @@ export class BlockUserAccount {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly user = input.required<IUserResponse>();
-  /** Emits the API message after the account is blocked. */
   readonly done = output<string>();
   readonly cancelled = output<void>();
 

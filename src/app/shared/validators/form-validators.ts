@@ -8,13 +8,8 @@ import {
 } from '@angular/forms';
 import { isApiErrorResponse } from '../../core/interface';
 
-// Client-side rules. They mirror the backend DTO constraints (see Swagger) so users get instant
-// feedback; the backend still validates everything again.
-
-/** First/last name: starts with a letter, then letters, spaces, apostrophes, dots or hyphens. */
 export const PERSON_NAME_PATTERN = /^[\p{L}][\p{L}\p{M} '.-]*$/u;
 
-/** The 6-digit code sent by email. */
 export const OTP_PATTERN = /^\d{6}$/;
 
 export const PASSWORD_MIN_LENGTH = 8;
@@ -26,7 +21,6 @@ export interface PasswordRule {
   test: (value: string) => boolean;
 }
 
-/** Same rules as `RegisterRequestDto.password`. */
 export const PASSWORD_RULES: readonly PasswordRule[] = [
   {
     key: 'length',
@@ -43,10 +37,6 @@ export const PASSWORD_RULES: readonly PasswordRule[] = [
   },
 ];
 
-/**
- * Runs `validators` on the trimmed value, matching what is sent to the API
- * (" Amara " is valid; "   " counts as empty).
- */
 export function trimmed(validators: ValidatorFn[]): ValidatorFn {
   const validate = Validators.compose(validators) ?? (() => null);
   return (control: AbstractControl): ValidationErrors | null => {
@@ -55,19 +45,17 @@ export function trimmed(validators: ValidatorFn[]): ValidatorFn {
   };
 }
 
-/** Error `{ passwordRules: { missing: ['uppercase', ...] } }` when a rule is not met. */
 export function passwordStrength(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const value = typeof control.value === 'string' ? control.value : '';
     if (!value) {
-      return null; // `Validators.required` reports empty values
+      return null;
     }
     const missing = PASSWORD_RULES.filter((rule) => !rule.test(value)).map((rule) => rule.key);
     return missing.length ? { passwordRules: { missing } } : null;
   };
 }
 
-/** Error `{ mismatch: true }` when the value differs from the sibling control `otherName`. */
 export function matchesControl(otherName: string): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const other = control.parent?.get(otherName);
@@ -78,10 +66,6 @@ export function matchesControl(otherName: string): ValidatorFn {
   };
 }
 
-/**
- * Puts the API's field errors (`errors[]` of a 400) on the matching controls as `{ server }` and
- * returns the message to show above the form.
- */
 export function applyServerErrors(form: FormGroup, error: unknown): string {
   if (!isApiErrorResponse(error)) {
     return 'Something went wrong. Please try again.';

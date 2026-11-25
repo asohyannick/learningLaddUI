@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { PASSWORD_RULES } from '../../validators/form-validators';
 
-/** Live list of the password rules under a password field: green when met, red after an error. */
 @Component({
   selector: 'app-password-checklist',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,9 +21,7 @@ import { PASSWORD_RULES } from '../../validators/form-validators';
 })
 export class PasswordChecklist {
   readonly value = input.required<string>();
-  /** Turns unmet rules red (pass true once the field shows an error). */
   readonly showErrors = input(false);
-  /** Referenced by the input's `aria-describedby`. */
   readonly listId = input('password-rules');
 
   protected readonly checks = computed(() => {

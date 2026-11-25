@@ -31,7 +31,6 @@ describe('PartnerCarousel', () => {
   it('repeats the list into two identical halves for a seamless loop', () => {
     const el = render(3);
     const items = [...el.querySelectorAll('li')];
-    // 3 partners repeated to 12 per loop (at least 10), shown twice.
     expect(items).toHaveLength(24);
     const names = items.map((li) => li.textContent?.trim());
     expect(names.slice(0, 12)).toEqual(names.slice(12));

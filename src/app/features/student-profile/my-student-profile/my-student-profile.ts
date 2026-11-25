@@ -21,13 +21,6 @@ const STORAGE_PREFIX = 'll.studentProfileId.';
 
 type Dialog = 'create' | 'edit' | 'delete';
 
-/**
- * The signed-in student's own profile: create, update and delete.
- *
- * The API does not let students read profiles (not even their own), so only the profile ID is
- * remembered on this device, which is enough to update or delete it later. The full profile is
- * shown right after it is created or saved.
- */
 @Component({
   selector: 'app-my-student-profile',
   imports: [DeleteStudentProfile, NgTemplateOutlet, StudentProfileDetails, StudentProfileForm],
@@ -124,7 +117,6 @@ type Dialog = 'create' | 'edit' | 'delete';
 export class MyStudentProfile {
   private readonly auth = inject(AuthService);
 
-  /** Success messages for the dashboard's toast. */
   readonly notify = output<string>();
 
   private readonly storageKey = computed(() => {
@@ -132,7 +124,6 @@ export class MyStudentProfile {
     return id ? STORAGE_PREFIX + id : null;
   });
 
-  /** Known after creating or saving the profile in this visit. */
   protected readonly profile = signal<StudentProfileResponse | null>(null);
   protected readonly profileId = signal<string | null>(this.readStoredId());
   protected readonly dialog = signal<Dialog | null>(null);
@@ -162,9 +153,7 @@ export class MyStudentProfile {
     try {
       if (id) localStorage.setItem(key, id);
       else localStorage.removeItem(key);
-    } catch {
-      // Storage can be blocked; the ID is still kept for this visit.
-    }
+    } catch {}
   }
 
   private readStoredId(): string | null {

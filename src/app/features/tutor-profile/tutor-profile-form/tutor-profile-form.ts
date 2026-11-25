@@ -38,7 +38,6 @@ import { TutorProfileService } from '../tutor-profile.service';
 const MAX_PICTURE_BYTES = 10 * 1024 * 1024;
 const PICTURE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-/** Comma-separated lists and the backend's limits: [most items, longest item]. */
 const LIST_LIMITS = {
   languages: [15, 100],
   hobbies: [20, 100],
@@ -47,7 +46,6 @@ const LIST_LIMITS = {
 } as const;
 type ListField = keyof typeof LIST_LIMITS;
 
-/** Fields the API validates with a pattern or type: a blank value can't be sent, so it means "keep". */
 const KEEP_WHEN_BLANK = new Set([
   'firstName',
   'lastName',
@@ -62,7 +60,6 @@ const KEEP_WHEN_BLANK = new Set([
   'websiteUrl',
 ]);
 
-/** "YYYY-MM-DD" strictly before today (`@Past`). */
 function pastDate(control: AbstractControl): ValidationErrors | null {
   const value = control.value as string;
   if (!value) return null;
@@ -80,7 +77,6 @@ function listValidator(field: ListField): ValidatorFn {
   };
 }
 
-/** Whole years, 0–60. */
 function yearsValidator(control: AbstractControl): ValidationErrors | null {
   const value = (control.value as string).trim();
   if (!value) return null;
@@ -90,7 +86,6 @@ function yearsValidator(control: AbstractControl): ValidationErrors | null {
   return null;
 }
 
-/** ≥ 0, at most 8 digits before the point and 2 after (`@Digits(integer = 8, fraction = 2)`). */
 function rateValidator(control: AbstractControl): ValidationErrors | null {
   const value = (control.value as string).trim();
   if (!value) return null;
@@ -98,7 +93,6 @@ function rateValidator(control: AbstractControl): ValidationErrors | null {
   return /^\d{1,8}(\.\d{1,2})?$/.test(value) ? null : { moneyFormat: true };
 }
 
-/** First and last name: 2–255 letters, spaces, apostrophes, dots or hyphens (checked trimmed). */
 function nameValidator(required: boolean): ValidatorFn {
   return trimmed([
     ...(required ? [Validators.required] : []),
@@ -158,9 +152,7 @@ interface FieldConfig {
   placeholder?: string;
   hint?: string;
   patternMessage?: string;
-  /** Keyboard to show on phones for number fields typed as text. */
   inputMode?: 'numeric' | 'decimal';
-  /** Takes the full row on wide screens. */
   wide?: boolean;
 }
 
@@ -366,14 +358,6 @@ export interface TutorProfileSaved {
   profile: TutorProfileResponse;
 }
 
-/**
- * Dialog to create a tutor profile (`POST /tutor-profile`, tutors only) or update one
- * (`PATCH /tutor-profile/{id}`). An update only sends the fields that changed.
- *
- * Editing with `initial` pre-fills the form. With only `profileId` it loads the profile first,
- * unless `canLoad` is false (tutors cannot read profiles): then the form starts empty and
- * blank fields keep their saved value.
- */
 @Component({
   selector: 'app-tutor-profile-form',
   imports: [EnumLabelPipe, FieldError, FormAlert, Modal, ReactiveFormsModule],
@@ -385,11 +369,8 @@ export class TutorProfileForm implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder).nonNullable;
 
-  /** Profile to update; leave empty to create one. */
   readonly profileId = input<string | null>(null);
-  /** Current values of the profile being updated, when already known. */
   readonly initial = input<TutorProfileResponse | null>(null);
-  /** Whether this user may `GET` the profile to pre-fill the form. */
   readonly canLoad = input(true);
   readonly done = output<TutorProfileSaved>();
   readonly cancelled = output<void>();
@@ -401,13 +382,8 @@ export class TutorProfileForm implements OnInit {
 
   protected readonly isEdit = computed(() => !!this.profileId());
   protected readonly original = signal<TutorProfileResponse | null>(null);
-  /** The saved values are unknown, so blank means "keep". */
   protected readonly blindEdit = computed(() => this.isEdit() && !this.original());
 
-  /**
-   * A rate needs a currency when creating, or when the saved profile has none yet. (The update
-   * API does not check this, but a rate without a currency means nothing to students.)
-   */
   private readonly currencyWithRate: ValidatorFn = (control) => {
     const rate = control.parent?.get('hourlyRate')?.value as string | undefined;
     if (!rate?.trim() || (control.value as string).trim()) return null;
@@ -464,7 +440,6 @@ export class TutorProfileForm implements OnInit {
   protected readonly serverError = signal<string | null>(null);
   private readonly namesRequired = signal(true);
 
-  /** Same key for every retry of this dialog, so a slow network never creates two profiles. */
   private readonly idempotencyKey =
     typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
@@ -472,7 +447,6 @@ export class TutorProfileForm implements OnInit {
 
   constructor() {
     this.destroyRef.onDestroy(() => this.revokePreview());
-    // The currency rule depends on the rate.
     this.form.controls.hourlyRate.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.form.controls.currency.updateValueAndValidity({ emitEvent: false }));
@@ -485,7 +459,6 @@ export class TutorProfileForm implements OnInit {
     } else if (this.profileId() && this.canLoad()) {
       this.load();
     } else if (this.profileId()) {
-      // Blank means "keep", so names are no longer required.
       this.namesRequired.set(false);
       for (const name of ['firstName', 'lastName'] as const) {
         const control = this.form.controls[name];
@@ -585,7 +558,6 @@ export class TutorProfileForm implements OnInit {
       });
   }
 
-  /** Values to send on create; blank fields are left out. */
   private createPayload(): CreateTutorProfileRequest {
     const values = this.form.getRawValue();
     const payload: Record<string, unknown> = {};
@@ -596,7 +568,6 @@ export class TutorProfileForm implements OnInit {
     return payload as unknown as CreateTutorProfileRequest;
   }
 
-  /** Only the fields that differ from the saved profile (or, when unknown, the filled-in ones). */
   private changedFields(): UpdateTutorProfileRequest {
     const after = this.form.getRawValue();
     const original = this.original();

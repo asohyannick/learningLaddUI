@@ -14,7 +14,6 @@ import { FormAlert } from '../../../shared/reusable-components/form-alert/form-a
 import { Modal } from '../../../shared/reusable-components/modal/modal';
 import { PartnershipService } from '../partnership.service';
 
-/** Confirms and deletes a partner (`DELETE /partners/{id}`). Staff only. */
 @Component({
   selector: 'app-delete-partner',
   imports: [FormAlert, Modal],
@@ -59,7 +58,6 @@ export class DeletePartner {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly partner = input.required<{ id: string; name: string }>();
-  /** Emits the API message once deleted. */
   readonly done = output<string>();
   readonly cancelled = output<void>();
 

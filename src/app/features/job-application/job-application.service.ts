@@ -14,20 +14,11 @@ import {
   UpdateJobApplicationRequestDto,
 } from './job-application.model';
 
-/**
- * Job applications API (`/job-application`).
- * Any signed-in user: apply, view and (while SUBMITTED) edit their own application.
- * Super admins, admins and IT admins: list, search, count, view, download and delete.
- */
 @Injectable({ providedIn: 'root' })
 export class JobApplicationService {
   private readonly http = inject(HttpClient);
   private readonly api = `${environment.apiUrl}/job-application`;
 
-  /**
-   * `POST /job-application` (multipart): JSON `data`, the `cv`, an optional `profilePic` and up
-   * to 5 `supportingDocuments`. Reusing `idempotencyKey` returns the first application.
-   */
   submitApplication(
     data: CreateJobApplicationRequestDto,
     files: JobApplicationFiles,
@@ -39,14 +30,12 @@ export class JobApplicationService {
     });
   }
 
-  /** `GET /job-application`: newest submissions first (staff). */
   listApplications(page = 0, size = 20): Observable<JobApplicationPageResponseDto> {
     return this.http
       .get<ApiResponse<JobApplicationPageResponseDto>>(this.api, { params: { page, size } })
       .pipe(map((res) => res.data));
   }
 
-  /** `GET /job-application/search` (staff). */
   searchApplications(query: JobApplicationQueryDto): Observable<JobApplicationPageResponseDto> {
     return this.http
       .get<ApiResponse<JobApplicationPageResponseDto>>(`${this.api}/search`, {
@@ -55,21 +44,18 @@ export class JobApplicationService {
       .pipe(map((res) => res.data));
   }
 
-  /** `GET /job-application/count` (staff). */
   countApplications(): Observable<number> {
     return this.http
       .get<ApiResponse<number>>(`${this.api}/count`)
       .pipe(map((res) => Number(res.data)));
   }
 
-  /** `GET /job-application/{id}`: staff see any application, applicants only their own. */
   getApplication(id: string): Observable<JobApplicationResponseDto> {
     return this.http
       .get<ApiResponse<JobApplicationResponseDto>>(`${this.api}/${encodeURIComponent(id)}`)
       .pipe(map((res) => res.data));
   }
 
-  /** `PATCH /job-application/{id}` (multipart): the applicant, while it is still SUBMITTED. */
   updateApplication(
     id: string,
     data: UpdateJobApplicationRequestDto,
@@ -81,15 +67,10 @@ export class JobApplicationService {
     );
   }
 
-  /** `DELETE /job-application/{id}` (staff). Emits the API message. */
   deleteApplication(id: string): Observable<string> {
     return this.http.delete<ApiResponse<null>>(`${this.api}/${id}`).pipe(map((res) => res.message));
   }
 
-  /**
-   * `GET /job-application/download` (staff): PDF of the applications matching the filters
-   * (page and size are ignored, at most 2,000 rows). Emits the saved file name.
-   */
   downloadApplicationsPdf(query: JobApplicationQueryDto = {}): Observable<string> {
     const { page: _page, size: _size, ...filters } = query;
     return this.http
@@ -109,11 +90,6 @@ export class JobApplicationService {
       );
   }
 
-  /**
-   * PDF of one application. The API only exports by filter, so this filters by the job and the
-   * applicant's email; another application to the same job whose name or email contains that
-   * email would also be included.
-   */
   downloadApplicationPdf(
     application: Pick<JobApplicationResponseDto, 'email' | 'jobListingId'>,
   ): Observable<string> {
@@ -143,8 +119,6 @@ function toMultipart(data: object, files: Partial<JobApplicationFiles>): FormDat
   return body;
 }
 
-// ─── Display helpers ─────────────────────────────────────────────────
-
 export function applicantName(
   a: Pick<JobApplicationResponseDto, 'firstName' | 'lastName'>,
 ): string {
@@ -157,12 +131,10 @@ export function applicantInitials(
   return `${a.firstName?.[0] ?? ''}${a.lastName?.[0] ?? ''}`.toUpperCase() || '?';
 }
 
-/** Applicants may only edit while the application has not been reviewed. */
 export function canEditApplication(a: Pick<JobApplicationResponseDto, 'status'>): boolean {
   return a.status === ApplicationStatus.SUBMITTED;
 }
 
-/** Classes for a status badge on a dark background. */
 export function applicationStatusClasses(status: ApplicationStatus): string {
   switch (status) {
     case ApplicationStatus.SUBMITTED:
@@ -180,7 +152,6 @@ export function applicationStatusClasses(status: ApplicationStatus): string {
   }
 }
 
-/** Classes for a status badge on a light background. */
 export function applicationStatusClassesLight(status: ApplicationStatus): string {
   switch (status) {
     case ApplicationStatus.SUBMITTED:
@@ -198,7 +169,6 @@ export function applicationStatusClassesLight(status: ApplicationStatus): string
   }
 }
 
-/** "24 Nov 2026" from an ISO date or timestamp. */
 export function shortDate(value?: string): string {
   if (!value) return '';
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
@@ -228,7 +198,6 @@ const PERIODS: Record<string, string> = {
   YEARLY: 'year',
 };
 
-/** Facts shown about an application (empty ones left out). */
 export function applicationFacts(a: JobApplicationResponseDto): { label: string; value: string }[] {
   const salary =
     a.expectedSalary === undefined || a.expectedSalary === null

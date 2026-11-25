@@ -36,7 +36,6 @@ interface SortOption {
   sortDirection: 'asc' | 'desc';
 }
 
-/** The first option is the order of `GET /job-application`, so it needs no search. */
 const SORT_OPTIONS: readonly SortOption[] = [
   { label: 'Newest first', sortBy: 'submittedAt', sortDirection: 'desc' },
   { label: 'Oldest first', sortBy: 'submittedAt', sortDirection: 'asc' },
@@ -58,11 +57,6 @@ export type JobApplicationRow = JobApplicationResponseDto & {
   statusClasses: string;
 };
 
-/**
- * Job applications table (staff). Without a keyword, filter or custom sort it calls
- * `GET /job-application`; otherwise `/search`. The first card is `/count`, and "Download PDF"
- * exports the applications matching the filters (`/download`).
- */
 @Component({
   selector: 'app-fetch-all-job-applications',
   imports: [EnumLabelPipe],
@@ -82,7 +76,6 @@ export class FetchAllJobApplications {
   protected readonly pageSizes = PAGE_SIZES;
   protected readonly statuses = APPLICATION_STATUSES;
 
-  /** Job titles for the job filter and the table (the first 100 listings, by title). */
   protected readonly jobOptions = rxResource({
     stream: () =>
       this.jobs
@@ -140,7 +133,6 @@ export class FetchAllJobApplications {
       keyword: this.keyword() || undefined,
       jobListingId: this.jobId() || undefined,
       status: this.status() || undefined,
-      // Whole days, in UTC.
       submittedFrom: datesOk && this.fromDate() ? `${this.fromDate()}T00:00:00Z` : undefined,
       submittedTo: datesOk && this.toDate() ? `${this.toDate()}T23:59:59Z` : undefined,
       page: this.page(),
@@ -189,7 +181,6 @@ export class FetchAllJobApplications {
     };
   });
 
-  /** Photo links that failed to load: the row falls back to initials. */
   protected readonly brokenPhotos = signal<ReadonlySet<string>>(new Set());
 
   constructor() {

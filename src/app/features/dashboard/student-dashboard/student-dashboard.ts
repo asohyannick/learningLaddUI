@@ -35,12 +35,6 @@ const HEADINGS: Record<Section, string> = {
   profile: 'My profile',
 };
 
-/**
- * Student console. Courses: browse, search, open and download as PDF (read-only for students).
- * Timetable: every course's classes; search, open, add and edit entries, and download them as PDF.
- * Find a tutor: browse, search, open and download tutor profiles (read-only).
- * My profile: create, update and delete the student's own profile.
- */
 @Component({
   selector: 'app-student-dashboard',
   imports: [
@@ -92,7 +86,6 @@ const HEADINGS: Record<Section, string> = {
 export class StudentDashboard {
   private readonly me = inject(AuthService).user;
 
-  /** `?section=` from the URL (bound by the router). */
   readonly section = input<string>();
 
   protected readonly sections = SECTIONS;

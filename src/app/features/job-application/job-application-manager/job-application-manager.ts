@@ -14,10 +14,6 @@ import { applicantName } from '../job-application.service';
 import { MyApplicationStore } from '../my-application.store';
 import { SubmitJobApplication } from '../submit-job-application/submit-job-application';
 
-/**
- * Job applications section of the admin dashboard: submit, list, search, count, view, download
- * and delete. Only applicants can edit their own applications; the API has no staff update.
- */
 @Component({
   selector: 'app-job-application-manager',
   imports: [
@@ -75,7 +71,6 @@ export class JobApplicationManager {
 
   protected onSubmitted(application: JobApplicationResponseDto): void {
     this.submitting.set(false);
-    // Under the signed-in account, so it also shows on their "My application" page.
     this.myApplication.remember(application.id);
     this.list().reload();
     this.notify.emit(`The application from ${applicantName(application)} was submitted.`);

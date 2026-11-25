@@ -3,7 +3,6 @@ import {
   TutorProfileSummary,
 } from '../../features/tutor-profile/tutor-profile.model';
 
-/** Test data shaped like an item of `GET /tutor-profile`. */
 export function fakeTutorSummary(
   overrides: Partial<TutorProfileSummary> = {},
 ): TutorProfileSummary {
@@ -26,7 +25,6 @@ export function fakeTutorSummary(
   };
 }
 
-/** Test data shaped like `GET /tutor-profile/{id}`. */
 export function fakeTutorProfile(
   overrides: Partial<TutorProfileResponse> = {},
 ): TutorProfileResponse {

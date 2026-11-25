@@ -9,7 +9,6 @@ interface Row {
   value: string | null | undefined;
 }
 
-/** Read-only view of one student profile, grouped like the form. Dark dashboard styling. */
 @Component({
   selector: 'app-student-profile-details',
   imports: [DatePipe, DecimalPipe, EnumLabelPipe],

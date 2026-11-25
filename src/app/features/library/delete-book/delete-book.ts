@@ -14,7 +14,6 @@ import { FormAlert } from '../../../shared/reusable-components/form-alert/form-a
 import { Modal } from '../../../shared/reusable-components/modal/modal';
 import { LibraryService } from '../library.service';
 
-/** Confirms and deletes a book (`DELETE /library/books/{id}`). */
 @Component({
   selector: 'app-delete-book',
   imports: [FormAlert, Modal],

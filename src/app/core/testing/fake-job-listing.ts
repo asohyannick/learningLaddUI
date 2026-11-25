@@ -9,7 +9,6 @@ import {
   WorkMode,
 } from '../../features/job-listing/job-listing.model';
 
-/** An open lecturer post in Douala, deadline 31 Dec 2099 (always in the future). */
 export function fakeJobListing(
   overrides: Partial<JobListingResponseDto> = {},
 ): JobListingResponseDto {
@@ -55,7 +54,6 @@ export function fakeJobSummary(
   return { ...job, ...overrides };
 }
 
-/** `{ success, data: PagedResponseDto }` as the API sends it. */
 export function jobPage(content: JobListingSummaryResponseDto[], totalElements = content.length) {
   const data: JobListingPageResponseDto = {
     content,

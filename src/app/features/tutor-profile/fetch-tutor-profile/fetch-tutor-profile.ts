@@ -18,7 +18,6 @@ import { TutorProfileDetails } from '../tutor-profile-details/tutor-profile-deta
 import { TutorProfileResponse } from '../tutor-profile.model';
 import { TutorProfileService } from '../tutor-profile.service';
 
-/** Side panel for staff and students: loads one profile (`GET /tutor-profile/{id}`), with PDF, edit and delete. */
 @Component({
   selector: 'app-fetch-tutor-profile',
   imports: [TutorProfileDetails],
@@ -144,7 +143,6 @@ export class FetchTutorProfile {
     this.destroyRef.onDestroy(() => this.request?.unsubscribe());
   }
 
-  /** Escape closes a dialog opened on top of the panel first, not the panel. */
   protected onEscape(): void {
     if (!document.querySelector('app-modal')) this.closed.emit();
   }

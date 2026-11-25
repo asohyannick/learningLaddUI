@@ -9,10 +9,6 @@ type Dialog =
   | { kind: 'edit'; id: string }
   | { kind: 'delete'; listing: { id: string; title: string } };
 
-/**
- * Job listings section of the admin dashboard: list, search, count, view, post, edit, publish,
- * delete and export as PDF. The dashboard is only open to the roles that may manage listings.
- */
 @Component({
   selector: 'app-job-listing-manager',
   imports: [DeleteJobListing, FetchAllJobListings, FetchJobListing, JobListingForm],
@@ -55,7 +51,6 @@ type Dialog =
   `,
 })
 export class JobListingManager {
-  /** Success messages for the dashboard's toast. */
   readonly notify = output<string>();
 
   protected readonly selectedId = signal<string | null>(null);

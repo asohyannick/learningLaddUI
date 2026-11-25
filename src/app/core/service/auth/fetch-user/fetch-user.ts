@@ -28,7 +28,6 @@ import {
   initials,
 } from '../user-admin.service';
 
-/** Admin side panel: loads one user by ID (`GET /auth/users/{id}`) and offers block / unblock. */
 @Component({
   selector: 'app-fetch-user',
   imports: [DatePipe, EnumLabelPipe],
@@ -52,7 +51,6 @@ export class FetchUser {
   protected readonly error = signal<string | null>(null);
   private request?: Subscription;
 
-  /** The loaded user, with a block/unblock made in this browser applied. */
   protected readonly user = computed(() => {
     this.users.localChanges();
     const user = this.loaded();
@@ -79,7 +77,6 @@ export class FetchUser {
     this.destroyRef.onDestroy(() => this.request?.unsubscribe());
   }
 
-  /** Escape closes a dialog opened on top of the panel first, not the panel. */
   protected onEscape(): void {
     if (!document.querySelector('app-modal')) this.closed.emit();
   }

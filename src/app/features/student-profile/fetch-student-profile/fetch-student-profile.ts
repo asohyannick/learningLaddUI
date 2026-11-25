@@ -18,7 +18,6 @@ import { StudentProfileDetails } from '../student-profile-details/student-profil
 import { StudentProfileResponse } from '../student-profile.model';
 import { StudentProfileService } from '../student-profile.service';
 
-/** Side panel for staff: loads one profile (`GET /student-profile/{id}`), with PDF, edit and delete. */
 @Component({
   selector: 'app-fetch-student-profile',
   imports: [StudentProfileDetails],
@@ -146,7 +145,6 @@ export class FetchStudentProfile {
     this.destroyRef.onDestroy(() => this.request?.unsubscribe());
   }
 
-  /** Escape closes a dialog opened on top of the panel first, not the panel. */
   protected onEscape(): void {
     if (!document.querySelector('app-modal')) this.closed.emit();
   }

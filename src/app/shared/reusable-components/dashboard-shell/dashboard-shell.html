@@ -1,10 +1,8 @@
 <div class="min-h-screen bg-navy-950 text-slate-200">
-  <!-- Mobile backdrop -->
   @if (sidebarOpen()) {
     <div class="fixed inset-0 z-30 bg-navy-950/70 lg:hidden" (click)="sidebarOpen.set(false)"></div>
   }
 
-  <!-- Sidebar -->
   <aside
     id="dashboard-sidebar"
     class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-white/10 bg-navy-900 transition-transform duration-200 lg:translate-x-0"
@@ -196,7 +194,6 @@
     <div class="border-t border-white/10 p-4 text-xs text-slate-500">© 2026 Learning Ladder</div>
   </aside>
 
-  <!-- Main column -->
   <div class="lg:pl-64">
     <header
       class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-white/10 bg-navy-950/90 px-4 backdrop-blur sm:px-6"
@@ -272,7 +269,6 @@
     </main>
   </div>
 
-  <!-- Toast -->
   <div
     class="pointer-events-none fixed inset-x-4 bottom-4 z-60 flex justify-center sm:inset-x-auto sm:right-6"
     role="status"

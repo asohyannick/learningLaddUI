@@ -49,7 +49,6 @@ describe('TutorDashboard', () => {
     expect(el.textContent).toContain('Tutor console');
     expect(el.querySelector('tbody')?.textContent).toContain('Data Science 101');
     expect(el.querySelector('a[href="/logout"]')).not.toBeNull();
-    // Tutors don't get "Delete my account" in this console.
     expect(el.textContent).not.toContain('Delete my account');
   });
 
@@ -62,7 +61,6 @@ describe('TutorDashboard', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('h1')?.textContent).toContain('My tutor profile');
     expect(el.textContent).toContain('Set up your tutor profile');
-    // Professors cannot read profiles, so there is no tutor directory.
     expect([...el.querySelectorAll('a')].map((a) => a.textContent?.trim())).not.toContain('Tutors');
     expect(el.querySelector('app-tutor-profile-manager')).toBeNull();
   });

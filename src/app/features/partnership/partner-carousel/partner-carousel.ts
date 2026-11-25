@@ -4,25 +4,16 @@ import { EnumLabelPipe } from '../../../shared/custom-pipe/enum-label-pipe';
 import { PartnerPublicResponseDto } from '../partnership.model';
 import { partnerInitials } from '../partnership.service';
 
-/** One loop holds at least this many logos, so the track is always wider than the screen. */
 const MIN_ITEMS_PER_LOOP = 10;
-/** Seconds each logo takes to cross, so speed stays the same with more partners. */
 const SECONDS_PER_ITEM = 3;
 
 interface Slide {
   key: string;
   partner: PartnerPublicResponseDto;
   initials: string;
-  /** Copies after the first are hidden from screen readers and the tab order. */
   copy: boolean;
 }
 
-/**
- * Logos of the partners, moving from right to left without end. The loop is the list
- * (repeated until it is long enough) shown twice, slid by exactly one copy, so the end
- * joins the start seamlessly. Pauses on hover, focus or with the pause button, and stays
- * still (scrollable) for people who prefer reduced motion.
- */
 @Component({
   selector: 'app-partner-carousel',
   imports: [EnumLabelPipe, RouterLink],
@@ -149,7 +140,6 @@ export class PartnerCarousel {
 
   protected readonly paused = signal(false);
 
-  /** The list repeated to a minimum length, then twice over for the seamless loop. */
   protected readonly slides = computed<Slide[]>(() => {
     const partners = this.partners();
     if (!partners.length) return [];
@@ -163,7 +153,6 @@ export class PartnerCarousel {
     }));
   });
 
-  /** Time for one copy of the loop to slide past. */
   protected readonly duration = computed(() => {
     const perLoop = this.slides().length / 2;
     return `${Math.max(perLoop * SECONDS_PER_ITEM, 20)}s`;

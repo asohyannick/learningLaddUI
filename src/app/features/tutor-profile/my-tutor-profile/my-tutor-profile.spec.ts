@@ -58,7 +58,6 @@ describe('MyTutorProfile', () => {
 
   it('creates the profile, shows it and remembers its ID', async () => {
     const { fixture, el, notified, button, type, submit } = await render();
-    // No reads: lecturers cannot GET profiles.
     expect(el.textContent).toContain('Set up your tutor profile');
 
     button('Create my profile')!.click();
@@ -74,7 +73,6 @@ describe('MyTutorProfile', () => {
     type('tp-hourlyRate', '25');
     submit();
     fixture.detectChanges();
-    // A rate needs a currency.
     expect(el.textContent).toContain('Add the currency for your hourly rate');
 
     type('tp-currency', 'usd');

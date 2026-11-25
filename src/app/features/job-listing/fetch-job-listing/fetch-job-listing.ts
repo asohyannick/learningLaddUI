@@ -25,9 +25,6 @@ import {
   jobStatusClasses,
 } from '../job-listing.service';
 
-/**
- * Side panel: loads one listing (`GET /job-listing/{id}`), with PDF, publish, edit and delete.
- */
 @Component({
   selector: 'app-fetch-job-listing',
   imports: [JobPhoto, EnumLabelPipe],
@@ -204,7 +201,6 @@ export class FetchJobListing {
   readonly closed = output<void>();
   readonly edit = output<JobListingResponseDto>();
   readonly remove = output<JobListingResponseDto>();
-  /** The listing was changed from the panel (published); emits a toast message. */
   readonly changed = output<string>();
 
   protected readonly listing = signal<JobListingResponseDto | null>(null);
@@ -267,7 +263,6 @@ export class FetchJobListing {
     this.destroyRef.onDestroy(() => this.request?.unsubscribe());
   }
 
-  /** Escape closes a dialog opened on top of the panel first, not the panel. */
   protected onEscape(): void {
     if (!document.querySelector('app-modal')) this.closed.emit();
   }

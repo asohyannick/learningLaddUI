@@ -18,10 +18,8 @@ import { inputClasses } from '../../../../shared/validators/field-styles';
 import { applyServerErrors, trimmed } from '../../../../shared/validators/form-validators';
 import { AuthService } from '../auth.service';
 
-/** Seconds before another link can be requested. A new link cancels the previous one. */
 const RESEND_COOLDOWN_SECONDS = 60;
 
-/** Step 1 of a password reset: email a single-use reset link. */
 @Component({
   selector: 'app-forgot-password',
   imports: [AuthLayout, FieldError, FormAlert, ReactiveFormsModule, RouterLink],
@@ -42,7 +40,6 @@ export class ForgotPassword {
 
   protected readonly submitting = signal(false);
   protected readonly serverError = signal<string | null>(null);
-  /** API confirmation once the link is sent. */
   protected readonly sentMessage = signal<string | null>(null);
   protected readonly sentTo = signal('');
   protected readonly cooldown = createCountdown(this.destroyRef);
@@ -79,7 +76,6 @@ export class ForgotPassword {
       });
   }
 
-  /** "Use a different email": back to the form. */
   protected changeEmail(): void {
     this.sentMessage.set(null);
     this.serverError.set(null);

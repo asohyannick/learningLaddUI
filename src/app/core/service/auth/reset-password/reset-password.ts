@@ -27,7 +27,6 @@ import {
 } from '../../../../shared/validators/form-validators';
 import { AuthService } from '../auth.service';
 
-/** Step 2 of a password reset, opened from the emailed link `/reset-password?token=…`. */
 @Component({
   selector: 'app-reset-password',
   imports: [AuthLayout, FieldError, FormAlert, PasswordChecklist, ReactiveFormsModule, RouterLink],
@@ -40,7 +39,6 @@ export class ResetPassword {
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
-  /** Query param from the reset link. */
   readonly token = input<string>();
   protected readonly hasToken = computed(() => (this.token() ?? '').trim().length > 0);
 
@@ -66,13 +64,11 @@ export class ResetPassword {
 
   protected readonly submitting = signal(false);
   protected readonly serverError = signal<string | null>(null);
-  /** The link itself was refused (used, expired or replaced), not one of the fields. */
   protected readonly linkRejected = signal(false);
   protected readonly showPassword = signal(false);
   protected readonly inputClasses = inputClasses;
 
   constructor() {
-    // Re-check "confirm password" whenever the new password changes.
     this.form.controls.newPassword.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.form.controls.confirmPassword.updateValueAndValidity());

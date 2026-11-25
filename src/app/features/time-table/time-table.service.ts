@@ -14,44 +14,29 @@ import {
   shortTime,
 } from './time-table.model';
 
-/**
- * Timetable API (`/time-table`). Unlike most of the API, it answers with plain JSON (no
- * `{ success, data }` envelope).
- * - Read, search, count and PDF: any signed-in user.
- * - Create and update (PUT): staff, academic roles and students.
- * - Delete: super admin, admin, IT admin and academic director.
- */
 @Injectable({ providedIn: 'root' })
 export class TimeTableService {
   private readonly http = inject(HttpClient);
   private readonly api = `${environment.apiUrl}/time-table`;
 
-  /** `GET /time-table`: every entry, newest first. */
   listTimeTables(page = 0, size = 20): Observable<TimeTablePageResponseDto> {
     return this.http.get<TimeTablePageResponseDto>(this.api, { params: { page, size } });
   }
 
-  /** `GET /time-table/search`: keyword, filters, sort and paging. */
   searchTimeTables(query: TimeTablePagedQueryDto): Observable<TimeTablePageResponseDto> {
     return this.http.get<TimeTablePageResponseDto>(`${this.api}/search`, {
       params: toParams(query),
     });
   }
 
-  /** `GET /time-table/count`: every entry, in any status. */
   countTimeTables(): Observable<number> {
     return this.http.get<number>(`${this.api}/count`).pipe(map(Number));
   }
 
-  /** `GET /time-table/{id}` */
   getTimeTable(id: string): Observable<TimeTableResponseDto> {
     return this.http.get<TimeTableResponseDto>(`${this.api}/${id}`);
   }
 
-  /**
-   * `POST /time-table`. The `Idempotency-Key` (8–100 characters) is required: reuse the same key
-   * when retrying, so a slow network never creates the entry twice.
-   */
   createTimeTable(
     data: CreateTimeTableRequestDto,
     idempotencyKey: string,
@@ -61,20 +46,14 @@ export class TimeTableService {
     });
   }
 
-  /** `PUT /time-table/{id}`: only the fields sent are changed (at least one). */
   updateTimeTable(id: string, data: UpdateTimeTableRequestDto): Observable<TimeTableResponseDto> {
     return this.http.put<TimeTableResponseDto>(`${this.api}/${id}`, data);
   }
 
-  /** `DELETE /time-table/{id}` (204, no body). */
   deleteTimeTable(id: string): Observable<void> {
     return this.http.delete<void>(`${this.api}/${id}`);
   }
 
-  /**
-   * `GET /time-table/download`: a PDF of every entry matching the filters, in the chosen order
-   * (page and size are ignored; at most 5,000 entries). Emits the saved file name.
-   */
   downloadTimeTablesPdf(query: TimeTablePagedQueryDto = {}): Observable<string> {
     const { page: _page, size: _size, ...filters } = query;
     return this.http
@@ -93,10 +72,6 @@ export class TimeTableService {
       );
   }
 
-  /**
-   * PDF of one entry. The API only exports by filter, so this narrows by course, title, date
-   * and start time; another entry with the same title, course, date and time would be included.
-   */
   downloadTimeTablePdf(entry: TimeTableResponseDto): Observable<string> {
     const time = shortTime(entry.startTime);
     return this.downloadTimeTablesPdf({
@@ -120,14 +95,10 @@ function toParams(query: object): HttpParams {
   return params;
 }
 
-// ─── Display helpers ─────────────────────────────────────────────────
-
-/** "09:00–11:00" */
 export function timeRange(entry: Pick<TimeTableResponseDto, 'startTime' | 'endTime'>): string {
   return `${shortTime(entry.startTime)}–${shortTime(entry.endTime)}`;
 }
 
-/** "2 h", "1 h 30 min", "45 min" */
 export function durationLabel(minutes: number | undefined | null): string {
   if (!minutes || minutes < 0) return '';
   const h = Math.floor(minutes / 60);
@@ -136,7 +107,6 @@ export function durationLabel(minutes: number | undefined | null): string {
   return m ? `${h} h ${m} min` : `${h} h`;
 }
 
-/** "Mon 16 Nov 2026" from an ISO date, read as a calendar date. */
 export function dateLabel(date: string | undefined | null): string {
   if (!date) return '';
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
@@ -148,7 +118,6 @@ export function dateLabel(date: string | undefined | null): string {
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-/** "Every Monday, 16 Nov 2026 – 22 Feb 2027" or "Mon 16 Nov 2026". */
 export function scheduleLabel(
   entry: Pick<TimeTableResponseDto, 'recurring' | 'dayOfWeek' | 'startDate' | 'endDate'>,
 ): string {
@@ -163,7 +132,6 @@ export function scheduleLabel(
   return `Every ${day}, ${range}`;
 }
 
-/** Badge colours on the dark dashboard. */
 export function timeTableStatusClasses(status: TimeTableStatus | undefined): string {
   switch (status) {
     case TimeTableStatus.ONGOING:

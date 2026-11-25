@@ -1,18 +1,11 @@
 import { ADMIN_ROLES, UserRole } from '../../enum/global-enum-configuration';
 import { ILoginResponse, IUserResponse } from '../../interface';
 
-// Helpers shared by the auth service, guards and pages.
-
-/** What the session needs from a login or refresh response. */
 export type TokenPair = Pick<
   ILoginResponse,
   'accessToken' | 'accessTokenExpiresIn' | 'refreshToken'
 >;
 
-/**
- * Checks the `data` of login / Google sign-in and splits off the profile we keep.
- * Throws if the tokens are missing, so a broken response never starts a half session.
- */
 export function toSession(data: ILoginResponse | null | undefined): {
   tokens: TokenPair;
   user: IUserResponse;
@@ -36,7 +29,6 @@ export function toSession(data: ILoginResponse | null | undefined): {
   return { tokens: { accessToken, accessTokenExpiresIn, refreshToken }, user };
 }
 
-/** The dashboard a user lands on after signing in. */
 export function dashboardPathFor(role: UserRole | null | undefined): string {
   if (!role) {
     return '/';
@@ -59,10 +51,6 @@ export function dashboardPathFor(role: UserRole | null | undefined): string {
 const AUTH_PAGES =
   /^\/(login|logout|register|verify-otp|forgot-password|reset-password|magic-link)\b/;
 
-/**
- * Only same-app paths are accepted as `returnUrl`, so a crafted link cannot send the user to
- * another site or back into the auth pages.
- */
 export function safeReturnUrl(url: unknown): string | null {
   if (typeof url !== 'string' || !url.startsWith('/') || url.startsWith('//')) {
     return null;

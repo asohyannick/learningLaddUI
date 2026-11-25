@@ -14,7 +14,6 @@ import { FormAlert } from '../../../shared/reusable-components/form-alert/form-a
 import { Modal } from '../../../shared/reusable-components/modal/modal';
 import { CourseService } from '../course.service';
 
-/** Confirms and deletes a course (`DELETE /course/{id}`). */
 @Component({
   selector: 'app-delete-course',
   imports: [FormAlert, Modal],
@@ -58,7 +57,6 @@ export class DeleteCourse {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly course = input.required<{ id: string; name: string }>();
-  /** Emits the API message once deleted. */
   readonly done = output<string>();
   readonly cancelled = output<void>();
 

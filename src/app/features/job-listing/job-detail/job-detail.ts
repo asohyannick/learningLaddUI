@@ -28,10 +28,6 @@ import {
   jobFacts,
 } from '../job-listing.service';
 
-/**
- * Public page of one job (`GET /job-listing/{id}`): the full description and an Apply form.
- * Drafts are treated as not found. The API needs a signed-in user, so guests are asked to sign in.
- */
 @Component({
   selector: 'app-job-detail',
   imports: [JobPhoto, ApplyForm, EnumLabelPipe, RouterLink, SiteFooter, SiteHeader],
@@ -44,7 +40,6 @@ export class JobDetail {
   protected readonly account = injectHeaderAccount();
   protected readonly isSignedIn = inject(AuthService).isAuthenticated;
 
-  /** `:id` from the URL (bound by the router). */
   readonly id = input.required<string>();
 
   protected readonly result = rxResource({
@@ -98,7 +93,6 @@ export class JobDetail {
   });
 
   private readonly myApplication = inject(MyApplicationStore);
-  /** The API allows one application per person; it is remembered in this browser. */
   protected readonly myApplicationId = this.myApplication.applicationId;
   protected readonly applying = signal(false);
   protected readonly applied = signal(false);

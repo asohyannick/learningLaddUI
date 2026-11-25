@@ -73,7 +73,6 @@ describe('StudentProfileManager', () => {
     status.value = 'GRADUATED';
     status.dispatchEvent(new Event('change'));
     fixture.detectChanges();
-    // The status filter applies at once; the keyword waits for the user to pause.
     const byStatus = backend.expectOne((r) => r.url === `${api}/search`);
     expect(byStatus.request.params.get('enrollmentStatus')).toBe('GRADUATED');
     byStatus.flush(ok(coursePage([fakeStudentSummary()])));

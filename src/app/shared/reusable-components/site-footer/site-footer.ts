@@ -3,7 +3,6 @@ import { RouterLink } from '@angular/router';
 
 interface FooterLink {
   label: string;
-  /** `null` until the page exists; the item is shown as plain text. */
   path: string | null;
 }
 
@@ -12,7 +11,6 @@ interface FooterColumn {
   links: readonly FooterLink[];
 }
 
-/** Public marketing footer. */
 @Component({
   selector: 'app-site-footer',
   imports: [RouterLink],
@@ -35,7 +33,6 @@ export class SiteFooter {
     {
       heading: 'Company',
       links: [
-        // TODO: add routes for About and the Support pages once they are designed.
         { label: 'About', path: null },
         { label: 'Careers', path: '/jobs' },
         { label: 'Partners', path: '/partners' },

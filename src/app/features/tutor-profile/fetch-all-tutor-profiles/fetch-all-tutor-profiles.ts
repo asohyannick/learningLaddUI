@@ -59,11 +59,6 @@ export type TutorRow = TutorProfileSummary & {
   statusClasses: string;
 };
 
-/**
- * Tutor profile list for staff and students. Without a keyword, filter or custom sort it calls
- * `GET /tutor-profile`; otherwise `/search`. The first card is `/count`, and "Download PDF"
- * exports every profile matching the current filters (`/download`).
- */
 @Component({
   selector: 'app-fetch-all-tutor-profiles',
   imports: [EnumLabelPipe],
@@ -74,7 +69,6 @@ export class FetchAllTutorProfiles {
   private readonly profiles = inject(TutorProfileService);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** Shows Edit and Delete (admins). */
   readonly canManage = input(false);
   readonly view = output<TutorProfileSummary>();
   readonly edit = output<TutorProfileSummary>();
@@ -85,7 +79,6 @@ export class FetchAllTutorProfiles {
   protected readonly experienceOptions = EXPERIENCE_OPTIONS;
   protected readonly statuses = TUTOR_STATUSES;
 
-  /** Typed text; requests wait until the user pauses. */
   protected readonly searchText = signal('');
   protected readonly subjectText = signal('');
   protected readonly facultyText = signal('');
@@ -106,7 +99,6 @@ export class FetchAllTutorProfiles {
   protected readonly totalCount = signal<number | null>(null);
   private countRequest?: Subscription;
 
-  /** Row ID being exported, or 'all' for the whole filtered list. */
   protected readonly downloading = signal<string | null>(null);
   protected readonly downloadError = signal<string | null>(null);
 
@@ -131,7 +123,6 @@ export class FetchAllTutorProfiles {
     return !!(q.search || q.subject || q.faculty || q.status || q.minYearsOfExperience);
   });
   private readonly needsSearch = computed(() => this.isFiltered() || this.sortIndex() !== 0);
-  /** Something typed or picked, even if the debounced query has not caught up yet. */
   protected readonly hasInput = computed(
     () => this.isFiltered() || !!(this.searchText() || this.subjectText() || this.facultyText()),
   );
@@ -156,7 +147,6 @@ export class FetchAllTutorProfiles {
     return `${start}–${start + count - 1} of ${this.total()}`;
   });
 
-  /** Active and pending counts are for the loaded page. */
   protected readonly stats = computed(() => {
     const rows = this.rows();
     return {
@@ -179,7 +169,6 @@ export class FetchAllTutorProfiles {
     });
   }
 
-  /** Reloads the page and the total, e.g. after a profile was edited or deleted. */
   reload(): void {
     this.load(this.query(), this.needsSearch());
     this.loadCount();
@@ -233,7 +222,6 @@ export class FetchAllTutorProfiles {
     this.page.set(Math.min(Math.max(page, 0), this.totalPages() - 1));
   }
 
-  /** Exports every profile matching the filters (not only this page). */
   protected downloadAll(): void {
     this.export('all', this.profiles.downloadProfilesPdf(this.query()), 'this list');
   }
@@ -289,13 +277,11 @@ export class FetchAllTutorProfiles {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (count) => this.totalCount.set(count),
-        // The card shows a dash; the table reports the error.
         error: () => this.totalCount.set(null),
       });
   }
 }
 
-/** The signal's value once the user stops typing for a moment. */
 function debounced(source: Signal<string>): Signal<string> {
   return toSignal(
     toObservable(source).pipe(debounceTime(SEARCH_DEBOUNCE_MS), distinctUntilChanged()),

@@ -5,7 +5,6 @@ import { EnumLabelPipe } from '../../../shared/custom-pipe/enum-label-pipe';
 import { JobListingSummaryResponseDto } from '../job-listing.model';
 import { acceptsApplications, deadlineLabel, jobLocation } from '../job-listing.service';
 
-/** Public job card (home page and careers page). The whole card opens `/jobs/<id>`. */
 @Component({
   selector: 'app-job-card',
   imports: [JobPhoto, EnumLabelPipe, RouterLink],
@@ -34,7 +33,6 @@ import { acceptsApplications, deadlineLabel, jobLocation } from '../job-listing.
           }
         </div>
         <h3 class="mt-3 font-serif text-lg font-semibold">
-          <!-- The stretched link makes the whole card open the job. -->
           <a
             [routerLink]="['/jobs', j.id]"
             class="after:absolute after:inset-0 after:content-[''] focus:outline-none focus-visible:underline"

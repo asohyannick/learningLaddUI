@@ -19,10 +19,6 @@ type Dialog =
   | { kind: 'edit'; id: string }
   | { kind: 'delete'; entry: { id: string; title: string } };
 
-/**
- * Timetable section of the admin and student dashboards: list, search, count, view, add,
- * edit and export as PDF. Delete only shows for roles the API lets delete.
- */
 @Component({
   selector: 'app-time-table-manager',
   imports: [DeleteTimeTable, FetchAllTimeTables, FetchTimeTable, TimeTableForm],
@@ -68,7 +64,6 @@ type Dialog =
 export class TimeTableManager {
   private readonly auth = inject(AuthService);
 
-  /** Success messages for the dashboard's toast. */
   readonly notify = output<string>();
 
   protected readonly canDelete = computed(() => {

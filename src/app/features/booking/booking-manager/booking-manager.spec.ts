@@ -37,7 +37,6 @@ describe('BookingManager', () => {
     TestBed.inject(AuthService).endSession();
   });
 
-  /** Answers the tutor (and course) pickers. */
   function flushPickers() {
     for (const req of backend.match((r) => r.url === tutorSearch)) {
       req.flush(ok(tutorPage()));

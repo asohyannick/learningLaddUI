@@ -3,10 +3,6 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, ValidationErrors } from '@angular/forms';
 import { startWith, switchMap } from 'rxjs';
 
-/**
- * Shows the first validation error of a form control, in red, once the user has left the field
- * or tried to submit (`markAllAsTouched()`). Give the input `aria-describedby` = `errorId`.
- */
 @Component({
   selector: 'app-field-error',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,13 +28,10 @@ import { startWith, switchMap } from 'rxjs';
 })
 export class FieldError {
   readonly control = input.required<AbstractControl>();
-  /** Used in the messages, e.g. "Email is required." */
   readonly label = input.required<string>();
   readonly errorId = input<string>();
-  /** Message for a failed `Validators.pattern`. */
   readonly patternMessage = input<string>();
 
-  /** Ticks on every value, status or touched change of the control. */
   private readonly controlEvents = toSignal(
     toObservable(this.control).pipe(switchMap((control) => control.events.pipe(startWith(null)))),
   );

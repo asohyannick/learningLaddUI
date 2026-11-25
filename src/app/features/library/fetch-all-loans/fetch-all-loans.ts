@@ -41,7 +41,6 @@ interface SortOption {
   sortDirection: LibrarySortDirection;
 }
 
-/** The first option is the order of `GET /library/loans`. */
 const SORT_OPTIONS: readonly SortOption[] = [
   { label: 'Newest first', sortBy: 'createdAt', sortDirection: 'DESC' },
   { label: 'Due soonest', sortBy: 'dueAt', sortDirection: 'ASC' },
@@ -70,11 +69,6 @@ export interface LoanActionRequest {
   loan: LibraryLoanResponseDto;
 }
 
-/**
- * Loans table. Staff see every loan (`GET /library/loans`, or `/loans/search` with filters);
- * students see only theirs (`/loans/search?studentId=…`). Each row offers the actions its status
- * allows; "Download PDF" exports the loans matching the filters.
- */
 @Component({
   selector: 'app-fetch-all-loans',
   imports: [EnumLabelPipe],
@@ -86,7 +80,6 @@ export class FetchAllLoans {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly mode = input<LoanMode>('staff');
-  /** Student profile ID: required in student mode, optional filter for staff. */
   readonly studentId = input<string | null>(null);
   readonly view = output<LibraryLoanResponseDto>();
   readonly act = output<LoanActionRequest>();

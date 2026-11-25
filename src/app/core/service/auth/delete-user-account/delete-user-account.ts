@@ -17,10 +17,6 @@ import { inputClasses } from '../../../../shared/validators/field-styles';
 import { applyServerErrors, trimmed } from '../../../../shared/validators/form-validators';
 import { AuthService } from '../auth.service';
 
-/**
- * Dialog: deletes the signed-in user's own account after they confirm their password.
- * Every session ends, so the user lands on the login page afterwards.
- */
 @Component({
   selector: 'app-delete-user-account',
   imports: [FieldError, FormAlert, Modal, ReactiveFormsModule],

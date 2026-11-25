@@ -19,7 +19,6 @@ describe('JobPhoto', () => {
     expect(el.querySelector('img')).toBeNull();
     expect(el.querySelector('[data-testid="job-photo-placeholder"]')).not.toBeNull();
 
-    // A new link gets a fresh try.
     fixture.componentRef.setInput('src', 'https://example.org/new.jpg');
     await fixture.whenStable();
     expect(el.querySelector('img')?.getAttribute('src')).toBe('https://example.org/new.jpg');

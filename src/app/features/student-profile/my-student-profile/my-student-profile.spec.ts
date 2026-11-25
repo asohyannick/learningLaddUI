@@ -57,7 +57,6 @@ describe('MyStudentProfile', () => {
 
   it('creates the profile, shows it and remembers its ID', async () => {
     const { fixture, el, notified, button, type } = await render();
-    // No reads: students cannot GET profiles.
     expect(el.textContent).toContain('Set up your student profile');
 
     button('Create my profile')!.click();

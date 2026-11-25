@@ -34,7 +34,6 @@ const NAME_VALIDATORS = trimmed([
   Validators.pattern(PERSON_NAME_PATTERN),
 ]);
 
-/** Sign-up page: creates a student account, then sends the user to enter the emailed code. */
 @Component({
   selector: 'app-register',
   imports: [
@@ -77,7 +76,6 @@ export class Register {
   protected readonly inputClasses = inputClasses;
 
   constructor() {
-    // Re-check "confirm password" whenever the password changes.
     this.form.controls.password.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.form.controls.confirmPassword.updateValueAndValidity());

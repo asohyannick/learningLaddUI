@@ -1,5 +1,4 @@
 <app-auth-layout title="Welcome back" subtitle="Sign in to continue your climb.">
-  <!-- Notices from the previous page; an error from this form replaces them. -->
   @if (!serverError()) {
     @if (expired() === 'true') {
       <app-form-alert class="mb-6">Your session has expired. Please sign in again.</app-form-alert>

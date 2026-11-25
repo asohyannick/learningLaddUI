@@ -30,7 +30,6 @@ interface SortOption {
   sortDirection: LibrarySortDirection;
 }
 
-/** The first option is the order of `GET /library/books`, so it needs no search. */
 const SORT_OPTIONS: readonly SortOption[] = [
   { label: 'Title A–Z', sortBy: 'title', sortDirection: 'ASC' },
   { label: 'Title Z–A', sortBy: 'title', sortDirection: 'DESC' },
@@ -51,10 +50,6 @@ export type BookRow = LibraryBookResponseDto & {
   availabilityClasses: string;
 };
 
-/**
- * Book catalog. Without a search, filter or custom sort it calls `GET /library/books`; otherwise
- * `/books/search`. Staff get Add/Edit/Delete; students get Borrow.
- */
 @Component({
   selector: 'app-fetch-all-books',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,9 +59,7 @@ export class FetchAllBooks {
   private readonly library = inject(LibraryService);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** Add, edit and delete (library staff). */
   readonly canManage = input(false);
-  /** Reserve copies (students). */
   readonly canBorrow = input(false);
   readonly add = output<void>();
   readonly view = output<LibraryBookResponseDto>();
@@ -84,7 +77,6 @@ export class FetchAllBooks {
   private readonly category = debounced(this.categoryText);
   private readonly language = debounced(this.languageText);
   protected readonly availableOnly = signal(false);
-  /** 'true' = in the catalog, 'false' = withdrawn (staff only). */
   protected readonly activeFilter = signal<'true' | 'false'>('true');
   protected readonly yearFrom = signal('');
   protected readonly yearTo = signal('');
@@ -251,7 +243,6 @@ export class FetchAllBooks {
     });
   }
 
-  /** Exports every book matching the filters and sort (not only this page). */
   protected download(): void {
     if (this.downloading()) return;
     this.downloadError.set(null);
@@ -284,7 +275,6 @@ export class FetchAllBooks {
   }
 }
 
-/** The trimmed text, once the user has stopped typing for a moment. */
 function debounced(text: Signal<string>): Signal<string> {
   return toSignal(
     toObservable(text).pipe(

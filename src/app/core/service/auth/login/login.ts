@@ -21,7 +21,6 @@ import { safeReturnUrl } from '../auth-session';
 import { AuthService } from '../auth.service';
 import { GoogleAuth } from '../google-auth/google-auth';
 
-/** Sign-in page. On success the user goes back to `returnUrl`, or to their role's dashboard. */
 @Component({
   selector: 'app-login',
   imports: [AuthLayout, FieldError, FormAlert, GoogleAuth, ReactiveFormsModule, RouterLink],
@@ -34,16 +33,13 @@ export class Login {
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
-  /** Query param set by the auth guards: the page the user was trying to open. */
   readonly returnUrl = input<string>();
-  // Query params set by the page that sent the user here.
   readonly verified = input<string>();
   readonly passwordReset = input<string>();
   readonly signedOut = input<string>();
   readonly expired = input<string>();
   readonly accountDeleted = input<string>();
 
-  /** Green notice at the top of the form. */
   protected readonly notice = computed(() => {
     if (this.accountDeleted() === 'true') return 'Your account has been deleted.';
     if (this.passwordReset() === 'true')
@@ -54,7 +50,6 @@ export class Login {
   });
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    // Pre-filled after sign-up + verification.
     email: [
       this.auth.pendingEmail() ?? '',
       trimmed([Validators.required, Validators.email, Validators.maxLength(256)]),
@@ -64,7 +59,6 @@ export class Login {
 
   protected readonly submitting = signal(false);
   protected readonly serverError = signal<string | null>(null);
-  /** The account exists but its email is not verified yet. */
   protected readonly needsVerification = signal(false);
   protected readonly showPassword = signal(false);
   protected readonly inputClasses = inputClasses;
@@ -100,14 +94,12 @@ export class Login {
           const message = applyServerErrors(this.form, error);
           this.serverError.set(message);
           this.needsVerification.set(/verify/i.test(message));
-          // Never keep a rejected password in the form.
           this.form.controls.password.reset();
           this.host.nativeElement.querySelector<HTMLElement>('#password')?.focus();
         },
       });
   }
 
-  /** "Verify your email" link shown when the account is not verified yet. */
   protected goToVerification(): void {
     this.auth.setPendingEmail(this.form.controls.email.value.trim() || null);
     void this.router.navigate(['/verify-otp']);

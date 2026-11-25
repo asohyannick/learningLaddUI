@@ -18,7 +18,6 @@ import { PartnerDetails } from '../partner-details/partner-details';
 import { PartnersResponseDto } from '../partnership.model';
 import { PartnershipService } from '../partnership.service';
 
-/** Staff side panel: loads one partner (`GET /partners/{id}`), with PDF, edit and delete. */
 @Component({
   selector: 'app-fetch-partner',
   imports: [PartnerDetails],
@@ -144,7 +143,6 @@ export class FetchPartner {
     this.destroyRef.onDestroy(() => this.request?.unsubscribe());
   }
 
-  /** Escape closes a dialog opened on top of the panel first, not the panel. */
   protected onEscape(): void {
     if (!document.querySelector('app-modal')) this.closed.emit();
   }

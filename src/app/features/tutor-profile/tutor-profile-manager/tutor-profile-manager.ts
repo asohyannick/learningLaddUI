@@ -18,10 +18,6 @@ import { tutorName } from '../tutor-profile.service';
 type Dialog =
   { kind: 'edit'; id: string } | { kind: 'delete'; profile: { id: string; name: string } };
 
-/**
- * Tutor directory for staff and student dashboards: list, search, count, open and export as PDF.
- * Admins can also edit and delete. Profiles are created by the tutors themselves.
- */
 @Component({
   selector: 'app-tutor-profile-manager',
   imports: [DeleteTutorProfile, FetchAllTutorProfiles, FetchTutorProfile, TutorProfileForm],
@@ -64,7 +60,6 @@ type Dialog =
 export class TutorProfileManager {
   private readonly auth = inject(AuthService);
 
-  /** Success messages for the dashboard's toast. */
   readonly notify = output<string>();
 
   protected readonly canManage = computed(() => {

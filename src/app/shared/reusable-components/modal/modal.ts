@@ -11,11 +11,6 @@ import {
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/**
- * Centered dialog over a dimmed backdrop. Render it with `@if`; it emits `closed` on Escape,
- * a backdrop click or the × button. Focus moves inside on open, stays inside while open
- * (Tab wraps), and returns to the element that opened it.
- */
 @Component({
   selector: 'app-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,9 +73,7 @@ export class Modal {
   readonly heading = input.required<string>();
   readonly description = input<string>();
   readonly tone = input<'default' | 'danger'>('default');
-  /** `lg` for long forms; the dialog scrolls when taller than the screen. */
   readonly size = input<'md' | 'lg'>('md');
-  /** Set while a request runs so the dialog cannot be dismissed half-way. */
   readonly busy = input(false);
   readonly closed = output<void>();
 

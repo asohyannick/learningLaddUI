@@ -23,27 +23,17 @@ import {
   UpdateLibraryBookRequestDto,
 } from './library.model';
 
-/**
- * Library API (`/library`).
- * Books: everyone signed in reads; library staff add, update and delete.
- * Loans: students borrow (reserve), renew and return their own; staff issue, update, confirm
- * returns, search, count, export and delete; both can cancel reservations and report losses.
- */
 @Injectable({ providedIn: 'root' })
 export class LibraryService {
   private readonly http = inject(HttpClient);
   private readonly api = `${environment.apiUrl}/library`;
 
-  // ─── Books ─────────────────────────────────────────────────────────
-
-  /** `GET /library/books`: sorted by title. */
   listBooks(page = 0, size = 20): Observable<LibraryBookPageResponseDto> {
     return this.http
       .get<ApiResponse<LibraryBookPageResponseDto>>(`${this.api}/books`, { params: { page, size } })
       .pipe(map((res) => res.data));
   }
 
-  /** `GET /library/books/search`. */
   searchBooks(query: PagedQueryLibraryBookRequestDto): Observable<LibraryBookPageResponseDto> {
     return this.http
       .get<ApiResponse<LibraryBookPageResponseDto>>(`${this.api}/books/search`, {
@@ -52,17 +42,12 @@ export class LibraryService {
       .pipe(map((res) => res.data));
   }
 
-  /** `GET /library/books/count`: titles in the catalog. */
   countBooks(): Observable<number> {
     return this.http
       .get<ApiResponse<number>>(`${this.api}/books/count`)
       .pipe(map((res) => Number(res.data)));
   }
 
-  /**
-   * `GET /library/books/download` (super admin, admin, IT admin, librarian): PDF of the books
-   * matching the filters (page and size are ignored, at most 2,000 rows). Emits the file name.
-   */
   downloadBooksPdf(query: PagedQueryLibraryBookRequestDto = {}): Observable<string> {
     const { page: _page, size: _size, ...filters } = query;
     return this.http
@@ -82,14 +67,12 @@ export class LibraryService {
       );
   }
 
-  /** `GET /library/books/{id}`. */
   getBook(id: string): Observable<LibraryBookResponseDto> {
     return this.http
       .get<ApiResponse<LibraryBookResponseDto>>(`${this.api}/books/${encodeURIComponent(id)}`)
       .pipe(map((res) => res.data));
   }
 
-  /** `POST /library/books` (multipart: JSON `data` and an optional `coverImage`). */
   addBook(
     data: CreateLibraryBookRequestDto,
     coverImage?: File | null,
@@ -100,7 +83,6 @@ export class LibraryService {
     );
   }
 
-  /** `PATCH /library/books/{id}` (multipart). Send only what changed. */
   updateBook(
     id: string,
     data: UpdateLibraryBookRequestDto,
@@ -112,16 +94,12 @@ export class LibraryService {
     );
   }
 
-  /** `DELETE /library/books/{id}`: refused when the book has loan history. */
   deleteBook(id: string): Observable<string> {
     return this.http
       .delete<ApiResponse<null>>(`${this.api}/books/${id}`)
       .pipe(map((res) => res.message));
   }
 
-  // ─── Loans ─────────────────────────────────────────────────────────
-
-  /** `POST /library/loans`: the signed-in student reserves a copy for 48 hours. */
   borrowBook(
     data: BorrowBookRequestDto,
     idempotencyKey: string,
@@ -131,7 +109,6 @@ export class LibraryService {
     });
   }
 
-  /** `PATCH /library/loans/{id}/issue`: RESERVED → BORROWED. */
   issueBook(
     id: string,
     data: IssueBookRequestDto,
@@ -139,14 +116,12 @@ export class LibraryService {
     return this.patch(`${id}/issue`, data);
   }
 
-  /** `GET /library/loans`: newest first (staff). */
   listLoans(page = 0, size = 20): Observable<LibraryLoanPageResponseDto> {
     return this.http
       .get<ApiResponse<LibraryLoanPageResponseDto>>(`${this.api}/loans`, { params: { page, size } })
       .pipe(map((res) => res.data));
   }
 
-  /** `GET /library/loans/search`. */
   searchLoans(query: PagedQueryLibraryLoanRequestDto): Observable<LibraryLoanPageResponseDto> {
     return this.http
       .get<ApiResponse<LibraryLoanPageResponseDto>>(`${this.api}/loans/search`, {
@@ -155,14 +130,12 @@ export class LibraryService {
       .pipe(map((res) => res.data));
   }
 
-  /** `GET /library/loans/count`: copies out with students. */
   countBorrowedBooks(): Observable<number> {
     return this.http
       .get<ApiResponse<number>>(`${this.api}/loans/count`)
       .pipe(map((res) => Number(res.data)));
   }
 
-  /** `GET /library/loans/download`: PDF of matching loans (no paging, at most 2,000 rows). */
   downloadLoansPdf(query: PagedQueryLibraryLoanRequestDto = {}): Observable<string> {
     const { page: _page, size: _size, ...filters } = query;
     return this.http
@@ -181,19 +154,16 @@ export class LibraryService {
       );
   }
 
-  /** PDF of one loan: the export filters by its unique loan reference. */
   downloadLoanPdf(loan: Pick<LibraryLoanResponseDto, 'loanReference'>): Observable<string> {
     return this.downloadLoansPdf({ keyword: loan.loanReference });
   }
 
-  /** `GET /library/loans/{id}`: staff see any loan, students their own. */
   getLoan(id: string): Observable<LibraryLoanResponseDto> {
     return this.http
       .get<ApiResponse<LibraryLoanResponseDto>>(`${this.api}/loans/${encodeURIComponent(id)}`)
       .pipe(map((res) => res.data));
   }
 
-  /** `PATCH /library/loans/{id}`: new due date, condition or note on an active loan. */
   updateLoan(
     id: string,
     data: IssueBookRequestDto,
@@ -201,7 +171,6 @@ export class LibraryService {
     return this.patch(id, data);
   }
 
-  /** `PATCH /library/loans/{id}/renew` (the borrowing student). */
   renewLoan(id: string): Observable<ApiResponse<LibraryLoanResponseDto>> {
     return this.http.patch<ApiResponse<LibraryLoanResponseDto>>(
       `${this.api}/loans/${id}/renew`,
@@ -209,7 +178,6 @@ export class LibraryService {
     );
   }
 
-  /** `PATCH /library/loans/{id}/return` (the borrowing student): → RETURN_REQUESTED. */
   returnLoan(
     id: string,
     data: ReturnBookToLibraryRequestDto,
@@ -217,7 +185,6 @@ export class LibraryService {
     return this.patch(`${id}/return`, data);
   }
 
-  /** `PATCH /library/loans/{id}/confirm-return` (staff): → RETURNED, fee finalized. */
   confirmReturn(
     id: string,
     data: ConfirmBookReturnRequestDto,
@@ -225,7 +192,6 @@ export class LibraryService {
     return this.patch(`${id}/confirm-return`, data);
   }
 
-  /** `PATCH /library/loans/{id}/cancel`: RESERVED → CANCELLED. */
   cancelReservation(id: string): Observable<ApiResponse<LibraryLoanResponseDto>> {
     return this.http.patch<ApiResponse<LibraryLoanResponseDto>>(
       `${this.api}/loans/${id}/cancel`,
@@ -233,7 +199,6 @@ export class LibraryService {
     );
   }
 
-  /** `PATCH /library/loans/{id}/report-lost`. */
   reportLost(
     id: string,
     data: ReportBookLostRequestDto,
@@ -241,7 +206,6 @@ export class LibraryService {
     return this.patch(`${id}/report-lost`, data);
   }
 
-  /** `DELETE /library/loans/{id}`: finished loans only. */
   deleteLoan(id: string): Observable<string> {
     return this.http
       .delete<ApiResponse<null>>(`${this.api}/loans/${id}`)
@@ -270,18 +234,14 @@ function bookMultipart(data: object, coverImage?: File | null): FormData {
   return body;
 }
 
-// ─── Display helpers ─────────────────────────────────────────────────
-
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-/** "24 Nov 2026" from an ISO date or timestamp (UTC date part). */
 export function libraryDate(value?: string): string {
   if (!value) return '';
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
   return m ? `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[1]}` : value;
 }
 
-/** "USD 1.50", or '' for none. */
 export function money(amount?: number | null, currency?: string): string {
   if (amount === undefined || amount === null) return '';
   return `${currency ?? 'USD'} ${Number(amount).toLocaleString('en-US', {
@@ -290,7 +250,6 @@ export function money(amount?: number | null, currency?: string): string {
   })}`;
 }
 
-/** "J. R. R. Tolkien · 1954" */
 export function bookByline(
   book: Pick<LibraryBookResponseDto, 'author' | 'publicationYear'>,
 ): string {
@@ -305,7 +264,6 @@ export function isFinished(loan: Pick<LibraryLoanResponseDto, 'status'>): boolea
   return FINAL_LOAN_STATUSES.includes(loan.status);
 }
 
-/** Badge classes for a loan status on a dark background. */
 export function loanStatusClasses(status: LoanStatus): string {
   switch (status) {
     case LoanStatus.RESERVED:
@@ -339,7 +297,6 @@ export const LOAN_ACTION_LABELS: Record<LoanAction, string> = {
   delete: 'Delete',
 };
 
-/** What can be done with a loan, by its status and who is looking (mirrors the backend rules). */
 export function loanActions(
   loan: Pick<LibraryLoanResponseDto, 'status'>,
   mode: LoanMode,
@@ -358,7 +315,6 @@ export function loanActions(
   return ['delete'];
 }
 
-/** "Due 4 Dec 2026", "Pick up by …", "Returned …", for a table cell. */
 export function loanWhen(loan: LibraryLoanResponseDto): string {
   switch (loan.status) {
     case LoanStatus.RESERVED:
@@ -375,7 +331,6 @@ export function loanWhen(loan: LibraryLoanResponseDto): string {
   }
 }
 
-/** Today as "YYYY-MM-DD" in the user's time zone (for date inputs). */
 export function todayLocal(now = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;

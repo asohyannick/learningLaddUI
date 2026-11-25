@@ -25,14 +25,6 @@ const HEADINGS: Record<Section, string> = {
   tutors: 'Tutor profiles',
 };
 
-/**
- * Tutor console (professors, lecturers and super admins).
- * Courses: create, list, search, count, view, edit, delete and download as PDF.
- * Bookings: sessions students booked with this tutor (all bookings for super admins): approve,
- * decline, delete, search, count and PDF. The API limits tutors to their own bookings.
- * My profile: create, update and delete the tutor's own profile.
- * Tutors (super admins only, since only they may read profiles): the tutor directory.
- */
 @Component({
   selector: 'app-tutor-dashboard',
   imports: [BookingManager, CourseManager, DashboardShell, MyTutorProfile, TutorProfileManager],
@@ -67,7 +59,6 @@ export class TutorDashboard {
   private readonly auth = inject(AuthService);
   private readonly me = this.auth.user;
 
-  /** `?section=` from the URL (bound by the router). */
   readonly section = input<string>();
 
   private readonly canBrowseTutors = computed(() => {

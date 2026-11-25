@@ -39,7 +39,6 @@ const MAX_HOBBIES = 20;
 const MAX_PICTURE_BYTES = 10 * 1024 * 1024;
 const PICTURE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-/** Fields the API validates with a pattern or type: a blank value can't be sent, so it means "keep". */
 const KEEP_WHEN_BLANK = new Set([
   'firstName',
   'lastName',
@@ -52,7 +51,6 @@ const KEEP_WHEN_BLANK = new Set([
   'websiteUrl',
 ]);
 
-/** "YYYY-MM-DD" strictly before today (`@Past`). */
 function pastDate(control: AbstractControl): ValidationErrors | null {
   const value = control.value as string;
   if (!value) return null;
@@ -60,7 +58,6 @@ function pastDate(control: AbstractControl): ValidationErrors | null {
   return value < today ? null : { pastDate: true };
 }
 
-/** Comma-separated hobbies: at most 20, each up to 100 characters. */
 function hobbyList(control: AbstractControl): ValidationErrors | null {
   const items = splitHobbies(control.value as string);
   if (items.length > MAX_HOBBIES) return { tooManyHobbies: true };
@@ -68,7 +65,6 @@ function hobbyList(control: AbstractControl): ValidationErrors | null {
   return null;
 }
 
-/** First and last name: 2–255 letters, spaces, apostrophes, dots or hyphens (checked trimmed). */
 function nameValidator(required: boolean): ValidatorFn {
   return trimmed([
     ...(required ? [Validators.required] : []),
@@ -121,7 +117,6 @@ interface FieldConfig {
   placeholder?: string;
   hint?: string;
   patternMessage?: string;
-  /** Takes the full row on wide screens. */
   wide?: boolean;
 }
 
@@ -261,14 +256,6 @@ export interface StudentProfileSaved {
   profile: StudentProfileResponse;
 }
 
-/**
- * Dialog to create a student profile (`POST /student-profile`, students only) or update one
- * (`PATCH /student-profile/{id}`). An update only sends the fields that changed.
- *
- * Editing with `initial` pre-fills the form. With only `profileId` it loads the profile first,
- * unless `canLoad` is false (students cannot read profiles): then the form starts empty and
- * blank fields keep their saved value.
- */
 @Component({
   selector: 'app-student-profile-form',
   imports: [EnumLabelPipe, FieldError, FormAlert, Modal, ReactiveFormsModule],
@@ -280,11 +267,8 @@ export class StudentProfileForm implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder).nonNullable;
 
-  /** Profile to update; leave empty to create one. */
   readonly profileId = input<string | null>(null);
-  /** Current values of the profile being updated, when already known. */
   readonly initial = input<StudentProfileResponse | null>(null);
-  /** Whether this user may `GET` the profile to pre-fill the form. */
   readonly canLoad = input(true);
   readonly done = output<StudentProfileSaved>();
   readonly cancelled = output<void>();
@@ -297,7 +281,6 @@ export class StudentProfileForm implements OnInit {
   protected readonly today = new Date().toISOString().slice(0, 10);
 
   protected readonly isEdit = computed(() => !!this.profileId());
-  /** The saved values are unknown, so blank means "keep". */
   protected readonly blindEdit = computed(() => this.isEdit() && !this.original());
 
   protected readonly form = this.fb.group({
@@ -335,7 +318,6 @@ export class StudentProfileForm implements OnInit {
   protected readonly submitting = signal(false);
   protected readonly serverError = signal<string | null>(null);
 
-  /** Same key for every retry of this dialog, so a slow network never creates two profiles. */
   private readonly idempotencyKey =
     typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
@@ -352,7 +334,6 @@ export class StudentProfileForm implements OnInit {
     } else if (this.profileId() && this.canLoad()) {
       this.load();
     } else if (this.profileId()) {
-      // Blank means "keep", so names are no longer required.
       this.namesRequired.set(false);
       for (const name of ['firstName', 'lastName'] as const) {
         const control = this.form.controls[name];
@@ -453,13 +434,11 @@ export class StudentProfileForm implements OnInit {
       });
   }
 
-  /** Values to send on create; blank fields are left out. */
   private createPayload(): CreateStudentProfileRequest {
     const payload = this.toPayload(this.form.getRawValue());
     return { ...payload, firstName: payload.firstName ?? '', lastName: payload.lastName ?? '' };
   }
 
-  /** Only the fields that differ from the saved profile (or, when unknown, the filled-in ones). */
   private changedFields(): UpdateStudentProfileRequest {
     const after = this.form.getRawValue();
     const original = this.original();

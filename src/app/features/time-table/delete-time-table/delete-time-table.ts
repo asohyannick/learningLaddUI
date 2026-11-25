@@ -14,7 +14,6 @@ import { FormAlert } from '../../../shared/reusable-components/form-alert/form-a
 import { Modal } from '../../../shared/reusable-components/modal/modal';
 import { TimeTableService } from '../time-table.service';
 
-/** Confirms and deletes a timetable entry (`DELETE /time-table/{id}`). */
 @Component({
   selector: 'app-delete-time-table',
   imports: [FormAlert, Modal],
@@ -60,7 +59,6 @@ export class DeleteTimeTable {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly entry = input.required<{ id: string; title: string }>();
-  /** Emits a message for the toast once deleted. */
   readonly done = output<string>();
   readonly cancelled = output<void>();
 
@@ -77,7 +75,6 @@ export class DeleteTimeTable {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        // 204: the API sends no message.
         next: () => this.done.emit(`“${this.entry().title}” was removed from the timetable.`),
         error: (error: unknown) =>
           this.error.set(

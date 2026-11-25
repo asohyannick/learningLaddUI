@@ -1,7 +1,6 @@
 import { UserRole } from '../enum/global-enum-configuration';
 import { IUserResponse } from '../interface';
 
-/** Test data shaped like a user from `GET /auth/users`. */
 export function fakeUser(overrides: Partial<IUserResponse> = {}): IUserResponse {
   return {
     id: 'u-1',

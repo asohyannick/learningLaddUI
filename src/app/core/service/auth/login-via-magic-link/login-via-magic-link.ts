@@ -18,10 +18,6 @@ import { applyServerErrors, trimmed } from '../../../../shared/validators/form-v
 import { AuthService } from '../auth.service';
 import { ResendMagicLink } from '../resend-magic-link/resend-magic-link';
 
-/**
- * `/magic-link`: emails a single-use sign-in link. Opening it lands on `/magic-link/verify`,
- * which signs the user in without a password.
- */
 @Component({
   selector: 'app-login-via-magic-link',
   imports: [AuthLayout, FieldError, FormAlert, ReactiveFormsModule, ResendMagicLink, RouterLink],
@@ -42,7 +38,6 @@ export class LoginViaMagicLink {
 
   protected readonly submitting = signal(false);
   protected readonly serverError = signal<string | null>(null);
-  /** API confirmation once the link is sent (also after "Send another link"). */
   protected readonly sentMessage = signal<string | null>(null);
   protected readonly sentTo = signal('');
   protected readonly inputClasses = inputClasses;
@@ -77,7 +72,6 @@ export class LoginViaMagicLink {
       });
   }
 
-  /** "Use a different email": back to the form. */
   protected changeEmail(): void {
     this.sentMessage.set(null);
     this.serverError.set(null);

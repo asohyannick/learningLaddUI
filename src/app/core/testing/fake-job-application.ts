@@ -5,7 +5,6 @@ import {
 } from '../../features/job-application/job-application.model';
 import { SalaryPeriod } from '../../features/job-listing/job-listing.model';
 
-/** Amara Ndip's application to job-1, still SUBMITTED, with a CV and one document. */
 export function fakeJobApplication(
   overrides: Partial<JobApplicationResponseDto> = {},
 ): JobApplicationResponseDto {
@@ -38,7 +37,6 @@ export function fakeJobApplication(
   };
 }
 
-/** `{ success, data: JobApplicationPageResponseDto }` as the API sends it. */
 export function applicationPage(
   content: JobApplicationResponseDto[],
   totalElements = content.length,

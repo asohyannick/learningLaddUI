@@ -23,13 +23,6 @@ const STORAGE_PREFIX = 'll.tutorProfileId.';
 
 type Dialog = 'create' | 'edit' | 'delete';
 
-/**
- * The signed-in tutor's own profile: create, update and delete.
- *
- * Lecturers, professors and assistant lecturers cannot read profiles (not even their own), so
- * only the profile ID is remembered on this device, which is enough to update or delete it later.
- * Super admins can read profiles, so theirs is looked up and shown in full.
- */
 @Component({
   selector: 'app-my-tutor-profile',
   imports: [DeleteTutorProfile, NgTemplateOutlet, TutorProfileDetails, TutorProfileForm],
@@ -145,10 +138,8 @@ export class MyTutorProfile {
   private readonly profiles = inject(TutorProfileService);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** Success messages for the dashboard's toast. */
   readonly notify = output<string>();
 
-  /** Super admins may `GET` profiles; other tutors may not. */
   protected readonly canRead = this.auth.hasAnyRole(TUTOR_PROFILE_READ_ROLES);
 
   private readonly storageKey = computed(() => {
@@ -156,7 +147,6 @@ export class MyTutorProfile {
     return id ? STORAGE_PREFIX + id : null;
   });
 
-  /** Known after loading (super admins), or after creating or saving in this visit. */
   protected readonly profile = signal<TutorProfileResponse | null>(null);
   protected readonly profileId = signal<string | null>(this.readStoredId());
   protected readonly dialog = signal<Dialog | null>(null);
@@ -185,7 +175,6 @@ export class MyTutorProfile {
     this.notify.emit(message);
   }
 
-  /** The remembered profile, or else the one whose email is the signed-in user's. */
   private loadOwn(): void {
     const email = this.auth.user()?.email?.toLowerCase();
     const storedId = this.profileId();
@@ -214,7 +203,6 @@ export class MyTutorProfile {
         error: (error: unknown) => {
           this.loading.set(false);
           if (isApiErrorResponse(error) && error.status === 404) {
-            // Deleted elsewhere: offer to create a new one.
             this.remember(null);
             return;
           }
@@ -234,9 +222,7 @@ export class MyTutorProfile {
     try {
       if (id) localStorage.setItem(key, id);
       else localStorage.removeItem(key);
-    } catch {
-      // Storage can be blocked; the ID is still kept for this visit.
-    }
+    } catch {}
   }
 
   private readStoredId(): string | null {

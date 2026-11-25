@@ -1,10 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 
-/**
- * A job listing's photo. When there is no photo, or the link does not load (deleted file,
- * expired storage link, mistyped URL), it shows a briefcase placeholder instead of the browser's
- * broken-image icon, or nothing at all with `hideWhenMissing`. Size it with classes on the host.
- */
 @Component({
   selector: 'app-job-photo',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,10 +43,8 @@ import { ChangeDetectionStrategy, Component, computed, input, signal } from '@an
 export class JobPhoto {
   readonly src = input<string | null | undefined>(null);
   readonly tone = input<'light' | 'dark'>('light');
-  /** Render nothing (instead of a placeholder) when there is no photo or it fails to load. */
   readonly hideWhenMissing = input(false);
 
-  /** The link that failed; a new link gets a fresh try. */
   protected readonly failedSrc = signal<string | null | undefined>(null);
   protected readonly showImage = computed(() => !!this.src() && this.src() !== this.failedSrc());
   protected readonly visible = computed(() => this.showImage() || !this.hideWhenMissing());

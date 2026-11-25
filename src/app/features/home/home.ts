@@ -29,22 +29,18 @@ interface RoleCard {
   items: readonly string[];
 }
 
-/** Two rows of three on large screens. */
 const FEATURED_COURSES = 6;
 
-/** One row of three. */
 const FEATURED_JOBS = 3;
 
 interface Step {
   number: string;
   title: string;
   description: string;
-  /** Raises each card a little more than the one before it, like rungs on a ladder. */
   offsetClass: string;
   highlighted: boolean;
 }
 
-/** Public landing page. */
 @Component({
   selector: 'app-home',
   imports: [CourseCard, JobCard, PartnerCarousel, RouterLink, SiteHeader, SiteFooter],
@@ -59,7 +55,6 @@ export class Home {
 
   protected readonly isSignedIn = inject(AuthService).isAuthenticated;
 
-  /** Loaded only for signed-in users: the course API returns 401 to guests. */
   protected readonly courses = rxResource({
     params: () => (this.isSignedIn() ? true : undefined),
     stream: () => this.homeService.getFeaturedCourses(FEATURED_COURSES),
@@ -69,7 +64,6 @@ export class Home {
     this.courses.hasValue() ? this.courses.value().content : [],
   );
 
-  /** Number of published courses, for the "View all" link. */
   protected readonly publishedTotal = computed(() =>
     this.courses.hasValue() ? this.courses.value().totalElements : 0,
   );
@@ -78,10 +72,6 @@ export class Home {
     resourceErrorMessage(this.courses.error()),
   );
 
-  /**
-   * Every public partner, for the carousel (`GET /partners/public`). The section stays hidden
-   * while loading, on error or when there are none.
-   */
   protected readonly partners = rxResource({
     stream: () => this.partnershipService.getAllPublicPartners(),
   });
@@ -90,7 +80,6 @@ export class Home {
     this.partners.hasValue() ? this.partners.value() : [],
   );
 
-  /** The newest open roles, for signed-in users only (the API returns 401 to guests). */
   protected readonly jobs = rxResource({
     params: () => (this.isSignedIn() ? true : undefined),
     stream: () => this.jobListingService.searchOpenJobListings({ page: 0, size: FEATURED_JOBS }),
@@ -106,7 +95,6 @@ export class Home {
 
   protected readonly skeletonSlots = Array.from({ length: FEATURED_COURSES }, (_, i) => i);
 
-  /** Course progress shown in the hero preview: 6 of 8 lessons done. */
   protected readonly lessons = Array.from({ length: 8 }, (_, i) => i < 6);
 
   protected readonly features: readonly PlatformFeature[] = [

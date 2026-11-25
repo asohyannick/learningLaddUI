@@ -31,10 +31,6 @@ type Dialog =
   | { kind: 'edit'; booking: BookingResponseDto }
   | { kind: BookingDecisionKind; booking: BookingResponseDto };
 
-/**
- * Bookings section. Staff (admin dashboard): every booking; approve, decline, delete, search,
- * count and PDF. Students: their own bookings; book a tutor, edit or reschedule, delete, PDF.
- */
 @Component({
   selector: 'app-booking-manager',
   imports: [BookingDecision, BookingForm, FetchAllBookings, FetchBooking],
@@ -87,7 +83,6 @@ export class BookingManager {
   private readonly auth = inject(AuthService);
   private readonly user = this.auth.user;
 
-  /** Lecturers, professors and assistant lecturers only see the bookings made with them. */
   protected readonly tutorView = computed(() => {
     this.auth.role();
     return this.mode() === 'staff' && this.auth.hasAnyRole(TUTOR_ROLES);
@@ -96,7 +91,6 @@ export class BookingManager {
   readonly mode = input<BookingMode>('staff');
   readonly notify = output<string>();
 
-  /** Bookings store the student's user ID. */
   protected readonly studentId = computed(() =>
     this.mode() === 'student' ? (this.user()?.id ?? null) : null,
   );

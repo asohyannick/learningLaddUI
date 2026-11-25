@@ -17,12 +17,9 @@ export const appConfig: ApplicationConfig = {
     provideRouter(
       routes,
       withComponentInputBinding(),
-      // Scroll to `#fragment` links (e.g. /#platform) and back to the top on page change.
       withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' }),
     ),
-    // Order matters: errorInterceptor is outermost, so it maps the final error after the auth retry.
     provideHttpClient(withFetch(), withInterceptors([errorInterceptor, authInterceptor])),
-    // A reload loses the in-memory access token: renew it in the background (does not block start-up).
     provideAppInitializer(() => inject(AuthService).restoreSession()),
   ],
 };

@@ -44,14 +44,12 @@ function wholeNumber(min: number, max: number): ValidatorFn {
   };
 }
 
-/** ≥ 0, at most 8 digits before the point and 2 after. */
 function lateFee(control: AbstractControl): ValidationErrors | null {
   const value = (control.value as string).trim();
   if (!value) return null;
   return /^\d{1,8}(\.\d{1,2})?$/.test(value) ? null : { moneyFormat: { integer: 8 } };
 }
 
-/** ISBN-10 or ISBN-13 once dashes and spaces are removed (the backend strips them too). */
 function isbn(control: AbstractControl): ValidationErrors | null {
   const value = (control.value as string).replace(/[\s-]/g, '').toUpperCase();
   if (!value) return null;
@@ -165,7 +163,6 @@ const NUMBER_FIELDS = new Set([
   'maxRenewals',
   'dailyLateFee',
 ]);
-/** Optional text the API clears when sent as "". */
 const CLEARABLE = new Set([
   'subtitle',
   'publisher',
@@ -181,10 +178,6 @@ export interface BookSaved {
   book: LibraryBookResponseDto;
 }
 
-/**
- * Dialog to add a book (`POST /library/books`) or update one (`PATCH /library/books/{id}`), with
- * an optional cover image. An update only sends the fields that changed.
- */
 @Component({
   selector: 'app-book-form',
   imports: [FieldError, FormAlert, Modal, ReactiveFormsModule],
@@ -244,7 +237,6 @@ export class BookForm implements OnInit {
 
   ngOnInit(): void {
     if (this.bookId()) {
-      // On update the API allows 0 copies (e.g. all copies lost).
       this.form.controls.totalCopies.setValidators(wholeNumber(0, 10_000));
       this.load();
     }

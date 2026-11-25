@@ -13,10 +13,6 @@ import {
   UUID,
 } from '../../interface';
 
-/**
- * The server caches user lists and profiles for up to 5 minutes, so a user we just blocked could
- * come back as "active" on the next page load. Changes made here are layered on top for that long.
- */
 const SERVER_CACHE_MS = 5 * 60_000;
 
 interface LocalChange {
@@ -24,10 +20,6 @@ interface LocalChange {
   at: number;
 }
 
-/**
- * Admin-only user management (`/auth/users`, ADMIN / SUPER_ADMIN / IT_ADMIN).
- * Deleting an account is in `AuthService.deleteAccount()`: the API only lets users delete their own.
- */
 @Injectable({ providedIn: 'root' })
 export class UserAdminService {
   private readonly http = inject(HttpClient);
@@ -35,10 +27,8 @@ export class UserAdminService {
 
   private readonly changes = signal<ReadonlyMap<UUID, LocalChange>>(new Map());
 
-  /** Read this in a `computed` to re-render when a user is blocked or unblocked. */
   readonly localChanges = this.changes.asReadonly();
 
-  /** One page of users. Invalid values fall back to page 0, size 20, newest first. */
   listUsers(query: IPageQuery = {}): Observable<IPagedResponse<IUserResponse>> {
     const params: Record<string, string | number> = {};
     for (const [key, value] of Object.entries(query)) {
@@ -49,14 +39,12 @@ export class UserAdminService {
       .pipe(map((res) => res.data));
   }
 
-  /** One non-deleted user. */
   getUser(userId: UUID): Observable<IUserResponse> {
     return this.http
       .get<ApiResponse<IUserResponse>>(`${this.baseUrl}/${encodeURIComponent(userId)}`)
       .pipe(map((res) => res.data));
   }
 
-  /** Blocks the account, signs the user out and emails them the reason. Returns the API message. */
   blockUser(userId: UUID, body: IBlockAccountRequest): Observable<string> {
     return this.http
       .patch<ApiResponse<unknown>>(`${this.baseUrl}/${encodeURIComponent(userId)}/block`, body)
@@ -66,7 +54,6 @@ export class UserAdminService {
       );
   }
 
-  /** Restores access (unverified users still have to verify their email). Returns the API message. */
   unblockUser(userId: UUID, body: IUnBlockAccountRequest): Observable<string> {
     return this.http
       .patch<ApiResponse<unknown>>(`${this.baseUrl}/${encodeURIComponent(userId)}/unblock`, body)
@@ -76,7 +63,6 @@ export class UserAdminService {
       );
   }
 
-  /** The user with any recent block/unblock from this browser applied. */
   withLocalChanges(user: IUserResponse): IUserResponse {
     const change = this.changes().get(user.id);
     return change && Date.now() - change.at < SERVER_CACHE_MS ? { ...user, ...change.patch } : user;
@@ -88,8 +74,6 @@ export class UserAdminService {
     this.changes.set(next);
   }
 }
-
-// ─── Display helpers shared by the admin screens ─────────────────────────
 
 export type AccountStatus = 'Active' | 'Blocked' | 'Unverified' | 'Deleted';
 
@@ -118,7 +102,6 @@ export function initials(user: Pick<IUserResponse, 'firstName' | 'lastName' | 'e
   return (first + last || user.email.charAt(0)).toUpperCase();
 }
 
-/** Mirrors the server rules: admins cannot block themselves, super admins cannot be blocked. */
 export function canBlock(user: IUserResponse, currentUserId: UUID | undefined): boolean {
   return (
     !user.isAccountBlocked &&
@@ -132,7 +115,6 @@ export function canUnblock(user: IUserResponse): boolean {
   return user.isAccountBlocked && !user.isAccountDeleted;
 }
 
-/** Why the block button is disabled, for its tooltip. */
 export function blockDisabledReason(user: IUserResponse, currentUserId: UUID | undefined): string {
   if (user.id === currentUserId) return 'You cannot block your own account';
   if (user.role === UserRole.SUPER_ADMIN) return 'Super admin accounts cannot be blocked';

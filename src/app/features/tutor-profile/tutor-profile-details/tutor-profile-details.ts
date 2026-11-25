@@ -10,7 +10,6 @@ interface Row {
   value: string | null | undefined;
 }
 
-/** Read-only view of one tutor profile, grouped like the form. Dark dashboard styling. */
 @Component({
   selector: 'app-tutor-profile-details',
   imports: [DatePipe, EnumLabelPipe],

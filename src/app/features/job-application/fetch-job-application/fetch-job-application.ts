@@ -27,7 +27,6 @@ import {
   shortDate,
 } from '../job-application.service';
 
-/** Side panel (staff): one application (`GET /job-application/{id}`), its files, PDF and delete. */
 @Component({
   selector: 'app-fetch-job-application',
   imports: [EnumLabelPipe],

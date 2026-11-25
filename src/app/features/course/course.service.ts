@@ -12,20 +12,17 @@ import {
   UpdateCourseRequest,
 } from './course.model';
 
-/** Course API (`/course`). Reads need a signed-in user; writes need a course role. */
 @Injectable({ providedIn: 'root' })
 export class CourseService {
   private readonly http = inject(HttpClient);
   private readonly api = `${environment.apiUrl}/course`;
 
-  /** `GET /course`: every course, newest first. */
   listCourses(page = 0, size = 20): Observable<PageResponse<CourseSummary>> {
     return this.http
       .get<ApiResponse<PageResponse<CourseSummary>>>(this.api, { params: { page, size } })
       .pipe(map((res) => res.data));
   }
 
-  /** `GET /course/search`: keyword, filters, sort and paging. */
   searchCourses(query: CourseSearchQuery): Observable<PageResponse<CourseSummary>> {
     return this.http
       .get<ApiResponse<PageResponse<CourseSummary>>>(`${this.api}/search`, {
@@ -34,7 +31,6 @@ export class CourseService {
       .pipe(map((res) => res.data));
   }
 
-  /** `GET /course/count`: number of courses, published or not. */
   countCourses(): Observable<number> {
     return this.http
       .get<ApiResponse<number>>(`${this.api}/count`)
@@ -47,10 +43,6 @@ export class CourseService {
       .pipe(map((res) => res.data));
   }
 
-  /**
-   * `POST /course` (multipart). Reuse the same `idempotencyKey` when retrying a failed submit,
-   * so the server never creates the course twice.
-   */
   createCourse(
     data: CreateCourseRequest,
     files: CourseFiles = {},
@@ -61,7 +53,6 @@ export class CourseService {
     });
   }
 
-  /** `PATCH /course/{id}` (multipart). New files replace the current ones; materials are added. */
   updateCourse(
     id: string,
     data: UpdateCourseRequest,
@@ -73,12 +64,10 @@ export class CourseService {
     );
   }
 
-  /** `DELETE /course/{id}`. Emits the API message. */
   deleteCourse(id: string): Observable<string> {
     return this.http.delete<ApiResponse<null>>(`${this.api}/${id}`).pipe(map((res) => res.message));
   }
 
-  /** `GET /course/{id}/pdf`: downloads the course sheet. `fallbackName` is used without a header. */
   downloadCoursePdf(id: string, fallbackName = 'course'): Observable<string> {
     return this.http
       .get(`${this.api}/${id}/pdf`, { observe: 'response', responseType: 'blob' })
@@ -104,7 +93,6 @@ function toParams(query: CourseSearchQuery): HttpParams {
   return params;
 }
 
-/** The JSON goes in a `data` part with its own content type, files in their named parts. */
 function toMultipart(data: UpdateCourseRequest, files: CourseFiles): FormData {
   const body = new FormData();
   body.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
@@ -115,7 +103,6 @@ function toMultipart(data: UpdateCourseRequest, files: CourseFiles): FormData {
   return body;
 }
 
-/** Price after the discount (an amount, not a percentage). Never below 0. */
 export function finalPrice(course: Pick<CourseSummary, 'price' | 'discount'>): number {
   return Math.max((course.price ?? 0) - (course.discount ?? 0), 0);
 }

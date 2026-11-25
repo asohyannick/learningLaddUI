@@ -7,10 +7,6 @@ import { finalPrice } from '../course.service';
 
 const THUMBNAIL_FALLBACKS = ['bg-royal', 'bg-ladder', 'bg-navy-900'];
 
-/**
- * Public course card (home page and catalogue). The title opens the course on the catalogue
- * page (`/courses?course=<id>`), where the details, promo video and PDF are.
- */
 @Component({
   selector: 'app-course-card',
   imports: [CurrencyPipe, EnumLabelPipe, NgOptimizedImage, RouterLink],
@@ -45,7 +41,6 @@ const THUMBNAIL_FALLBACKS = ['bg-royal', 'bg-ladder', 'bg-navy-900'];
           }
         </div>
         <h3 class="mt-3 font-serif text-lg font-semibold">
-          <!-- The stretched link makes the whole card open the course. -->
           <a
             routerLink="/courses"
             [queryParams]="{ course: c.id }"
@@ -82,7 +77,6 @@ const THUMBNAIL_FALLBACKS = ['bg-royal', 'bg-ladder', 'bg-navy-900'];
 })
 export class CourseCard {
   readonly course = input.required<CourseSummary>();
-  /** Position in the list; picks the background shown without a thumbnail. */
   readonly index = input(0);
 
   protected readonly price = computed(() => finalPrice(this.course()));

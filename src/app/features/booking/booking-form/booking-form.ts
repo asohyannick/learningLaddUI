@@ -38,7 +38,6 @@ import {
 } from '../booking.model';
 import { BookingService, needsMeetingLink } from '../booking.service';
 
-/** "YYYY-MM-DD" and "HH:mm" of an instant in the browser's time zone. */
 function localParts(iso?: string): { date: string; time: string } {
   if (!iso) return { date: '', time: '' };
   const d = new Date(iso);
@@ -53,7 +52,6 @@ function toInstant(date: string, time: string): string {
   return new Date(`${date}T${time}:00`).toISOString();
 }
 
-/** Start in the future; end 15 minutes to 8 hours after it (checked on the end time). */
 function scheduleRule(control: AbstractControl): ValidationErrors | null {
   const group = control.parent;
   if (!group) return null;
@@ -76,7 +74,6 @@ function futureStart(control: AbstractControl): ValidationErrors | null {
   return Date.parse(`${date}T${start}:00`) > Date.now() ? null : { pastStart: true };
 }
 
-/** In-person sessions need a place name or an address (the backend's ensureLocationProvided). */
 function placeRule(control: AbstractControl): ValidationErrors | null {
   const group = control.parent;
   if (!group || group.get('sessionMode')?.value !== SessionMode.IN_PERSON) return null;
@@ -96,11 +93,6 @@ const TEXT_FIELDS = [
   'locationInstructions',
 ] as const;
 
-/**
- * Dialog for a student to book a tutor (`POST /booking`) or change a booking (`PATCH /booking/{id}`).
- * Times are entered in the device's time zone. Changing the date or times reschedules the
- * session, which sends a confirmed booking back to pending.
- */
 @Component({
   selector: 'app-booking-form',
   imports: [EnumLabelPipe, FieldError, FormAlert, Modal, ReactiveFormsModule],
@@ -114,7 +106,6 @@ export class BookingForm implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder).nonNullable;
 
-  /** Booking to change; leave empty to book a new session. */
   readonly existing = input<BookingResponseDto | null>(null);
   readonly done = output<{ message: string; booking: BookingResponseDto }>();
   readonly cancelled = output<void>();
@@ -185,7 +176,6 @@ export class BookingForm implements OnInit {
     const b = this.existing();
     if (!b) return;
     this.form.reset(this.toFormValue(b));
-    // The tutor of a booking cannot be changed; book again for another tutor.
     this.form.controls.tutorId.disable();
   }
 
@@ -244,7 +234,6 @@ export class BookingForm implements OnInit {
     return payload as unknown as CreateBookingRequestDto;
   }
 
-  /** Only what changed; blank optional text clears it; a new date or time reschedules. */
   private changes(b: BookingResponseDto): UpdateBookingRequestDto {
     const before = this.toFormValue(b);
     const v = this.form.getRawValue();
@@ -267,7 +256,6 @@ export class BookingForm implements OnInit {
     return changes as UpdateBookingRequestDto;
   }
 
-  /** Online-only and in-person-only fields are sent for the matching session modes. */
   private applies(key: (typeof TEXT_FIELDS)[number], mode: SessionMode): boolean {
     if (key === 'meetingPlatform') return needsMeetingLink(mode);
     if (['locationName', 'addressLine', 'city', 'country', 'locationInstructions'].includes(key)) {

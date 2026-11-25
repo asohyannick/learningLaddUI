@@ -1,7 +1,6 @@
 import { CourseSummary } from '../interface';
 import { CourseResponse } from '../../features/course/course.model';
 
-/** Test data shaped like an item of `GET /course`. */
 export function fakeCourseSummary(overrides: Partial<CourseSummary> = {}): CourseSummary {
   return {
     id: 'c-1',
@@ -24,7 +23,6 @@ export function fakeCourseSummary(overrides: Partial<CourseSummary> = {}): Cours
   };
 }
 
-/** Test data shaped like `GET /course/{id}`. */
 export function fakeCourse(overrides: Partial<CourseResponse> = {}): CourseResponse {
   return {
     id: 'c-1',
@@ -48,7 +46,6 @@ export function fakeCourse(overrides: Partial<CourseResponse> = {}): CourseRespo
   };
 }
 
-/** A course `PagedResponseDto` around `content`. */
 export function coursePage<T>(content: T[], totalElements = content.length) {
   return {
     content,

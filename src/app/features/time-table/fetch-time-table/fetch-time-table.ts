@@ -27,7 +27,6 @@ import {
   timeTableStatusClasses,
 } from '../time-table.service';
 
-/** Side panel: loads one entry (`GET /time-table/{id}`), with PDF, edit and delete. */
 @Component({
   selector: 'app-fetch-time-table',
   imports: [EnumLabelPipe],
@@ -231,7 +230,6 @@ export class FetchTimeTable {
     this.destroyRef.onDestroy(() => this.request?.unsubscribe());
   }
 
-  /** Escape closes a dialog opened on top of the panel first, not the panel. */
   protected onEscape(): void {
     if (!document.querySelector('app-modal')) this.closed.emit();
   }

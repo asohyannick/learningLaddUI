@@ -1,9 +1,5 @@
 @import 'tailwindcss';
 
-/*
- * Design tokens from the Learning Ladder landing page design.
- * Each colour becomes a utility automatically, e.g. `bg-navy-900`, `text-ladder`, `border-line`.
- */
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-serif: 'Fraunces', ui-serif, Georgia, serif;
@@ -26,7 +22,6 @@
   --color-line: #e4e0d6;
 }
 
-/* Tailwind's preflight already resets margins, lists, links, buttons and images. */
 @layer base {
   html {
     scroll-behavior: smooth;

@@ -19,10 +19,6 @@ import { inputClasses } from '../../../../shared/validators/field-styles';
 import { applyServerErrors, trimmed } from '../../../../shared/validators/form-validators';
 import { UserAdminService, displayName } from '../user-admin.service';
 
-/**
- * Admin dialog: restores a blocked account with a reason (5–500 characters). Users who never
- * verified their email still have to do so before they can sign in.
- */
 @Component({
   selector: 'app-un-block-user-account',
   imports: [FieldError, FormAlert, Modal, ReactiveFormsModule],
@@ -34,7 +30,6 @@ export class UnBlockUserAccount {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly user = input.required<IUserResponse>();
-  /** Emits the API message after the account is unblocked. */
   readonly done = output<string>();
   readonly cancelled = output<void>();
 

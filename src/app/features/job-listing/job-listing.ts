@@ -35,10 +35,6 @@ const SORTS: readonly {
   { label: 'Title A–Z', sortBy: 'title', sortDirection: 'asc' },
 ];
 
-/**
- * Public careers page: open roles (`GET /job-listing/search?openOnly=true`) with search,
- * filters and paging. The API needs a signed-in user, so guests are asked to sign in.
- */
 @Component({
   selector: 'app-job-listing',
   imports: [EnumLabelPipe, JobCard, PageHero, RouterLink, SiteFooter, SiteHeader],
@@ -49,7 +45,6 @@ export class JobListing {
   protected readonly account = injectHeaderAccount();
   private readonly auth = inject(AuthService);
   protected readonly isSignedIn = this.auth.isAuthenticated;
-  /** Staff who manage listings get a hint that drafts are not shown here. */
   protected readonly canManage = computed(() => {
     this.auth.role();
     return this.auth.hasAnyRole(ADMIN_ROLES);

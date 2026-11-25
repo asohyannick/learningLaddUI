@@ -38,7 +38,6 @@
       <app-form-alert class="mb-4">{{ message }}</app-form-alert>
     }
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-6">
-      <!-- Basics -->
       <fieldset class="space-y-4">
         <legend class="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">
           Basics
@@ -127,7 +126,6 @@
         </div>
       </fieldset>
 
-      <!-- Pricing -->
       <fieldset class="space-y-4">
         <legend class="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">
           Pricing &amp; duration
@@ -215,7 +213,6 @@
         <p class="text-xs text-muted">The discount is an amount in the same currency, not a %.</p>
       </fieldset>
 
-      <!-- Content -->
       <fieldset class="space-y-4">
         <legend class="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">
           Content
@@ -280,7 +277,6 @@
         </div>
       </fieldset>
 
-      <!-- Files -->
       <fieldset class="space-y-3">
         <legend class="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">
           Files <span class="font-normal normal-case tracking-normal">(optional)</span>
@@ -412,7 +408,6 @@
         </div>
       </fieldset>
 
-      <!-- Visibility -->
       <fieldset class="grid gap-4 sm:grid-cols-2">
         <legend class="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">
           Visibility

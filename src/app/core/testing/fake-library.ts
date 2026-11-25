@@ -4,7 +4,6 @@ import {
   LoanStatus,
 } from '../../features/library/library.model';
 
-/** "Clean Code", 3 copies with 2 on the shelf, 14-day loans, USD 0.50 a day late. */
 export function fakeBook(overrides: Partial<LibraryBookResponseDto> = {}): LibraryBookResponseDto {
   return {
     id: 'book-1',
@@ -30,7 +29,6 @@ export function fakeBook(overrides: Partial<LibraryBookResponseDto> = {}): Libra
   };
 }
 
-/** A reservation of book-1 by student profile sp-1. */
 export function fakeLoan(overrides: Partial<LibraryLoanResponseDto> = {}): LibraryLoanResponseDto {
   return {
     id: 'loan-1',
@@ -51,7 +49,6 @@ export function fakeLoan(overrides: Partial<LibraryLoanResponseDto> = {}): Libra
   };
 }
 
-/** `{ success, data: Library*PageResponseDto }` as the API sends it. */
 export function libraryPage<T>(content: T[], totalElements = content.length) {
   return {
     success: true,

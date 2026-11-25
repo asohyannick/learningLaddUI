@@ -15,23 +15,17 @@ import {
   UpdateJobListingRequestDto,
 } from './job-listing.model';
 
-/**
- * Job listings API (`/job-listing`). Every signed-in user can list, search, count, view and
- * download; super admins, admins and IT admins can also create, update and delete.
- */
 @Injectable({ providedIn: 'root' })
 export class JobListingService {
   private readonly http = inject(HttpClient);
   private readonly api = `${environment.apiUrl}/job-listing`;
 
-  /** `GET /job-listing`: newest first. */
   listJobListings(page = 0, size = 20): Observable<JobListingPageResponseDto> {
     return this.http
       .get<ApiResponse<JobListingPageResponseDto>>(this.api, { params: { page, size } })
       .pipe(map((res) => res.data));
   }
 
-  /** `GET /job-listing/search`: filters, sort and paging. */
   searchJobListings(query: JobListingPagedQueryDto): Observable<JobListingPageResponseDto> {
     return this.http
       .get<ApiResponse<JobListingPageResponseDto>>(`${this.api}/search`, {
@@ -40,7 +34,6 @@ export class JobListingService {
       .pipe(map((res) => res.data));
   }
 
-  /** Listings still taking applications (OPEN and not past the deadline), newest first. */
   searchOpenJobListings(
     query: Omit<JobListingPagedQueryDto, 'openOnly' | 'status'> = {},
   ): Observable<JobListingPageResponseDto> {
@@ -52,21 +45,18 @@ export class JobListingService {
     });
   }
 
-  /** `GET /job-listing/count`: listings in any status. */
   countJobListings(): Observable<number> {
     return this.http
       .get<ApiResponse<number>>(`${this.api}/count`)
       .pipe(map((res) => Number(res.data)));
   }
 
-  /** `GET /job-listing/{id}`: the full listing. */
   getJobListing(id: string): Observable<JobListingResponseDto> {
     return this.http
       .get<ApiResponse<JobListingResponseDto>>(`${this.api}/${encodeURIComponent(id)}`)
       .pipe(map((res) => res.data));
   }
 
-  /** `POST /job-listing` (multipart). New listings are drafts. */
   createJobListing(
     data: CreateJobListingRequestDto,
     photo?: File | null,
@@ -74,7 +64,6 @@ export class JobListingService {
     return this.http.post<ApiResponse<JobListingResponseDto>>(this.api, toMultipart(data, photo));
   }
 
-  /** `PATCH /job-listing/{id}` (multipart). Send only what changed. */
   updateJobListing(
     id: string,
     data: UpdateJobListingRequestDto,
@@ -86,15 +75,10 @@ export class JobListingService {
     );
   }
 
-  /** `DELETE /job-listing/{id}`. Emits the API message. */
   deleteJobListing(id: string): Observable<string> {
     return this.http.delete<ApiResponse<null>>(`${this.api}/${id}`).pipe(map((res) => res.message));
   }
 
-  /**
-   * `GET /job-listing/download`: PDF of the listings matching the filters (page and size are
-   * ignored, at most 200 rows). Emits the saved file name.
-   */
   downloadJobListingsPdf(query: JobListingPagedQueryDto = {}): Observable<string> {
     const { page: _page, size: _size, ...filters } = query;
     return this.http
@@ -113,10 +97,6 @@ export class JobListingService {
       );
   }
 
-  /**
-   * PDF of one listing. The API only exports by filter, so this searches by its reference code
-   * (unique, and matched by the search); a listing whose title contains the code would also match.
-   */
   downloadJobListingPdf(
     listing: Pick<JobListingSummaryResponseDto, 'referenceCode'>,
   ): Observable<string> {
@@ -134,15 +114,12 @@ function toParams(query: object): HttpParams {
   return params;
 }
 
-/** JSON in a `data` part with its own content type, and the optional `photo`. */
 function toMultipart(data: UpdateJobListingRequestDto, photo?: File | null): FormData {
   const body = new FormData();
   body.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
   if (photo) body.append('photo', photo);
   return body;
 }
-
-// ─── Display helpers ─────────────────────────────────────────────────
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const PERIODS: Record<string, string> = {
@@ -153,7 +130,6 @@ const PERIODS: Record<string, string> = {
   YEARLY: 'year',
 };
 
-/** "16 Nov 2026" from "2026-11-16" (or an ISO timestamp), the same in every locale. */
 export function jobDateLabel(value?: string): string {
   if (!value) return '';
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
@@ -161,13 +137,11 @@ export function jobDateLabel(value?: string): string {
   return `${Number(match[3])} ${MONTHS[Number(match[2]) - 1]} ${match[1]}`;
 }
 
-/** Today as "YYYY-MM-DD" in the user's time zone. */
 export function todayIso(now = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
-/** "Douala, Cameroon" */
 export function jobLocation(job: {
   city?: string;
   stateRegion?: string;
@@ -176,7 +150,6 @@ export function jobLocation(job: {
   return [job.city, job.country].filter(Boolean).join(', ');
 }
 
-/** "XAF 250,000 – 400,000 / month", or null when hidden or not set. */
 export function salaryLabel(
   job: Pick<
     JobListingResponseDto,
@@ -197,7 +170,6 @@ export function salaryLabel(
   return `${job.currency ?? 'USD'} ${range}${period}`;
 }
 
-/** Whether a listing still takes applications: open and not past its deadline. */
 export function acceptsApplications(
   job: Pick<JobListingSummaryResponseDto, 'status' | 'applicationDeadline'>,
   today = todayIso(),
@@ -207,7 +179,6 @@ export function acceptsApplications(
   );
 }
 
-/** "Apply by 16 Nov 2026", "Closes today", "Applications closed" or null (no deadline). */
 export function deadlineLabel(
   job: Pick<JobListingSummaryResponseDto, 'status' | 'applicationDeadline'>,
   today = todayIso(),
@@ -241,7 +212,6 @@ const LABELS: Record<string, string> = {
   ON_SITE: 'On site',
 };
 
-/** "Full time", "Remote", "Senior": like the enum-label pipe, for plain strings. */
 export function enumText(value?: string): string {
   if (!value) return '';
   if (LABELS[value]) return LABELS[value];
@@ -254,7 +224,6 @@ export interface JobFact {
   value: string;
 }
 
-/** The facts shown on a listing's page and in the staff panel; empty ones are left out. */
 export function jobFacts(job: JobListingResponseDto, today = todayIso()): JobFact[] {
   const years = job.minimumYearsExperience;
   const experience = [

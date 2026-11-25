@@ -87,11 +87,6 @@ type ApplyField =
 
 type FileSlot = 'cv' | 'profilePic' | 'supportingDocuments';
 
-/**
- * Dialog to apply for a job (`POST /job-application`, multipart). Name and email come from the
- * account; the CV is required. Each submission sends its own Idempotency-Key, so a retry after
- * a network error never creates a second application.
- */
 @Component({
   selector: 'app-apply-form',
   imports: [FieldError, FormAlert, Modal, ReactiveFormsModule],
@@ -105,13 +100,11 @@ export class ApplyForm implements OnInit {
   private readonly user = inject(AuthService).user;
 
   readonly job = input.required<JobListingResponseDto>();
-  /** The applicant's own application to edit; leave empty to apply. */
   readonly existing = input<JobApplicationResponseDto | null>(null);
   readonly done = output<JobApplicationResponseDto>();
   readonly cancelled = output<void>();
 
   protected readonly isEdit = computed(() => !!this.existing());
-  /** IDs and links of the saved supporting documents the applicant keeps. */
   protected readonly keptDocs = signal<{ id: string; url?: string }[]>([]);
 
   protected readonly inputClasses = inputClasses;
@@ -236,7 +229,6 @@ export class ApplyForm implements OnInit {
 
   protected readonly submitting = signal(false);
   protected readonly serverError = signal<string | null>(null);
-  /** One key per filled-in form: retries reuse it, so the API never stores the application twice. */
   private readonly idempotencyKey = crypto.randomUUID();
 
   ngOnInit(): void {
@@ -348,10 +340,6 @@ export class ApplyForm implements OnInit {
       });
   }
 
-  /**
-   * `PATCH /job-application/{id}` with only what changed. The API keeps a field that is left
-   * out, so clearing a field keeps its saved value.
-   */
   private saveChanges(existing: JobApplicationResponseDto): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -444,7 +432,6 @@ export class ApplyForm implements OnInit {
     return payload as unknown as CreateJobApplicationRequestDto;
   }
 
-  /** Today or later; a saved date that has since passed may stay when editing. */
   private availableRule(control: AbstractControl): ValidationErrors | null {
     const value = control.value as string;
     if (!value || value >= todayIso()) return null;

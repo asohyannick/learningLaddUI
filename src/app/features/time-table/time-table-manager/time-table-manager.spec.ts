@@ -36,7 +36,6 @@ describe('TimeTableManager', () => {
     TestBed.inject(AuthService).endSession();
   });
 
-  /** Answers every pending course lookup (filter and form pickers). */
   function flushCourses() {
     for (const req of backend.match((r) => r.url === courseSearch)) {
       req.flush(ok(coursePage([fakeCourseSummary()])));
@@ -110,7 +109,7 @@ describe('TimeTableManager', () => {
     course.dispatchEvent(new Event('change'));
     mode.value = 'ONLINE';
     mode.dispatchEvent(new Event('change'));
-    sort.value = '3'; // Start time, earliest
+    sort.value = '3';
     sort.dispatchEvent(new Event('change'));
     fixture.detectChanges();
     const req = backend.expectOne((r) => r.url === `${api}/search`);
@@ -155,7 +154,6 @@ describe('TimeTableManager', () => {
     set('tf-startDate', '2026-11-18');
     tick('tf-recurring');
     await submit();
-    // The last date and the meeting link are required now.
     expect(el.textContent).toContain('Last date is required.');
     expect(el.textContent).toContain('Meeting link is required.');
     expect(el.textContent).toContain('Start time is required.');

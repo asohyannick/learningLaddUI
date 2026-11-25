@@ -22,10 +22,8 @@ import {
 } from '../../../../shared/validators/form-validators';
 import { AuthService } from '../auth.service';
 
-/** Seconds before "Resend code" can be used again. The backend also rate-limits. */
 const RESEND_COOLDOWN_SECONDS = 60;
 
-/** Step 2 of sign-up: enter the 6-digit code from the email. */
 @Component({
   selector: 'app-verify-otp',
   imports: [AuthLayout, FieldError, FormAlert, ReactiveFormsModule, RouterLink],
@@ -39,14 +37,12 @@ export class VerifyOtp {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly fb = inject(FormBuilder).nonNullable;
 
-  /** Email we sent the code to (set by the register page). Null if the page was opened directly. */
   protected readonly email = this.auth.pendingEmail;
 
   protected readonly form = this.fb.group({
     otpCode: ['', [Validators.required, Validators.pattern(OTP_PATTERN)]],
   });
 
-  /** Only used when we do not know the email yet. */
   protected readonly resendForm = this.fb.group({
     email: ['', trimmed([Validators.required, Validators.email, Validators.maxLength(255)])],
   });
@@ -66,7 +62,6 @@ export class VerifyOtp {
     return c.invalid && c.touched;
   }
 
-  /** Keeps only digits, at most 6, so pasting "123 456" also works. */
   protected onCodeInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const digits = input.value.replace(/\D/g, '').slice(0, 6);

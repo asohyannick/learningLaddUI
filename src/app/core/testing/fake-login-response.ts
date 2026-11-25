@@ -1,7 +1,6 @@
 import { UserRole } from '../enum/global-enum-configuration';
 import { ApiResponse, ILoginResponse } from '../interface';
 
-/** Test data shaped like a real `POST /auth/login` (and `/auth/google`) response. */
 export function fakeLoginResponse(overrides: Partial<ILoginResponse> = {}): ILoginResponse {
   return {
     id: 'fbdf6d54-e471-448d-87b1-262416f9e3a5',
@@ -25,7 +24,6 @@ export function fakeLoginResponse(overrides: Partial<ILoginResponse> = {}): ILog
   };
 }
 
-/** The success envelope around `data`. */
 export function ok<T>(data: T, message = 'OK'): ApiResponse<T> {
   return { success: true, status: 200, message, data, path: '', timestamp: '' };
 }

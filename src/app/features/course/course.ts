@@ -29,15 +29,9 @@ const SORT_OPTIONS: readonly SortOption[] = [
 
 type PriceFilter = '' | 'FREE' | 'PAID';
 
-/** Two rows of three, or three rows of four on wide screens. */
 const PAGE_SIZE = 12;
 const SEARCH_DEBOUNCE_MS = 300;
 
-/**
- * Course catalogue (`/courses`): every published course, with search, filters, sort and pages
- * (`GET /course/search?published=true`). `?course=<id>` opens that course's details, promo video
- * and PDF.
- */
 @Component({
   selector: 'app-course',
   imports: [CourseCard, EnumLabelPipe, FetchCourse, SiteFooter, SiteHeader],
@@ -49,7 +43,6 @@ export class Course {
   private readonly router = inject(Router);
   protected readonly account = injectHeaderAccount();
 
-  /** `?course=` from the URL (bound by the router): the course shown in the side panel. */
   readonly course = input<string>();
 
   protected readonly levels = COURSE_LEVELS;
@@ -111,7 +104,6 @@ export class Course {
     return isApiErrorResponse(error) ? error.message : 'Please try again in a moment.';
   });
 
-  /** Page numbers around the current one, e.g. [0, 1, 2, 3, 4]. */
   protected readonly pageNumbers = computed(() => {
     const count = this.totalPages();
     const current = this.page();

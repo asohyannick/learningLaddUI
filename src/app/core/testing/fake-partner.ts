@@ -6,7 +6,6 @@ import {
   SponsorshipTier,
 } from '../../features/partnership/partnership.model';
 
-/** Test data shaped like `GET /partners/{id}` (staff view). */
 export function fakePartner(overrides: Partial<PartnersResponseDto> = {}): PartnersResponseDto {
   return {
     id: 'pt-1',
@@ -34,7 +33,6 @@ export function fakePartner(overrides: Partial<PartnersResponseDto> = {}): Partn
   };
 }
 
-/** Test data shaped like an item of `GET /partners/public`. */
 export function fakePublicPartner(
   overrides: Partial<PartnerPublicResponseDto> = {},
 ): PartnerPublicResponseDto {

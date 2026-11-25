@@ -5,7 +5,6 @@ import {
   SessionMode,
 } from '../../features/booking/booking.model';
 
-/** A pending online session with tutor tp-1, booked by user "me", far in the future. */
 export function fakeBooking(overrides: Partial<BookingResponseDto> = {}): BookingResponseDto {
   return {
     id: 'bk-1',
@@ -29,7 +28,6 @@ export function fakeBooking(overrides: Partial<BookingResponseDto> = {}): Bookin
   };
 }
 
-/** `{ success, data: BookingPageResponseDto }` as the API sends it. */
 export function bookingPage(content: BookingResponseDto[], totalElements = content.length) {
   const data: BookingPageResponseDto = {
     content,

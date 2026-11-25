@@ -10,7 +10,6 @@ import { SiteHeader } from '../../../shared/reusable-components/site-header/site
 import { tierClassesLight } from '../partner-badges';
 import { PartnershipService, partnerInitials, partnerLocation } from '../partnership.service';
 
-/** Public page of one partner: `GET /partners/public/{slug}`. */
 @Component({
   selector: 'app-partner-page',
   imports: [EnumLabelPipe, RouterLink, SiteFooter, SiteHeader],
@@ -194,7 +193,6 @@ export class PartnerPage {
   private readonly partners = inject(PartnershipService);
   private readonly title = inject(Title);
 
-  /** `:slug` from the URL (bound by the router). */
   readonly slug = input.required<string>();
 
   protected readonly result = rxResource({
@@ -202,7 +200,6 @@ export class PartnerPage {
     stream: ({ params: slug }) => this.partners.getPublicPartner(slug),
   });
 
-  // The API answers 404 unless the partner is active and shown on the website.
   protected readonly notFound = computed(
     () => resourceApiError(this.result.error())?.status === 404,
   );

@@ -15,13 +15,8 @@ import { AuthLayout } from '../../../../shared/reusable-components/auth-layout/a
 import { FormAlert } from '../../../../shared/reusable-components/form-alert/form-alert';
 import { AuthService } from '../auth.service';
 
-/** Upper bound from `VerifyMagicLinkTokenDto`; anything longer is not a real token. */
 const MAX_TOKEN_LENGTH = 255;
 
-/**
- * `/magic-link/verify?token=…`: opened from the emailed link. Exchanges the token for a session
- * straight away and sends the user to their dashboard. The token works once.
- */
 @Component({
   selector: 'app-verify-magic-link',
   imports: [AuthLayout, FormAlert, RouterLink],
@@ -33,20 +28,17 @@ export class VerifyMagicLink implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** Query params of the emailed link. `magicLinkToken` is accepted as an alias. */
   readonly token = input<string>();
   readonly magicLinkToken = input<string>();
 
   private readonly linkToken = computed(() => (this.token() ?? this.magicLinkToken() ?? '').trim());
 
   protected readonly error = signal<string | null>(null);
-  /** The link has no usable token (cut off when copied, or opened by hand). */
   private readonly invalidLink = computed(() => {
     const token = this.linkToken();
     return !token || token.length > MAX_TOKEN_LENGTH;
   });
 
-  /** What went wrong, or null while signing in. */
   protected readonly problem = computed(() => {
     if (this.invalidLink()) {
       return {
@@ -70,7 +62,6 @@ export class VerifyMagicLink implements OnInit {
       .verifyMagicLink(this.linkToken())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        // replaceUrl: the spent token must not stay in the history.
         next: () => void this.router.navigateByUrl(this.auth.dashboardPath(), { replaceUrl: true }),
         error: (error: unknown) =>
           this.error.set(

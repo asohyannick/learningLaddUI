@@ -42,7 +42,6 @@ import { TimeTableService } from '../time-table.service';
 
 const MAX_CAPACITY = 100_000;
 
-/** The browser's time zone, e.g. "Africa/Douala"; UTC when unknown. */
 function browserTimeZone(): string {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
@@ -51,7 +50,6 @@ function browserTimeZone(): string {
   }
 }
 
-/** IANA zones the browser knows, for suggestions. */
 function knownTimeZones(): string[] {
   const intl = Intl as typeof Intl & { supportedValuesOf?: (key: string) => string[] };
   try {
@@ -61,20 +59,16 @@ function knownTimeZones(): string[] {
   }
 }
 
-// ─── Validators (mirror the backend's rules between fields) ───────────
-
 function parentValue<T>(control: AbstractControl, name: string): T | undefined {
   return control.parent?.get(name)?.value as T | undefined;
 }
 
-/** End time after start time. */
 function endTimeAfterStart(control: AbstractControl): ValidationErrors | null {
   const start = parentValue<string>(control, 'startTime');
   const end = control.value as string;
   return start && end && end <= start ? { endTimeBeforeStart: true } : null;
 }
 
-/** Weekly entries need a last date, on or after the first. */
 function endDateRule(control: AbstractControl): ValidationErrors | null {
   if (!parentValue<boolean>(control, 'recurring')) return null;
   const end = control.value as string;
@@ -83,21 +77,18 @@ function endDateRule(control: AbstractControl): ValidationErrors | null {
   return start && end < start ? { endBeforeStart: true } : null;
 }
 
-/** In-person and hybrid sessions need a location. */
 function locationRule(control: AbstractControl): ValidationErrors | null {
   const mode = parentValue<SessionMode | ''>(control, 'sessionMode');
   if (!mode || mode === SessionMode.ONLINE) return null;
   return (control.value as string).trim() ? null : { required: true };
 }
 
-/** Online and hybrid sessions need a meeting link. */
 function meetingUrlRule(control: AbstractControl): ValidationErrors | null {
   const mode = parentValue<SessionMode | ''>(control, 'sessionMode');
   if (!mode || mode === SessionMode.IN_PERSON) return null;
   return (control.value as string).trim() ? null : { required: true };
 }
 
-/** A zone the browser can use; the backend checks it again with `ZoneId.of`. */
 function timeZoneRule(control: AbstractControl): ValidationErrors | null {
   const value = (control.value as string).trim();
   if (!value) return null;
@@ -109,7 +100,6 @@ function timeZoneRule(control: AbstractControl): ValidationErrors | null {
   }
 }
 
-/** Whole number, 1–100,000. */
 function capacityRule(control: AbstractControl): ValidationErrors | null {
   const value = (control.value as string).trim();
   if (!value) return null;
@@ -142,11 +132,6 @@ interface FormValue {
   status: TimeTableStatus;
 }
 
-/**
- * Dialog to add a timetable entry (`POST /time-table`) or update one (`PUT /time-table/{id}`).
- * The weekday of a weekly entry is taken from its first date, so the two always agree.
- * An update sends only the fields that changed; clearing a text field clears it.
- */
 @Component({
   selector: 'app-time-table-form',
   imports: [EnumLabelPipe, FieldError, FormAlert, Modal, ReactiveFormsModule],
@@ -159,7 +144,6 @@ export class TimeTableForm implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder).nonNullable;
 
-  /** Entry to update; leave empty to add one. */
   readonly timeTableId = input<string | null>(null);
   readonly done = output<TimeTableSaved>();
   readonly cancelled = output<void>();
@@ -172,7 +156,6 @@ export class TimeTableForm implements OnInit {
   protected readonly isEdit = computed(() => !!this.timeTableId());
   protected readonly original = signal<TimeTableResponseDto | null>(null);
 
-  /** Courses to pick from when adding (the first 100, by name). */
   protected readonly courseOptions = rxResource({
     params: () => (this.isEdit() ? undefined : true),
     stream: () =>
@@ -222,7 +205,6 @@ export class TimeTableForm implements OnInit {
     return !!mode && mode !== SessionMode.IN_PERSON;
   });
   protected readonly recurring = computed(() => this.value().recurring);
-  /** "Repeats every Monday", from the first date. */
   protected readonly weekday = computed(() => {
     const day = dayOfWeekOf(this.value().startDate);
     return day ? day.charAt(0) + day.slice(1).toLowerCase() : null;
@@ -233,14 +215,12 @@ export class TimeTableForm implements OnInit {
   protected readonly submitting = signal(false);
   protected readonly serverError = signal<string | null>(null);
 
-  /** Same key on every retry of this dialog, so a slow network never creates duplicates. */
   private readonly idempotencyKey =
     typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
   constructor() {
-    // Cross-field rules: re-check the dependent controls when the other one changes.
     const c = this.form.controls;
     const recheck = (source: AbstractControl, ...targets: AbstractControl[]) =>
       source.valueChanges
@@ -331,7 +311,6 @@ export class TimeTableForm implements OnInit {
       });
   }
 
-  /** The request body as the form describes it, before comparing with the saved entry. */
   private normalized(v: FormValue) {
     const recurring = v.recurring;
     const mode = v.sessionMode as SessionMode;
@@ -355,7 +334,6 @@ export class TimeTableForm implements OnInit {
     };
   }
 
-  /** Blank optional fields are left out so the API defaults apply. */
   private createPayload(): CreateTimeTableRequestDto {
     const v = this.normalized(this.form.getRawValue());
     const { status: _status, capacity, endDate, dayOfWeek, ...rest } = v;
@@ -371,7 +349,6 @@ export class TimeTableForm implements OnInit {
     return payload as unknown as CreateTimeTableRequestDto;
   }
 
-  /** Only what differs from the saved entry. */
   private changedFields(): UpdateTimeTableRequestDto {
     const original = this.original();
     if (!original) return {};
@@ -381,12 +358,9 @@ export class TimeTableForm implements OnInit {
     for (const key of Object.keys(after) as (keyof typeof after)[]) {
       const value = after[key];
       if (value === before[key]) continue;
-      // Turning weekly off clears the day and last date on the server.
       if ((key === 'endDate' || key === 'dayOfWeek') && !after.recurring) continue;
-      // Switching mode keeps the old location / link on record; there is nothing to send.
       if (key === 'location' && after.sessionMode === SessionMode.ONLINE) continue;
       if (key === 'meetingUrl' && after.sessionMode === SessionMode.IN_PERSON) continue;
-      // The API cannot remove a capacity once set (blank means "keep").
       if (key === 'capacity' && value === null) continue;
       changes[key] = value;
     }

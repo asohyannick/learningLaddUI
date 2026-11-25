@@ -38,7 +38,6 @@ const LABELS = {
   delete: 'Delete',
 } as const;
 
-/** Side panel: one booking (`GET /booking/{id}`) with the actions its status allows. */
 @Component({
   selector: 'app-fetch-booking',
   imports: [EnumLabelPipe],
@@ -175,7 +174,6 @@ export class FetchBooking {
 
   readonly bookingId = input.required<string>();
   readonly mode = input<BookingMode>('staff');
-  /** Tutor names by tutor profile ID, from the list. */
   readonly tutorNames = input<ReadonlyMap<string, string>>(new Map());
   readonly closed = output<void>();
   readonly act = output<BookingActionRequest>();

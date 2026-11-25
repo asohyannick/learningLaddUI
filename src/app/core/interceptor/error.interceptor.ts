@@ -3,11 +3,6 @@ import { Observable, catchError, from, switchMap, throwError } from 'rxjs';
 import { ApiErrorResponse, isApiErrorResponse } from '../interface';
 import { isApiRequest } from './api-url';
 
-/**
- * Turns every failed API call into an `ApiErrorResponse`, so components can always read
- * `err.message` and `err.errors` (field errors), whatever went wrong.
- * Registered first so it sees the final error, after the auth interceptor's retry.
- */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   if (!isApiRequest(req.url)) {
     return next(req);
@@ -15,10 +10,6 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(catchError((error: unknown) => toApiError$(error, req.url)));
 };
 
-/**
- * Requests made with `responseType: 'blob'` (PDF downloads) get their error body as a Blob;
- * read it as JSON first so the API's message is not lost.
- */
 function toApiError$(error: unknown, url: string): Observable<never> {
   if (error instanceof HttpErrorResponse && error.error instanceof Blob) {
     return from(error.error.text()).pipe(

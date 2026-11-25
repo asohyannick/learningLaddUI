@@ -44,7 +44,6 @@ describe('JobListing', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Sign in to see open roles');
-    // The header has its own plain "Sign in" link; the page's link brings the user back here.
     const hrefs = Array.from(el.querySelectorAll('a[href]'), (a) => a.getAttribute('href'));
     expect(hrefs).toContain('/login?returnUrl=%2Fjobs');
     backend.expectNone((r) => r.url === searchUrl);

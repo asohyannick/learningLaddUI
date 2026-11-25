@@ -44,7 +44,6 @@ interface SortOption {
   sortDirection: JobListingSortDirection;
 }
 
-/** The first option is the order of `GET /job-listing`, so it needs no search. */
 const SORT_OPTIONS: readonly SortOption[] = [
   { label: 'Newest first', sortBy: 'createdAt', sortDirection: 'desc' },
   { label: 'Deadline, soonest first', sortBy: 'applicationDeadline', sortDirection: 'asc' },
@@ -68,11 +67,6 @@ export type JobListingRow = JobListingSummaryResponseDto & {
   statusClasses: string;
 };
 
-/**
- * Job listings table. Without a search, filter or custom sort it calls `GET /job-listing`;
- * otherwise `/search`. The first card is `/count`, and "Download PDF" exports the listings
- * matching the filters (`/download`).
- */
 @Component({
   selector: 'app-fetch-all-job-listings',
   imports: [JobPhoto, EnumLabelPipe],
@@ -95,7 +89,6 @@ export class FetchAllJobListings {
   protected readonly workModes = WORK_MODES;
   protected readonly levels = EXPERIENCE_LEVELS;
 
-  /** Typed text; requests wait until the user pauses. */
   protected readonly searchText = signal('');
   protected readonly facultyText = signal('');
   protected readonly departmentText = signal('');
@@ -142,11 +135,9 @@ export class FetchAllJobListings {
   protected readonly totalCount = signal<number | null>(null);
   private countRequest?: Subscription;
 
-  /** Row ID being exported, or 'all' for the filtered list. */
   protected readonly downloading = signal<string | null>(null);
   protected readonly downloadError = signal<string | null>(null);
 
-  /** The API rejects ranges that end before they start; they are left out until fixed. */
   protected readonly deadlineRangeInvalid = computed(
     () => !!this.deadlineFrom() && !!this.deadlineTo() && this.deadlineFrom() > this.deadlineTo(),
   );
@@ -192,7 +183,6 @@ export class FetchAllJobListings {
     return Object.values(filters).some((value) => value !== undefined);
   });
   private readonly needsSearch = computed(() => this.isFiltered() || this.sortIndex() !== 0);
-  /** Something typed or picked, even if the debounced query has not caught up yet. */
   protected readonly hasInput = computed(
     () =>
       this.isFiltered() ||
@@ -228,7 +218,6 @@ export class FetchAllJobListings {
     return `${start}–${start + count - 1} of ${this.total()}`;
   });
 
-  /** Counts for the loaded page. */
   protected readonly stats = computed(() => {
     const rows = this.rows();
     return {
@@ -239,7 +228,6 @@ export class FetchAllJobListings {
     };
   });
 
-  /** Short note under a row's deadline, e.g. "Closes today". */
   protected deadlineNote(row: JobListingRow): string | null {
     const note = deadlineLabel(row);
     return note && !note.startsWith('Apply by') ? note : null;
@@ -258,13 +246,11 @@ export class FetchAllJobListings {
     });
   }
 
-  /** Reloads the page and the total, e.g. after a listing was added, edited or deleted. */
   reload(): void {
     this.load(this.query(), this.needsSearch());
     this.loadCount();
   }
 
-  /** Sets a filter and goes back to the first page. */
   protected setFilter<T>(target: { set(value: T): void }, value: T): void {
     target.set(value);
     this.page.set(0);
@@ -304,7 +290,6 @@ export class FetchAllJobListings {
     this.page.set(Math.min(Math.max(page, 0), this.totalPages() - 1));
   }
 
-  /** Exports the listings matching the filters (not only this page). */
   protected downloadAll(): void {
     this.export('all', this.jobs.downloadJobListingsPdf(this.query()), 'this list');
   }
@@ -360,13 +345,11 @@ export class FetchAllJobListings {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (count) => this.totalCount.set(count),
-        // The card shows a dash; the table reports the error.
         error: () => this.totalCount.set(null),
       });
   }
 }
 
-/** The trimmed text, once the user has stopped typing for a moment. */
 function debounced(text: Signal<string>): Signal<string> {
   return toSignal(
     toObservable(text).pipe(

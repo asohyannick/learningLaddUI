@@ -70,7 +70,6 @@ describe('AuthService', () => {
     expect(auth.accessToken()).toBe('access-2');
     expect(localStorage.getItem('ll.refreshToken')).toBe('refresh-2');
 
-    // ...and keeps doing so with the rotated token.
     vi.advanceTimersByTime(240_000);
     expect(backend.expectOne(`${api}/refresh-token`).request.body).toEqual({
       refreshToken: 'refresh-2',
@@ -154,7 +153,7 @@ describe('AuthService', () => {
     expect(localStorage.getItem('ll.user')).toBeNull();
 
     vi.advanceTimersByTime(600_000);
-    backend.expectNone(`${api}/refresh-token`); // the renewal timer is gone too
+    backend.expectNone(`${api}/refresh-token`);
   });
 
   it('sends the reset token as a query param and clears any local session', () => {

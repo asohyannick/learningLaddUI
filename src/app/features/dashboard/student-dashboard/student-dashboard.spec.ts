@@ -66,7 +66,6 @@ describe('StudentDashboard', () => {
     expect(el.querySelector('h1')?.textContent).toContain('My profile');
     expect(el.querySelector('a[aria-current="page"]')?.textContent).toContain('My profile');
     expect(el.textContent).toContain('Create my profile');
-    // Students cannot list other students.
     expect(el.querySelector('app-student-profile-manager')).toBeNull();
   });
 

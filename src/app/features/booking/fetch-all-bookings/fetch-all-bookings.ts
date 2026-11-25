@@ -87,10 +87,6 @@ export type BookingRow = BookingResponseDto & {
   actions: { action: BookingAction; label: string }[];
 };
 
-/**
- * Bookings table. Staff see every booking (`GET /booking`, or `/search` with filters); students
- * only their own (`/search?studentId=<their user id>`). Rows offer what each status allows.
- */
 @Component({
   selector: 'app-fetch-all-bookings',
   imports: [EnumLabelPipe],
@@ -103,9 +99,7 @@ export class FetchAllBookings {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly mode = input<BookingMode>('staff');
-  /** A tutor's own bookings (the API limits tutors to those): no tutor filter. */
   readonly tutorView = input(false);
-  /** The student's user ID: required in student mode. */
   readonly studentId = input<string | null>(null);
   readonly add = output<void>();
   readonly view = output<BookingResponseDto>();
@@ -116,14 +110,12 @@ export class FetchAllBookings {
   protected readonly statuses = BOOKING_STATUSES;
   protected readonly modes = BOOKING_SESSION_MODES;
 
-  /** Tutors for the filter and the "Tutor" column (the first 100, by last name). */
   protected readonly tutorOptions = rxResource({
     stream: () =>
       this.tutors
         .searchProfiles({ page: 0, size: 100, sortBy: 'lastName', sortDirection: 'asc' })
         .pipe(map((page) => page.content.map((t) => ({ id: t.id, name: tutorName(t) })))),
   });
-  /** Tutor names by tutor profile ID (for the table and the panel). */
   readonly tutorOptionsMap = computed<ReadonlyMap<string, string>>(
     () =>
       new Map(
@@ -197,7 +189,6 @@ export class FetchAllBookings {
     } = this.query();
     return Object.values(filters).some((value) => value !== undefined);
   });
-  /** `GET /booking` already lists the most recent sessions first. */
   private readonly needsSearch = computed(
     () => !this.isStaff() || this.isFiltered() || this.sortIndex() !== 0,
   );

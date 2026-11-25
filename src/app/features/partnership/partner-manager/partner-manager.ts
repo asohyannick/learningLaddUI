@@ -9,10 +9,6 @@ type Dialog =
   | { kind: 'edit'; id: string }
   | { kind: 'delete'; partner: { id: string; name: string } };
 
-/**
- * Partners section of the admin dashboard (super admin, admin, IT admin): list, search,
- * count, view, add, edit, delete and export as PDF.
- */
 @Component({
   selector: 'app-partner-manager',
   imports: [DeletePartner, FetchAllPartners, FetchPartner, PartnerForm],
@@ -55,7 +51,6 @@ type Dialog =
   `,
 })
 export class PartnerManager {
-  /** Success messages for the dashboard's toast. */
   readonly notify = output<string>();
 
   protected readonly selectedId = signal<string | null>(null);

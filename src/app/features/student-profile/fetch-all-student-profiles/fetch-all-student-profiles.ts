@@ -51,11 +51,6 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 export type StudentRow = StudentProfileSummary & { name: string; initials: string };
 
-/**
- * Student profile list for staff. Without a keyword, filter or custom sort it calls
- * `GET /student-profile`; otherwise `/search`. The first card is `/count`, and
- * "Download PDF" exports every profile matching the current filters (`/download`).
- */
 @Component({
   selector: 'app-fetch-all-student-profiles',
   imports: [DatePipe, EnumLabelPipe],
@@ -66,7 +61,6 @@ export class FetchAllStudentProfiles {
   private readonly profiles = inject(StudentProfileService);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** Shows Edit and Delete (admins). */
   readonly canManage = input(false);
   readonly view = output<StudentProfileSummary>();
   readonly edit = output<StudentProfileSummary>();
@@ -77,7 +71,6 @@ export class FetchAllStudentProfiles {
   protected readonly levels = LEVELS;
   protected readonly statuses = ENROLLMENT_STATUSES;
 
-  /** Typed text; requests wait until the user pauses. */
   protected readonly searchText = signal('');
   protected readonly facultyText = signal('');
   private readonly search = toSignal(
@@ -102,7 +95,6 @@ export class FetchAllStudentProfiles {
   protected readonly totalCount = signal<number | null>(null);
   private countRequest?: Subscription;
 
-  /** Row ID being exported, or 'all' for the whole filtered list. */
   protected readonly downloading = signal<string | null>(null);
   protected readonly downloadError = signal<string | null>(null);
 
@@ -145,7 +137,6 @@ export class FetchAllStudentProfiles {
     return `${start}–${start + count - 1} of ${this.total()}`;
   });
 
-  /** Active and applicant counts are for the loaded page. */
   protected readonly stats = computed(() => {
     const rows = this.rows();
     return {
@@ -168,7 +159,6 @@ export class FetchAllStudentProfiles {
     });
   }
 
-  /** Reloads the page and the total, e.g. after a profile was edited or deleted. */
   reload(): void {
     this.load(this.query(), this.needsSearch());
     this.loadCount();
@@ -216,7 +206,6 @@ export class FetchAllStudentProfiles {
     this.page.set(Math.min(Math.max(page, 0), this.totalPages() - 1));
   }
 
-  /** Exports every profile matching the filters (not only this page). */
   protected downloadAll(): void {
     this.export('all', this.profiles.downloadProfilesPdf(this.query()), 'this list');
   }
@@ -272,7 +261,6 @@ export class FetchAllStudentProfiles {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (count) => this.totalCount.set(count),
-        // The card shows a dash; the table reports the error.
         error: () => this.totalCount.set(null),
       });
   }

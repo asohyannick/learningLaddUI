@@ -100,7 +100,6 @@ describe('AdminDashboard', () => {
     expect(el.querySelector('h1')?.textContent).toContain('Courses');
     expect(el.querySelector('a[aria-current="page"]')?.textContent).toContain('Courses');
     expect(el.querySelector('tbody')?.textContent).toContain('Data Science 101');
-    // Admins may delete courses.
     expect(el.querySelector('button[aria-label="Delete Data Science 101"]')).not.toBeNull();
   });
 

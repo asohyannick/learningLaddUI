@@ -18,7 +18,6 @@ import { isApiErrorResponse } from '../../../core/interface';
 import { LibraryBookResponseDto, isAvailableToBorrow } from '../library.model';
 import { LibraryService, libraryDate, money } from '../library.service';
 
-/** Side panel: one book (`GET /library/books/{id}`), with Borrow, Edit and Delete. */
 @Component({
   selector: 'app-fetch-book',
   changeDetection: ChangeDetectionStrategy.OnPush,

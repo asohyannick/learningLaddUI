@@ -14,11 +14,6 @@ import { safeReturnUrl } from '../auth-session';
 import { AuthService } from '../auth.service';
 import { FirebaseGoogleSignIn, googleSignInErrorMessage } from './firebase-google-sign-in';
 
-/**
- * "Continue with Google" button for the login and register pages.
- * Google pop-up (Firebase) → ID token → `POST /auth/google` → session → dashboard.
- * Hidden when Firebase is not configured in the environment file.
- */
 @Component({
   selector: 'app-google-auth',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,7 +25,6 @@ export class GoogleAuth {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** Page to open after signing in (from the login page's `returnUrl`). */
   readonly returnUrl = input<string>();
 
   protected readonly available = this.google.configured;
@@ -39,7 +33,6 @@ export class GoogleAuth {
 
   constructor() {
     if (this.available) {
-      // Download the SDK now, so the pop-up can open the moment the button is clicked.
       afterNextRender(() => void this.google.prepare().catch(() => undefined));
     }
   }

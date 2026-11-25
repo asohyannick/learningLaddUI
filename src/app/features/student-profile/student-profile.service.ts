@@ -13,23 +13,17 @@ import {
   UpdateStudentProfileRequest,
 } from './student-profile.model';
 
-/**
- * Student profile API (`/student-profile`). Reading, searching, counting and exporting are
- * staff-only; a student creates their own profile and may update or delete it.
- */
 @Injectable({ providedIn: 'root' })
 export class StudentProfileService {
   private readonly http = inject(HttpClient);
   private readonly api = `${environment.apiUrl}/student-profile`;
 
-  /** `GET /student-profile`: every profile, newest first. */
   listProfiles(page = 0, size = 20): Observable<PageResponse<StudentProfileSummary>> {
     return this.http
       .get<ApiResponse<PageResponse<StudentProfileSummary>>>(this.api, { params: { page, size } })
       .pipe(map((res) => res.data));
   }
 
-  /** `GET /student-profile/search`: keyword, filters, sort and paging. */
   searchProfiles(
     query: StudentProfileSearchQuery,
   ): Observable<PageResponse<StudentProfileSummary>> {
@@ -40,7 +34,6 @@ export class StudentProfileService {
       .pipe(map((res) => res.data));
   }
 
-  /** `GET /student-profile/count` */
   countProfiles(): Observable<number> {
     return this.http
       .get<ApiResponse<number>>(`${this.api}/count`)
@@ -53,10 +46,6 @@ export class StudentProfileService {
       .pipe(map((res) => res.data));
   }
 
-  /**
-   * `POST /student-profile` (multipart, students only). The API requires an `Idempotency-Key`
-   * (8–100 characters); reuse it when retrying so only one profile is created.
-   */
   createProfile(
     data: CreateStudentProfileRequest,
     files: StudentProfileFiles,
@@ -67,7 +56,6 @@ export class StudentProfileService {
     });
   }
 
-  /** `PATCH /student-profile/{id}` (multipart). Owner or admin. A new picture replaces the old one. */
   updateProfile(
     id: string,
     data: UpdateStudentProfileRequest,
@@ -79,15 +67,10 @@ export class StudentProfileService {
     );
   }
 
-  /** `DELETE /student-profile/{id}`. Owner or admin. Emits the API message. */
   deleteProfile(id: string): Observable<string> {
     return this.http.delete<ApiResponse<null>>(`${this.api}/${id}`).pipe(map((res) => res.message));
   }
 
-  /**
-   * `GET /student-profile/download`: a PDF of every profile matching the filters
-   * (page and size are ignored, at most 5,000 rows). Emits the saved file name.
-   */
   downloadProfilesPdf(query: StudentProfileSearchQuery = {}): Observable<string> {
     const { page: _page, size: _size, ...filters } = query;
     return this.http
@@ -107,10 +90,6 @@ export class StudentProfileService {
       );
   }
 
-  /**
-   * PDF of one profile. The API only exports by filter, so this searches by the most specific
-   * value it has: email, then student number, then full name.
-   */
   downloadProfilePdf(
     profile: Pick<StudentProfileSummary, 'email' | 'studentNumber' | 'firstName' | 'lastName'>,
   ): Observable<string> {
@@ -130,7 +109,6 @@ function toParams(query: object): HttpParams {
   return params;
 }
 
-/** JSON in a `data` part with its own content type; the picture in `profilePicture`. */
 function toMultipart(data: UpdateStudentProfileRequest, files: StudentProfileFiles): FormData {
   const body = new FormData();
   body.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));

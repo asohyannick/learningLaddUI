@@ -1,6 +1,5 @@
 import { PartnerStatus, SponsorshipTier } from './partnership.model';
 
-/** Badge colours for a partner status on the dark dashboard. */
 export function partnerStatusClasses(status: PartnerStatus | undefined): string {
   switch (status) {
     case PartnerStatus.ACTIVE:
@@ -14,7 +13,6 @@ export function partnerStatusClasses(status: PartnerStatus | undefined): string 
   }
 }
 
-/** Badge colours for a sponsorship tier on the dark dashboard. */
 export function tierClassesDark(tier: SponsorshipTier | undefined): string {
   switch (tier) {
     case SponsorshipTier.PLATINUM:
@@ -30,7 +28,6 @@ export function tierClassesDark(tier: SponsorshipTier | undefined): string {
   }
 }
 
-/** Badge colours for a sponsorship tier on the light public pages. */
 export function tierClassesLight(tier: SponsorshipTier | undefined): string {
   switch (tier) {
     case SponsorshipTier.PLATINUM:

@@ -6,9 +6,7 @@ import {
 } from './core/enum/global-enum-configuration';
 import { authGuard, guestGuard, magicLinkTokenGuard, roleGuard } from './core/guard/auth.guard';
 
-// Every page is lazy-loaded. Paths are first drafts; adjust them as screens are designed.
 export const routes: Routes = [
-  // 🔓 Public
   {
     path: '',
     pathMatch: 'full',
@@ -21,7 +19,6 @@ export const routes: Routes = [
     loadComponent: () => import('./features/partnership/partnership').then((m) => m.Partnership),
   },
   {
-    // The page sets the partner's name as the title once it has loaded.
     path: 'partners/:slug',
     title: 'Partner | Learning Ladder',
     loadComponent: () =>
@@ -33,16 +30,13 @@ export const routes: Routes = [
     loadComponent: () => import('./features/job-listing/job-listing').then((m) => m.JobListing),
   },
   {
-    // The page sets the job title as the title once it has loaded.
     path: 'jobs/:id',
     title: 'Job | Learning Ladder',
     loadComponent: () =>
       import('./features/job-listing/job-detail/job-detail').then((m) => m.JobDetail),
   },
 
-  // 🔓 Auth pages open to everyone
   {
-    // Opened from the email link; works even if this browser is still signed in.
     path: 'reset-password',
     title: 'Reset password | Learning Ladder',
     loadComponent: () =>
@@ -54,7 +48,6 @@ export const routes: Routes = [
     loadComponent: () => import('./core/service/auth/logout/logout').then((m) => m.Logout),
   },
 
-  // 🔓 Signed-out only
   {
     path: '',
     canActivate: [guestGuard],
@@ -87,7 +80,6 @@ export const routes: Routes = [
       {
         path: 'magic-link',
         title: 'Sign in with a link | Learning Ladder',
-        // The emailed link lands here with `?token=`: forward it to the verify page.
         canActivate: [magicLinkTokenGuard],
         loadComponent: () =>
           import('./core/service/auth/login-via-magic-link/login-via-magic-link').then(
@@ -105,7 +97,6 @@ export const routes: Routes = [
     ],
   },
 
-  // 🔑 Signed-in
   {
     path: '',
     canActivate: [authGuard],
@@ -178,7 +169,6 @@ export const routes: Routes = [
     ],
   },
 
-  // 👮 Role dashboards
   {
     path: 'dashboard/admin',
     title: 'Admin dashboard | Learning Ladder',

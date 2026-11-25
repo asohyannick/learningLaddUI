@@ -40,37 +40,19 @@ import { TokenPair, dashboardPathFor, safeReturnUrl, toSession } from './auth-se
 
 const REFRESH_TOKEN_KEY = 'll.refreshToken';
 const USER_KEY = 'll.user';
-/** Email waiting for OTP verification. Session storage: gone when the tab closes. */
 const PENDING_EMAIL_KEY = 'll.pendingEmail';
-/** Web Locks name: only one tab at a time may spend the (rotating) refresh token. */
 const REFRESH_LOCK = 'll.token-refresh';
 
-/** Renew the access token this long before it expires (at most a fifth of its lifetime). */
 const REFRESH_MARGIN_MS = 60_000;
 const MIN_REFRESH_DELAY_MS = 5_000;
-/** Wait before retrying a renewal that failed for a temporary reason (offline, 5xx, 429). */
 const RETRY_DELAY_MS = 30_000;
 
-/**
- * True when the server refused the refresh token itself (expired, revoked, reused), so the
- * session is over. Network errors, 5xx and 429 are temporary and are retried instead.
- */
 export function isSessionRejected(error: unknown): boolean {
   return (
     isApiErrorResponse(error) && error.status >= 400 && error.status < 500 && error.status !== 429
   );
 }
 
-/**
- * Holds the session and keeps it alive.
- * - The access token (5 minutes) lives in memory only. It is renewed in the background shortly
- *   before it expires, after a reload, and when a sleeping tab becomes visible again, so the user
- *   never has to log in again while their refresh token (7 days) is valid.
- * - The refresh token and the user profile are kept in localStorage so a reload keeps you signed in.
- *   Tabs share them: signing out in one tab signs out all of them.
- *
- * Sign-up flow: `register()` → `verifyOtp()` (code from the email) → `login()`.
- */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -84,18 +66,14 @@ export class AuthService {
 
   private refreshInFlight$: Observable<string> | null = null;
   private refreshTimer: ReturnType<typeof setTimeout> | null = null;
-  /** Epoch ms when the in-memory access token expires (0 = no token). */
   private accessTokenExpiresAt = 0;
   private refreshMarginMs = REFRESH_MARGIN_MS;
 
   readonly accessToken = this._accessToken.asReadonly();
   readonly user = this._user.asReadonly();
-  /** True while a session exists, even if the in-memory access token still needs renewing. */
   readonly isAuthenticated = computed(() => this._refreshToken() !== null);
   readonly role = computed<UserRole | null>(() => this._user()?.role ?? null);
-  /** Where the signed-in user lands: their role's dashboard. */
   readonly dashboardPath = computed(() => dashboardPathFor(this.role()));
-  /** Email of an account that still has to enter its OTP code (set after registering). */
   readonly pendingEmail = this._pendingEmail.asReadonly();
 
   constructor() {
@@ -117,34 +95,24 @@ export class AuthService {
     });
   }
 
-  // ─── Sign-up and sign-in ────────────────────────────────────────────────
-
-  /** Creates an unverified STUDENT account and emails a 6-digit code. Returns the API message. */
   register(body: IRegister): Observable<string> {
     return this.post(`${this.baseUrl}/register`, body);
   }
 
-  /** Confirms the emailed code and activates the account. No tokens: the user logs in next. */
   verifyOtp(body: IVerifyOtpCode): Observable<string> {
     return this.post(`${this.baseUrl}/verify-otp`, body);
   }
 
-  /** Sends a new code once the previous one has expired. */
   resendOtp(body: IResendOtpCode): Observable<string> {
     return this.post(`${this.baseUrl}/resend-otp`, body);
   }
 
-  /** Logs in and starts the session. Navigation is left to the caller. */
   login(body: ILoginRequest): Observable<IUserResponse> {
     return this.http
       .post<ApiResponse<ILoginResponse>>(`${this.baseUrl}/login`, body)
       .pipe(map((res) => this.startSession(res.data)));
   }
 
-  /**
-   * Exchanges a Firebase ID token (from the Google pop-up) for our own session.
-   * First-time Google users get a verified STUDENT account.
-   */
   loginWithGoogle(idToken: string): Observable<IUserResponse> {
     return this.http
       .post<ApiResponse<ILoginResponse>>(`${this.baseUrl}/google`, {
@@ -153,22 +121,14 @@ export class AuthService {
       .pipe(map((res) => this.startSession(res.data)));
   }
 
-  // ─── Magic link (passwordless sign-in) ──────────────────────────────────
-
-  /** Emails a single-use sign-in link (verified, unblocked accounts). Returns the API message. */
   sendMagicLink(body: ISendMagicLinkToken): Observable<string> {
     return this.post(`${this.baseUrl}/magic-link/send`, body);
   }
 
-  /** New link after one was requested (60 s cooldown); the previous link stops working. */
   resendMagicLink(body: IResendMagicLinkToken): Observable<string> {
     return this.post(`${this.baseUrl}/magic-link/resend`, body);
   }
 
-  /**
-   * Exchanges the token from the emailed link for a session. The API reads it from the
-   * `verifyMagicLinkTokenDto` query parameter (not from a body). Navigation is left to the caller.
-   */
   verifyMagicLink(magicLinkToken: string): Observable<IUserResponse> {
     return this.http
       .post<ApiResponse<ILoginResponse>>(`${this.baseUrl}/magic-link/verify`, null, {
@@ -177,7 +137,6 @@ export class AuthService {
       .pipe(map((res) => this.startSession(res.data)));
   }
 
-  /** Call with the `data` of a login, magic-link verify or Google sign-in response. */
   startSession(data: ILoginResponse): IUserResponse {
     const { tokens, user } = toSession(data);
     this.storeTokens(tokens);
@@ -201,17 +160,10 @@ export class AuthService {
     return role !== null && allowed.includes(role);
   }
 
-  // ─── Passwords ──────────────────────────────────────────────────────────
-
-  /** Emails a single-use reset link (verified, unblocked accounts only). Returns the API message. */
   forgotPassword(body: IForgotPassword): Observable<string> {
     return this.post(`${this.baseUrl}/forgot-password`, body);
   }
 
-  /**
-   * Sets a new password with the token from the reset link. The server signs out every session,
-   * so a session in this browser is cleared too.
-   */
   resetPassword(token: string, body: IResetPassword): Observable<string> {
     return this.http
       .post<ApiResponse<unknown>>(`${this.baseUrl}/reset-password`, body, { params: { token } })
@@ -221,17 +173,10 @@ export class AuthService {
       );
   }
 
-  // ─── Keeping the session alive ──────────────────────────────────────────
-
-  /** Called once at start-up: a reload loses the access token, so get a new one right away. */
   restoreSession(): void {
     this.renewIfDue();
   }
 
-  /**
-   * The access token to send with an API request. Waits for a renewal that is in progress, or
-   * starts one when the token is missing (after a reload), so requests do not fail with 401.
-   */
   ensureAccessToken(): Observable<string | null> {
     const pending =
       this.refreshInFlight$ ??
@@ -248,10 +193,6 @@ export class AuthService {
     );
   }
 
-  /**
-   * Exchanges the refresh token for a new token pair (the old one stops working: rotation).
-   * Concurrent callers share one request, so parallel 401s trigger a single refresh.
-   */
   refreshAccessToken(): Observable<string> {
     if (!this.latestRefreshToken()) {
       return throwError(() => new Error('No refresh token available'));
@@ -265,7 +206,6 @@ export class AuthService {
     return this.refreshInFlight$;
   }
 
-  /** Session is over (refresh token rejected): clear it and ask the user to log in again. */
   expireSession(): void {
     if (!this.isAuthenticated()) {
       return;
@@ -277,14 +217,7 @@ export class AuthService {
     });
   }
 
-  // ─── Signing out ────────────────────────────────────────────────────────
-
-  /**
-   * Revokes the refresh token on the server, then clears the local session either way
-   * (a failed revoke must never keep the user signed in here). Navigation is left to the caller.
-   */
   logout(): Observable<void> {
-    // A renewal in progress rotates the refresh token: wait for it so we revoke the current one.
     const settled$ = this.refreshInFlight$
       ? this.refreshInFlight$.pipe(catchError(() => of(null)))
       : of(null);
@@ -307,10 +240,6 @@ export class AuthService {
     );
   }
 
-  /**
-   * Soft-deletes the signed-in user's own account (password required) and ends the session.
-   * Super admin accounts cannot be deleted. Returns the API message.
-   */
   deleteAccount(body: IDeleteAccountRequest): Observable<string> {
     const userId = this._user()?.id;
     if (!userId) {
@@ -324,7 +253,6 @@ export class AuthService {
       );
   }
 
-  /** Clears tokens and profile in memory and storage. */
   endSession(): void {
     this.clearRefreshTimer();
     this.accessTokenExpiresAt = 0;
@@ -334,8 +262,6 @@ export class AuthService {
     removeStorage(REFRESH_TOKEN_KEY);
     removeStorage(USER_KEY);
   }
-
-  // ─── Internals ──────────────────────────────────────────────────────────
 
   private post(url: string, body: object): Observable<string> {
     return this.http.post<ApiResponse<unknown>>(url, body).pipe(map((res) => res.message));
@@ -352,7 +278,6 @@ export class AuthService {
     this.scheduleRefresh(lifetimeMs - this.refreshMarginMs);
   }
 
-  /** The newest refresh token: another tab may have rotated it since we last looked. */
   private latestRefreshToken(): string | null {
     return readStorage(REFRESH_TOKEN_KEY) ?? this._refreshToken();
   }
@@ -369,8 +294,6 @@ export class AuthService {
         } satisfies IGenerateNewAccessToken)
         .pipe(map((res) => res.data));
     });
-    // Reusing an already-rotated refresh token makes the server revoke the whole session, so two
-    // tabs must never refresh at the same time. The lock queues them; each reads the newest token.
     const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined;
     return locks ? from(locks.request(REFRESH_LOCK, () => firstValueFrom(request$))) : request$;
   }
@@ -419,7 +342,6 @@ export class AuthService {
     }
   }
 
-  /** Another tab signed in, renewed the tokens or signed out. */
   private syncFromOtherTab(event: StorageEvent): void {
     if (event.key === REFRESH_TOKEN_KEY || event.key === null) {
       const token = readStorage(REFRESH_TOKEN_KEY);
@@ -433,7 +355,6 @@ export class AuthService {
     if (event.key === USER_KEY || event.key === null) {
       const user = parseUser(readStorage(USER_KEY));
       if (user && user.id !== this._user()?.id) {
-        // A different account signed in elsewhere: our access token belongs to the old one.
         this._accessToken.set(null);
         this.accessTokenExpiresAt = 0;
       }
@@ -442,7 +363,6 @@ export class AuthService {
   }
 }
 
-// Storage can throw (private mode, blocked site data), so every access is guarded.
 function readStorage(key: string): string | null {
   try {
     return localStorage.getItem(key);
@@ -454,17 +374,13 @@ function readStorage(key: string): string | null {
 function writeStorage(key: string, value: string): void {
   try {
     localStorage.setItem(key, value);
-  } catch {
-    /* session then only lasts until reload */
-  }
+  } catch {}
 }
 
 function removeStorage(key: string): void {
   try {
     localStorage.removeItem(key);
-  } catch {
-    /* nothing to clear */
-  }
+  } catch {}
 }
 
 function readSession(key: string): string | null {
@@ -478,17 +394,13 @@ function readSession(key: string): string | null {
 function writeSession(key: string, value: string): void {
   try {
     sessionStorage.setItem(key, value);
-  } catch {
-    /* the value then only lives in memory */
-  }
+  } catch {}
 }
 
 function removeSession(key: string): void {
   try {
     sessionStorage.removeItem(key);
-  } catch {
-    /* nothing to clear */
-  }
+  } catch {}
 }
 
 function parseUser(raw: string | null): IUserResponse | null {

@@ -50,7 +50,6 @@ import { JobListingService, todayIso } from '../job-listing.service';
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-/** Splits a "one per line" field into trimmed, non-empty entries. */
 export function splitLines(value: string): string[] {
   return value
     .split(/\r?\n/)
@@ -68,7 +67,6 @@ function listValidator(field: JobListField): ValidatorFn {
   };
 }
 
-/** Whole number between `min` and `max`. */
 function wholeNumber(min: number, max: number): ValidatorFn {
   return (control) => {
     const value = (control.value as string).trim();
@@ -80,7 +78,6 @@ function wholeNumber(min: number, max: number): ValidatorFn {
   };
 }
 
-/** ≥ 0, at most 10 digits before the point and 2 after (`@Digits(integer = 10, fraction = 2)`). */
 function money(control: AbstractControl): ValidationErrors | null {
   const value = (control.value as string).trim();
   if (!value) return null;
@@ -88,14 +85,12 @@ function money(control: AbstractControl): ValidationErrors | null {
   return /^\d{1,10}(\.\d{1,2})?$/.test(value) ? null : { moneyFormat: { integer: 10 } };
 }
 
-/** Maximum salary not below the minimum. */
 function salaryRange(control: AbstractControl): ValidationErrors | null {
   const min = Number(control.parent?.get('salaryMin')?.value || NaN);
   const max = Number(control.value || NaN);
   return !Number.isNaN(min) && !Number.isNaN(max) && min > max ? { salaryRange: true } : null;
 }
 
-/** Expected start on or after the application deadline. */
 function startAfterDeadline(control: AbstractControl): ValidationErrors | null {
   const deadline = control.parent?.get('applicationDeadline')?.value as string | undefined;
   const start = control.value as string;
@@ -147,11 +142,9 @@ interface FieldConfig {
   patternMessage?: string;
   inputMode?: 'numeric' | 'decimal' | 'url';
   options?: readonly string[];
-  /** Label of the empty choice; leave out to hide it. */
   emptyLabel?: string;
   required?: boolean;
   wide?: boolean;
-  /** Only shown when editing. */
   editOnly?: boolean;
 }
 
@@ -397,7 +390,6 @@ const NUMBER_FIELDS = new Set<string>([
   'salaryMin',
   'salaryMax',
 ]);
-/** Blank means "keep" for these on edit: the API cannot clear them. */
 const KEEP_WHEN_BLANK = new Set<string>([
   ...NUMBER_FIELDS,
   'title',
@@ -414,11 +406,6 @@ export interface JobListingSaved {
   listing: JobListingResponseDto;
 }
 
-/**
- * Dialog to post a job (`POST /job-listing`) or update one (`PATCH /job-listing/{id}`), with an
- * optional photo. New listings are drafts; "Publish now" opens them right after saving.
- * An update only sends the fields that changed.
- */
 @Component({
   selector: 'app-job-listing-form',
   imports: [JobPhoto, EnumLabelPipe, FieldError, FormAlert, Modal, ReactiveFormsModule],
@@ -430,7 +417,6 @@ export class JobListingForm implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder).nonNullable;
 
-  /** Listing to update; leave empty to post a new one. */
   readonly jobListingId = input<string | null>(null);
   readonly done = output<JobListingSaved>();
   readonly cancelled = output<void>();
@@ -618,7 +604,6 @@ export class JobListingForm implements OnInit {
       });
   }
 
-  /** Blank fields are left out so the API defaults apply. */
   private createPayload(): CreateJobListingRequestDto {
     const {
       salaryVisible,
@@ -634,7 +619,6 @@ export class JobListingForm implements OnInit {
     return payload as unknown as CreateJobListingRequestDto;
   }
 
-  /** Only what differs from the saved listing. */
   private changedFields(): UpdateJobListingRequestDto {
     const original = this.original();
     if (!original) return {};
@@ -652,7 +636,6 @@ export class JobListingForm implements OnInit {
     return changes as UpdateJobListingRequestDto;
   }
 
-  /** Today or later; an unchanged past deadline may stay when editing. */
   private deadlineRule(control: AbstractControl): ValidationErrors | null {
     const value = control.value as string;
     if (!value || value >= todayIso()) return null;

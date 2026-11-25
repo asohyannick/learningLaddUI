@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-/** Navy banner at the top of public pages (Partners, Careers...). Extra content can be projected. */
 @Component({
   selector: 'app-page-hero',
   changeDetection: ChangeDetectionStrategy.OnPush,

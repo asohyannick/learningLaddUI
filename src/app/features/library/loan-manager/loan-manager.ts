@@ -15,11 +15,6 @@ import { LoanActionDialog, LoanActionDone } from '../loan-action/loan-action';
 import { LoanMode } from '../library.service';
 import { StudentIdentityStore } from '../student-identity.store';
 
-/**
- * Loans section. Staff: every loan, with issue, update, confirm return, cancel, report lost,
- * delete, search, count and PDF. Students ("My loans"): their own loans, with renew, return,
- * cancel and report lost.
- */
 @Component({
   selector: 'app-loan-manager',
   imports: [FetchAllLoans, FetchLoan, LoanActionDialog, RouterLink],

@@ -6,7 +6,6 @@ import {
   TimeTableStatus,
 } from '../../features/time-table/time-table.model';
 
-/** Test data shaped like `GET /time-table/{id}`: a weekly hybrid lecture on Mondays. */
 export function fakeTimeTable(overrides: Partial<TimeTableResponseDto> = {}): TimeTableResponseDto {
   return {
     id: 'tt-1',
@@ -36,7 +35,6 @@ export function fakeTimeTable(overrides: Partial<TimeTableResponseDto> = {}): Ti
   };
 }
 
-/** `PagedResponseDto` around `content`. */
 export function timeTablePage(
   content: TimeTableResponseDto[],
   totalElements = content.length,
