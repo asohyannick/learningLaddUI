@@ -1,0 +1,239 @@
+<app-modal
+  [heading]="isEdit() ? 'Change your booking' : 'Book a session with a tutor'"
+  [description]="
+    isEdit()
+      ? 'Change what you need. A new date or time sends the booking back to the tutor for approval.'
+      : 'Your request is pending until it is approved. Sessions last 15 minutes to 8 hours.'
+  "
+  size="lg"
+  [busy]="submitting()"
+  (closed)="cancelled.emit()"
+>
+  @if (serverError(); as message) {
+    <app-form-alert class="mb-4">{{ message }}</app-form-alert>
+  }
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-6 text-sm">
+    <fieldset class="grid gap-4 sm:grid-cols-2">
+      <legend class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
+        Session
+      </legend>
+      <div>
+        <label for="bk-tutorId" class="mb-1.5 block font-medium">Tutor</label>
+        <select
+          id="bk-tutorId"
+          formControlName="tutorId"
+          [class]="inputClasses(invalid('tutorId'))"
+          aria-describedby="bk-tutorId-error"
+        >
+          <option value="">
+            {{ tutorOptions.isLoading() ? 'Loading tutors…' : 'Choose a tutor' }}
+          </option>
+          @if (tutorOptions.hasValue()) {
+            @for (tutor of tutorOptions.value(); track tutor.id) {
+              <option [value]="tutor.id">{{ tutor.name }}</option>
+            }
+          }
+        </select>
+        <app-field-error
+          [control]="form.controls.tutorId"
+          label="Tutor"
+          errorId="bk-tutorId-error"
+        />
+      </div>
+      <div>
+        <label for="bk-courseId" class="mb-1.5 block font-medium">
+          Course <span class="font-normal text-muted">(optional)</span>
+        </label>
+        <select id="bk-courseId" formControlName="courseId" [class]="inputClasses(false)">
+          <option value="">No specific course</option>
+          @if (courseOptions.hasValue()) {
+            @for (course of courseOptions.value(); track course.id) {
+              <option [value]="course.id">{{ course.name }}</option>
+            }
+          }
+        </select>
+      </div>
+      <div class="sm:col-span-2">
+        <label for="bk-topic" class="mb-1.5 block font-medium">Topic</label>
+        <input
+          id="bk-topic"
+          formControlName="topic"
+          maxlength="200"
+          placeholder="e.g. Integration by parts"
+          [class]="inputClasses(invalid('topic'))"
+          aria-describedby="bk-topic-error"
+        />
+        <app-field-error [control]="form.controls.topic" label="Topic" errorId="bk-topic-error" />
+      </div>
+      <div class="sm:col-span-2">
+        <label for="bk-studentNotes" class="mb-1.5 block font-medium">
+          Notes for the tutor <span class="font-normal text-muted">(optional)</span>
+        </label>
+        <textarea
+          id="bk-studentNotes"
+          rows="3"
+          formControlName="studentNotes"
+          maxlength="5000"
+          [class]="inputClasses(false)"
+        ></textarea>
+      </div>
+    </fieldset>
+
+    <fieldset class="grid gap-4 sm:grid-cols-3">
+      <legend class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
+        When <span class="font-normal normal-case">(your time zone: {{ timeZone }})</span>
+      </legend>
+      <div>
+        <label for="bk-date" class="mb-1.5 block font-medium">Date</label>
+        <input
+          id="bk-date"
+          type="date"
+          formControlName="date"
+          [min]="today"
+          [class]="inputClasses(invalid('date'))"
+          aria-describedby="bk-date-error"
+        />
+        <app-field-error [control]="form.controls.date" label="Date" errorId="bk-date-error" />
+      </div>
+      <div>
+        <label for="bk-startTime" class="mb-1.5 block font-medium">Starts</label>
+        <input
+          id="bk-startTime"
+          type="time"
+          formControlName="startTime"
+          [class]="inputClasses(invalid('startTime'))"
+          aria-describedby="bk-startTime-error"
+        />
+        <app-field-error
+          [control]="form.controls.startTime"
+          label="Start time"
+          errorId="bk-startTime-error"
+        />
+      </div>
+      <div>
+        <label for="bk-endTime" class="mb-1.5 block font-medium">Ends</label>
+        <input
+          id="bk-endTime"
+          type="time"
+          formControlName="endTime"
+          [class]="inputClasses(invalid('endTime'))"
+          aria-describedby="bk-endTime-error"
+        />
+        <app-field-error
+          [control]="form.controls.endTime"
+          label="End time"
+          errorId="bk-endTime-error"
+        />
+      </div>
+    </fieldset>
+
+    <fieldset class="grid gap-4 sm:grid-cols-2">
+      <legend class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">Where</legend>
+      <div>
+        <label for="bk-sessionMode" class="mb-1.5 block font-medium">Session</label>
+        <select id="bk-sessionMode" formControlName="sessionMode" [class]="inputClasses(false)">
+          @for (mode of modes; track mode) {
+            <option [value]="mode">{{ mode | enumLabel }}</option>
+          }
+        </select>
+      </div>
+      @if (online()) {
+        <div>
+          <label for="bk-meetingPlatform" class="mb-1.5 block font-medium">
+            Platform <span class="font-normal text-muted">(optional)</span>
+          </label>
+          <input
+            id="bk-meetingPlatform"
+            formControlName="meetingPlatform"
+            maxlength="50"
+            placeholder="Zoom, Google Meet…"
+            [class]="inputClasses(false)"
+          />
+          <p class="mt-1 text-xs text-muted">
+            The meeting link is added when the booking is approved.
+          </p>
+        </div>
+      }
+      @if (inPerson()) {
+        <div>
+          <label for="bk-locationName" class="mb-1.5 block font-medium">Place</label>
+          <input
+            id="bk-locationName"
+            formControlName="locationName"
+            maxlength="200"
+            placeholder="e.g. Library, room 2"
+            [class]="inputClasses(invalid('locationName'))"
+            aria-describedby="bk-locationName-error"
+          />
+          <app-field-error
+            [control]="form.controls.locationName"
+            label="Place"
+            errorId="bk-locationName-error"
+          />
+        </div>
+        <div>
+          <label for="bk-addressLine" class="mb-1.5 block font-medium">
+            Address <span class="font-normal text-muted">(optional)</span>
+          </label>
+          <input
+            id="bk-addressLine"
+            formControlName="addressLine"
+            maxlength="255"
+            [class]="inputClasses(false)"
+          />
+        </div>
+        <div>
+          <label for="bk-city" class="mb-1.5 block font-medium"
+            >City <span class="font-normal text-muted">(optional)</span></label
+          >
+          <input
+            id="bk-city"
+            formControlName="city"
+            maxlength="100"
+            [class]="inputClasses(false)"
+          />
+        </div>
+        <div>
+          <label for="bk-country" class="mb-1.5 block font-medium"
+            >Country <span class="font-normal text-muted">(optional)</span></label
+          >
+          <input
+            id="bk-country"
+            formControlName="country"
+            maxlength="100"
+            [class]="inputClasses(false)"
+          />
+        </div>
+        <div class="sm:col-span-2">
+          <label for="bk-locationInstructions" class="mb-1.5 block font-medium">
+            Directions <span class="font-normal text-muted">(optional)</span>
+          </label>
+          <input
+            id="bk-locationInstructions"
+            formControlName="locationInstructions"
+            maxlength="500"
+            [class]="inputClasses(false)"
+          />
+        </div>
+      }
+    </fieldset>
+
+    <div class="flex flex-col-reverse gap-2 border-t border-line pt-5 sm:flex-row sm:justify-end">
+      <button
+        type="button"
+        class="rounded-lg border border-line px-4 py-2.5 font-semibold text-ink hover:bg-slate-50 disabled:opacity-60"
+        [disabled]="submitting()"
+        (click)="cancelled.emit()"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="rounded-lg bg-royal px-4 py-2.5 font-semibold text-white hover:bg-royal-dark disabled:opacity-60"
+        [disabled]="submitting()"
+      >
+        {{ submitting() ? 'Saving…' : isEdit() ? 'Save changes' : 'Request booking' }}
+      </button>
+    </div>
+  </form>
+</app-modal>

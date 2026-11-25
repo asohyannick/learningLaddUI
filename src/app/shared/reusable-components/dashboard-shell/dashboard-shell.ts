@@ -25,7 +25,8 @@ export type DashboardIcon =
   | 'jobs'
   | 'applications'
   | 'library'
-  | 'loans';
+  | 'loans'
+  | 'bookings';
 
 /** One sidebar entry. Selecting it sets `?section=<id>` on the current dashboard URL. */
 export interface DashboardSection {

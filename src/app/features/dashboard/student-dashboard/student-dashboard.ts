@@ -5,6 +5,7 @@ import {
   DashboardSection,
   DashboardShell,
 } from '../../../shared/reusable-components/dashboard-shell/dashboard-shell';
+import { BookingManager } from '../../booking/booking-manager/booking-manager';
 import { BookManager } from '../../library/book-manager/book-manager';
 import { LoanManager } from '../../library/loan-manager/loan-manager';
 import { CourseManager } from '../../course/course-manager/course-manager';
@@ -12,13 +13,14 @@ import { MyStudentProfile } from '../../student-profile/my-student-profile/my-st
 import { TimeTableManager } from '../../time-table/time-table-manager/time-table-manager';
 import { TutorProfileManager } from '../../tutor-profile/tutor-profile-manager/tutor-profile-manager';
 
-type Section = 'courses' | 'timetable' | 'library' | 'loans' | 'tutors' | 'profile';
+type Section = 'courses' | 'timetable' | 'library' | 'loans' | 'bookings' | 'tutors' | 'profile';
 
 const SECTIONS: readonly DashboardSection[] = [
   { id: 'courses', label: 'Courses', icon: 'courses' },
   { id: 'timetable', label: 'Timetable', icon: 'timetable' },
   { id: 'library', label: 'Library', icon: 'library' },
   { id: 'loans', label: 'My loans', icon: 'loans' },
+  { id: 'bookings', label: 'My bookings', icon: 'bookings' },
   { id: 'tutors', label: 'Find a tutor', icon: 'tutors' },
   { id: 'profile', label: 'My profile', icon: 'profile' },
 ];
@@ -28,6 +30,7 @@ const HEADINGS: Record<Section, string> = {
   timetable: 'Timetable',
   library: 'Library',
   loans: 'My loans',
+  bookings: 'My bookings',
   tutors: 'Find a tutor',
   profile: 'My profile',
 };
@@ -45,6 +48,7 @@ const HEADINGS: Record<Section, string> = {
     CourseManager,
     DashboardShell,
     LoanManager,
+    BookingManager,
     MyStudentProfile,
     TimeTableManager,
     TutorProfileManager,
@@ -65,6 +69,9 @@ const HEADINGS: Record<Section, string> = {
         }
         @case ('library') {
           <app-book-manager (notify)="toast.set($event)" />
+        }
+        @case ('bookings') {
+          <app-booking-manager mode="student" (notify)="toast.set($event)" />
         }
         @case ('loans') {
           <app-loan-manager mode="student" (notify)="toast.set($event)" />
@@ -95,7 +102,8 @@ export class StudentDashboard {
       section === 'tutors' ||
       section === 'timetable' ||
       section === 'library' ||
-      section === 'loans'
+      section === 'loans' ||
+      section === 'bookings'
       ? section
       : 'courses';
   });
@@ -109,6 +117,8 @@ export class StudentDashboard {
         return 'Classes and sessions for every course. Find yours by course, day or time, add a session, or download the timetable as PDF.';
       case 'library':
         return 'Find books by title, author or ISBN and reserve a copy; pick it up at the library desk within 48 hours.';
+      case 'bookings':
+        return 'Book one-to-one sessions with tutors, track approvals, and change or reschedule a booking.';
       case 'loans':
         return 'Your reservations and borrowed books: renew, return, cancel a reservation or report a lost book.';
       case 'tutors':

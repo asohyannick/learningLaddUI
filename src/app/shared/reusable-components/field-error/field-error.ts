@@ -88,6 +88,9 @@ export class FieldError {
       return 'Expected start cannot be before the application deadline.';
     if (errors['pastDeadline']) return 'The deadline must be today or later.';
     if (errors['notPast']) return `${label} cannot be in the past.`;
+    if (errors['sessionLength']) return 'A session lasts between 15 minutes and 8 hours.';
+    if (errors['pastStart']) return 'Pick a start time in the future.';
+    if (errors['placeRequired']) return 'In-person sessions need a place or an address.';
     if (errors['timeZone']) return 'Use a time zone name such as Africa/Douala or UTC.';
     if (errors['currencyRequired']) return 'Add the currency for your hourly rate, e.g. XAF.';
     if (errors['pattern']) return this.patternMessage() ?? `${label} is not valid.`;

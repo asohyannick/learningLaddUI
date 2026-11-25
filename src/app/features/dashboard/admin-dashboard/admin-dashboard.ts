@@ -13,6 +13,7 @@ import {
   DashboardShell,
 } from '../../../shared/reusable-components/dashboard-shell/dashboard-shell';
 import { CourseManager } from '../../course/course-manager/course-manager';
+import { BookingManager } from '../../booking/booking-manager/booking-manager';
 import { BookManager } from '../../library/book-manager/book-manager';
 import { LoanManager } from '../../library/loan-manager/loan-manager';
 import { JobApplicationManager } from '../../job-application/job-application-manager/job-application-manager';
@@ -37,7 +38,8 @@ type Section =
   | 'jobs'
   | 'applications'
   | 'library'
-  | 'loans';
+  | 'loans'
+  | 'bookings';
 
 const SECTIONS: readonly DashboardSection[] = [
   { id: 'users', label: 'Users', icon: 'users' },
@@ -47,6 +49,7 @@ const SECTIONS: readonly DashboardSection[] = [
   { id: 'timetable', label: 'Timetable', icon: 'timetable' },
   { id: 'library', label: 'Library', icon: 'library' },
   { id: 'loans', label: 'Loans', icon: 'loans' },
+  { id: 'bookings', label: 'Bookings', icon: 'bookings' },
   { id: 'partners', label: 'Partners', icon: 'partners' },
   { id: 'jobs', label: 'Job listings', icon: 'jobs' },
   { id: 'applications', label: 'Applications', icon: 'applications' },
@@ -60,6 +63,7 @@ const HEADINGS: Record<Section, string> = {
   timetable: 'Timetable',
   library: 'Library catalog',
   loans: 'Borrowed books',
+  bookings: 'Tutor bookings',
   partners: 'Partners & sponsors',
   jobs: 'Job listings',
   applications: 'Job applications',
@@ -81,6 +85,7 @@ const HEADINGS: Record<Section, string> = {
     FetchAllUsers,
     FetchUser,
     BookManager,
+    BookingManager,
     JobApplicationManager,
     LoanManager,
     JobListingManager,
@@ -110,7 +115,8 @@ export class AdminDashboard {
       section === 'jobs' ||
       section === 'applications' ||
       section === 'library' ||
-      section === 'loans'
+      section === 'loans' ||
+      section === 'bookings'
       ? section
       : 'users';
   });
@@ -141,6 +147,8 @@ export class AdminDashboard {
         return 'Add, edit and remove books, manage copies and loan rules, and search the catalog.';
       case 'loans':
         return 'Issue reservations, confirm returns, handle late fees and lost books, and export loans as PDF.';
+      case 'bookings':
+        return 'Every session students booked with tutors: approve or decline requests, search, export as PDF or delete.';
       default:
         return `Welcome back, ${this.firstName()}. Here is everyone with an account.`;
     }
